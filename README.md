@@ -19,7 +19,7 @@ npm run seed
 npm run dev
 ```
 
-API runs at http://localhost:4000
+API runs at http://localhost:3151
 
 ### 2. Admin
 
@@ -29,9 +29,9 @@ npm install
 npm run dev
 ```
 
-Admin runs at http://localhost:3000
+Admin runs at http://localhost:3150
 
-Set `NEXT_PUBLIC_API_URL` in `admin/.env.local` if the API is not on `http://localhost:4000`.
+Set `NEXT_PUBLIC_API_URL` in `admin/.env.local` if the API is not on `http://localhost:3151`.
 
 ## Notes
 

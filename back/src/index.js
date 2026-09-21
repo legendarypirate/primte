@@ -25,7 +25,7 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ message: err.message || 'Серверийн алдаа' });
 });
 
-const port = Number(process.env.PORT || 4000);
+const port = Number(process.env.PORT || 3151);
 
 sequelize
   .authenticate()
