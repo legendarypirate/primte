@@ -1,0 +1,27 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const Member = sequelize.define('Member', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  memberCode: { type: DataTypes.STRING, allowNull: false, unique: true, field: 'member_code' },
+  pinHash: { type: DataTypes.STRING, allowNull: false, field: 'pin_hash' },
+  phone: { type: DataTypes.STRING },
+  avatarUrl: { type: DataTypes.STRING, field: 'avatar_url' },
+  motto: { type: DataTypes.STRING, defaultValue: 'Багтай бай. Илүү хол явна.' },
+  level: { type: DataTypes.INTEGER, defaultValue: 1 },
+  rank: { type: DataTypes.INTEGER, defaultValue: 0 },
+  competitionCount: { type: DataTypes.INTEGER, defaultValue: 0, field: 'competition_count' },
+  validFrom: { type: DataTypes.DATEONLY, field: 'valid_from' },
+  validTo: { type: DataTypes.DATEONLY, field: 'valid_to' },
+  status: { type: DataTypes.ENUM('active', 'inactive', 'expired'), defaultValue: 'active' },
+  walletBalance: { type: DataTypes.INTEGER, defaultValue: 0, field: 'wallet_balance' },
+  memberTypeId: { type: DataTypes.UUID, allowNull: true, field: 'member_type_id' },
+  developmentActivityId: { type: DataTypes.UUID, allowNull: true, field: 'development_activity_id' },
+  parentId: { type: DataTypes.UUID, allowNull: true, field: 'parent_id' },
+  parentName: { type: DataTypes.STRING, field: 'parent_name' },
+  parentPhone: { type: DataTypes.STRING, field: 'parent_phone' },
+  parentEmail: { type: DataTypes.STRING, field: 'parent_email' },
+});
+
+module.exports = Member;
