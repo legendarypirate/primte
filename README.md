@@ -15,7 +15,7 @@ Backend and admin dashboard for the PRIME airsoft club app.
 cd back
 cp .env.example .env   # edit with your DB credentials
 npm install
-npm run seed
+npm run seed   # requires Cloudinary env vars; uses images in back/seed-assets/
 npm run dev
 ```
 

@@ -8,10 +8,22 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+function resolveLocalFile(fileName) {
+  const roots = [
+    path.join(__dirname, '../../seed-assets'),
+    path.join(__dirname, '../../uploads'),
+  ];
+  for (const root of roots) {
+    const filePath = path.join(root, fileName);
+    if (fs.existsSync(filePath)) return filePath;
+  }
+  return null;
+}
+
 async function uploadLocal(fileName, folder = 'prime/seed') {
-  const filePath = path.join(__dirname, '../../uploads', fileName);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Missing upload file: ${fileName}`);
+  const filePath = resolveLocalFile(fileName);
+  if (!filePath) {
+    throw new Error(`Missing upload file: ${fileName} (checked seed-assets/ and uploads/)`);
   }
   const result = await cloudinary.uploader.upload(filePath, {
     folder,
