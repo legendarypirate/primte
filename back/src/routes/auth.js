@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { Admin, Member, Role, MemberType, DevelopmentActivity } = require('../models');
-const { signToken, requireAdmin, serializeAdmin } = require('../middleware/auth');
+const { Admin, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
+const { signToken, requireAdmin, requireParent, serializeAdmin, serializeParent } = require('../middleware/auth');
 const { serializeMember } = require('../utils/helpers');
 
 const router = express.Router();
@@ -44,6 +44,35 @@ router.post('/member/login', async (req, res) => {
 
 router.get('/admin/me', requireAdmin, (req, res) => {
   res.json({ admin: serializeAdmin(req.admin) });
+});
+
+router.post('/parent/login', async (req, res) => {
+  const { phone, code } = req.body || {};
+  if (!phone || !code) {
+    return res.status(400).json({ message: 'Утас болон нэвтрэх кодоо оруулна уу.' });
+  }
+  const normalized = String(phone).replace(/\s+/g, '');
+  const parent = await Parent.findOne({
+    where: {
+      phone: {
+        [require('sequelize').Op.or]: [normalized, normalized.replace(/^\+976/, ''), `+976${normalized.replace(/^\+976/, '')}`],
+      },
+    },
+  });
+  if (!parent) {
+    return res.status(401).json({ message: 'Эцэг эхийн бүртгэл олдсонгүй.' });
+  }
+  const ok = await bcrypt.compare(String(code).trim(), parent.pinHash);
+  if (!ok) return res.status(401).json({ message: 'Нэвтрэх код буруу.' });
+  return res.json({
+    token: signToken({ id: parent.id, role: 'parent' }),
+    parent: serializeParent(parent),
+    role: 'parent',
+  });
+});
+
+router.get('/parent/me', async (req, res, next) => {
+  return requireParent(req, res, () => res.json({ parent: serializeParent(req.parent), role: 'parent' }));
 });
 
 router.get('/member/me', async (req, res, next) => {

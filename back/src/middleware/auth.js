@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { Admin, Member, Role, MemberType, DevelopmentActivity } = require('../models');
+const { Admin, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -60,6 +60,27 @@ function requirePermission(key) {
   };
 }
 
+function serializeParent(parent) {
+  return {
+    id: parent.id,
+    name: parent.name,
+    phone: parent.phone,
+    email: parent.email,
+    avatarUrl: parent.avatarUrl,
+  };
+}
+
+async function requireParent(req, res, next) {
+  const payload = readToken(req);
+  if (!payload || payload.role !== 'parent') {
+    return res.status(401).json({ message: 'Эцэг эхийн эрх шаардлагатай.' });
+  }
+  const parent = await Parent.findByPk(payload.id);
+  if (!parent) return res.status(401).json({ message: 'Эцэг эх олдсонгүй.' });
+  req.parent = parent;
+  return next();
+}
+
 async function requireMember(req, res, next) {
   const payload = readToken(req);
   if (!payload || payload.role !== 'member') {
@@ -80,7 +101,9 @@ module.exports = {
   signToken,
   requireAdmin,
   requireMember,
+  requireParent,
   requirePermission,
   serializeAdmin,
+  serializeParent,
   hasPermission,
 };

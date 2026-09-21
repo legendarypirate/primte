@@ -17,7 +17,9 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, name: 'PRIME API' }))
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', require('./routes/rbac'));
+app.use('/api/admin/parents', require('./routes/parents-admin'));
 app.use('/api/app', appRoutes);
+app.use('/api/app/parent', require('./routes/parent'));
 app.use('/api/upload', uploadRoutes);
 
 app.use((err, _req, res, _next) => {

@@ -19,6 +19,7 @@ import {
   Tags,
   Briefcase,
   UserCog,
+  HeartHandshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { can, saveSession } from "@/lib/auth";
 const nav = [
   { href: "/", label: "Хянах самбар", icon: LayoutDashboard, permission: "dashboard.view" },
   { href: "/members", label: "Гишүүд", icon: Users, permission: "members.view" },
+  { href: "/parents", label: "Эцэг эх", icon: HeartHandshake, permission: "members.view" },
   { href: "/products", label: "Дэлгүүр", icon: ShoppingBag, permission: "products.view" },
   { href: "/competitions", label: "Тэмцээн", icon: Trophy, permission: "competitions.view" },
   { href: "/trainings", label: "Сургалт", icon: GraduationCap, permission: "trainings.view" },

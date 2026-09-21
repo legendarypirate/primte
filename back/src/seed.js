@@ -4,6 +4,7 @@ const {
   sequelize,
   Admin,
   Role,
+  Parent,
   Member,
   MemberType,
   DevelopmentActivity,
@@ -12,6 +13,8 @@ const {
   Training,
   Notice,
   Transaction,
+  Attendance,
+  MemberProgress,
   Setting,
 } = require('./models');
 const { ROLE_PRESETS } = require('./rbac/catalog');
@@ -41,6 +44,8 @@ async function run() {
     { name: 'Junior inactive member', slug: 'junior-inactive', category: 'junior', isInactive: true, requiresParent: true, hasAppAccess: false, isSystem: true, sortOrder: 10 },
   ]);
   const officialL2 = memberTypes.find((t) => t.slug === 'official-l2');
+  const juniorL2 = memberTypes.find((t) => t.slug === 'junior-l2');
+  const juniorL1 = memberTypes.find((t) => t.slug === 'junior-l1');
 
   const media = {
     avatar: await uploadLocal('avatar.png'),
@@ -71,6 +76,13 @@ async function run() {
     roleId: headRole.id,
   });
 
+  const parentAccount = await Parent.create({
+    name: 'Сарантуяа',
+    phone: '+97699112233',
+    pinHash: await bcrypt.hash('99112233', 10),
+    email: 'sarantuya@prime.mn',
+  });
+
   const temuulen = await Member.create({
     name: 'Temuulen',
     memberCode: 'PRIME-000125',
@@ -88,6 +100,75 @@ async function run() {
     memberTypeId: officialL2.id,
     developmentActivityId: smdp.id,
   });
+
+  const childTemuulen = await Member.create({
+    name: 'Тэмүүлэн',
+    memberCode: 'PRIME-J001',
+    pinHash: await bcrypt.hash('PRIME-J001', 10),
+    avatarUrl: media.avatar,
+    motto: 'Junior Athlete',
+    level: 14,
+    rank: 28,
+    competitionCount: 12,
+    validFrom: '2024-09-15',
+    validTo: '2024-12-15',
+    status: 'active',
+    walletBalance: 52000,
+    memberTypeId: juniorL2.id,
+    developmentActivityId: smdp.id,
+    parentAccountId: parentAccount.id,
+    parentName: parentAccount.name,
+    parentPhone: parentAccount.phone,
+  });
+
+  const childAnu = await Member.create({
+    name: 'Ану',
+    memberCode: 'PRIME-J002',
+    pinHash: await bcrypt.hash('PRIME-J002', 10),
+    avatarUrl: media.avatar,
+    level: 8,
+    rank: 42,
+    competitionCount: 4,
+    validFrom: '2024-09-15',
+    validTo: '2024-12-15',
+    status: 'active',
+    walletBalance: 30000,
+    memberTypeId: juniorL1.id,
+    parentAccountId: parentAccount.id,
+    parentName: parentAccount.name,
+    parentPhone: parentAccount.phone,
+  });
+
+  await MemberProgress.bulkCreate([
+    {
+      memberId: childTemuulen.id,
+      accuracy: 82,
+      speed: 76,
+      stability: 89,
+      tactical: 73,
+      safety: 96,
+      period: '3m',
+      accuracyDelta: 18,
+    },
+    {
+      memberId: childAnu.id,
+      accuracy: 68,
+      speed: 62,
+      stability: 74,
+      tactical: 58,
+      safety: 88,
+      period: '3m',
+      accuracyDelta: 12,
+    },
+  ]);
+
+  await Attendance.bulkCreate([
+    { memberId: childTemuulen.id, kind: 'club', title: 'Клубт ирсэн', createdAt: new Date() },
+    { memberId: childTemuulen.id, kind: 'club', title: 'Клубт ирсэн', createdAt: new Date('2024-11-16T17:10:00'), checkOutAt: new Date('2024-11-16T19:25:00') },
+    { memberId: childTemuulen.id, kind: 'training', title: 'Сургалт', createdAt: new Date('2024-11-14T18:00:00'), checkOutAt: new Date('2024-11-14T20:00:00') },
+    { memberId: childTemuulen.id, kind: 'club', title: 'Клубт ирсэн', createdAt: new Date('2024-11-08T17:00:00') },
+    { memberId: childAnu.id, kind: 'club', title: 'Клубт ирсэн', createdAt: new Date('2024-11-15T16:30:00') },
+  ]);
 
   await Product.bulkCreate([
     {
@@ -210,6 +291,8 @@ async function run() {
   console.log('Seeded PRIME database.');
   console.log('Admin: admin@prime.mn / PrimeAdmin0328');
   console.log('Member: Temuulen / PRIME-000125');
+  console.log('Parent: +97699112233 / 99112233');
+  console.log('Parent children: Тэмүүлэн (PRIME-J001), Ану (PRIME-J002)');
   await sequelize.close();
 }
 

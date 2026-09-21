@@ -72,6 +72,81 @@ function serializeCompetition(competition, req, extra = {}) {
   };
 }
 
+function serializeChildSummary(member, req, extra = {}) {
+  const type = member.MemberType;
+  return {
+    id: member.id,
+    name: member.name,
+    memberCode: member.memberCode,
+    avatarUrl: publicUrl(req, member.avatarUrl),
+    level: member.level,
+    rank: member.rank,
+    status: member.status,
+    walletBalance: member.walletBalance,
+    memberTypeName: type?.name || 'Junior Athlete',
+    category: type?.category || 'junior',
+    validFromLabel: formatDate(member.validFrom),
+    validToLabel: formatDate(member.validTo),
+    attendancePercent: extra.attendancePercent ?? 92,
+    competitionCount: member.competitionCount,
+  };
+}
+
+function serializeAttendance(record) {
+  const start = new Date(record.createdAt);
+  const end = record.checkOutAt ? new Date(record.checkOutAt) : null;
+  const isToday = start.toDateString() === new Date().toDateString();
+  return {
+    id: record.id,
+    title: isToday ? 'Өнөөдөр' : formatDate(start),
+    subtitle: record.title || 'Клубт ирсэн',
+    kind: record.kind,
+    dateLabel: formatDate(start),
+    timeLabel: end ? `${formatTime(start)} - ${formatTime(end)}` : formatTime(start),
+  };
+}
+
+function serializeProgress(progress) {
+  return {
+    accuracy: progress.accuracy,
+    speed: progress.speed,
+    stability: progress.stability,
+    tactical: progress.tactical,
+    safety: progress.safety,
+    period: progress.period,
+    history: [
+      {
+        label: 'Нарийвчлал',
+        delta: `${progress.accuracyDelta >= 0 ? '+' : ''}${progress.accuracyDelta}%`,
+        period: 'Сүүлийн 3 сар',
+      },
+    ],
+  };
+}
+
+function serializePurchase(item, order, req) {
+  const product = item.Product;
+  const category = product?.category || 'store';
+  const categoryLabels = {
+    bb: 'Дэлгүүр',
+    gas: 'Дэлгүүр',
+    clothing: 'Дэлгүүр',
+    accessory: 'Дэлгүүр',
+    store: 'Дэлгүүр',
+    training: 'Сургалт',
+    competition: 'Тэмцээн',
+  };
+  return {
+    id: item.id,
+    title: item.name,
+    amount: item.price * item.quantity,
+    dateLabel: formatDate(order.createdAt),
+    category,
+    categoryLabel: categoryLabels[category] || 'Дэлгүүр',
+    image: publicUrl(req, product?.imageUrl),
+  };
+}
+
 function serializeMember(member, req) {
   const type = member.MemberType;
   const activity = member.DevelopmentActivity;
@@ -124,4 +199,8 @@ module.exports = {
   serializeCompetition,
   serializeTraining,
   serializeMember,
+  serializeChildSummary,
+  serializeAttendance,
+  serializeProgress,
+  serializePurchase,
 };

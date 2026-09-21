@@ -19,6 +19,7 @@ const Member = sequelize.define('Member', {
   memberTypeId: { type: DataTypes.UUID, allowNull: true, field: 'member_type_id' },
   developmentActivityId: { type: DataTypes.UUID, allowNull: true, field: 'development_activity_id' },
   parentId: { type: DataTypes.UUID, allowNull: true, field: 'parent_id' },
+  parentAccountId: { type: DataTypes.UUID, allowNull: true, field: 'parent_account_id' },
   parentName: { type: DataTypes.STRING, field: 'parent_name' },
   parentPhone: { type: DataTypes.STRING, field: 'parent_phone' },
   parentEmail: { type: DataTypes.STRING, field: 'parent_email' },

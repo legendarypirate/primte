@@ -122,6 +122,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     memberTypeId,
     developmentActivityId,
     parentId,
+    parentAccountId,
     parentName,
     parentPhone,
     parentEmail,
@@ -131,7 +132,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
   const exists = await Member.findOne({ where: { memberCode } });
   if (exists) return res.status(400).json({ message: 'Энэ гишүүний код бүртгэлтэй.' });
   const type = memberTypeId ? await MemberType.findByPk(memberTypeId) : null;
-  if (type?.requiresParent && !parentId && !parentName) {
+  if (type?.requiresParent && !parentId && !parentAccountId && !parentName) {
     return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх мэдээлэл шаардлагатай.' });
   }
   const member = await Member.create({
@@ -150,13 +151,14 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     memberTypeId,
     developmentActivityId,
     parentId: parentId || null,
+    parentAccountId: parentAccountId || null,
     parentName,
     parentPhone,
     parentEmail,
     avatarUrl,
   });
   const created = await Member.findByPk(member.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }],
+    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: require('../models').Parent, as: 'parentAccount' }],
   });
   res.status(201).json({ member: serializeMember(created, req) });
 });
@@ -194,6 +196,7 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     'memberTypeId',
     'developmentActivityId',
     'parentId',
+    'parentAccountId',
     'parentName',
     'parentPhone',
     'parentEmail',
@@ -201,7 +204,7 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   if (data.memberTypeId) {
     const type = await MemberType.findByPk(data.memberTypeId);
     if (type?.isInactive) data.status = 'inactive';
-    if (type?.requiresParent && !data.parentId && !data.parentName && !member.parentName) {
+    if (type?.requiresParent && !data.parentId && !data.parentAccountId && !data.parentName && !member.parentName) {
       return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх мэдээлэл шаардлагатай.' });
     }
   }
