@@ -163,7 +163,7 @@ router.post('/competitions/:id/register', async (req, res) => {
     return res.json({ ok: true, already: true, registration: serializeRegistration(existing) });
   }
 
-  const { divisionId, category, squadLabel, payNow = true } = req.body || {};
+  const { divisionId, divisionAbbreviation, category, squadLabel, payNow = true } = req.body || {};
   const joined = await Registration.count({
     where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
   });
@@ -174,7 +174,12 @@ router.post('/competitions/:id/register', async (req, res) => {
   let division = null;
   if (divisionId) {
     division = await Division.findByPk(divisionId);
-    if (!division) return res.status(400).json({ message: 'Ангилал олдсонгүй.' });
+  }
+  if (!division && divisionAbbreviation) {
+    division = await Division.findOne({ where: { abbreviation: divisionAbbreviation } });
+  }
+  if (!division && divisionId && !/^[0-9a-f-]{36}$/i.test(String(divisionId))) {
+    division = await Division.findOne({ where: { abbreviation: divisionId } });
   }
 
   const shouldPayNow = payNow !== false;
@@ -224,6 +229,46 @@ router.post('/competitions/:id/register', async (req, res) => {
     ok: true,
     member: serializeMember(req.member, req),
     registration: serializeRegistration(withIncludes),
+  });
+});
+
+router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
+  const registration = await Registration.findOne({
+    where: {
+      memberId: req.member.id,
+      competitionId: req.params.id,
+      status: { [Op.in]: ['waitlist', 'pending'] },
+    },
+    include: [Division],
+  });
+  if (!registration) return res.status(404).json({ message: 'Хүлээлгийн бүртгэл олдсонгүй.' });
+
+  const competition = await Competition.findByPk(req.params.id);
+  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+
+  await sequelize.transaction(async (t) => {
+    await req.member.increment('competitionCount', { by: 1, transaction: t });
+    await registration.update(
+      { status: 'confirmed', feePaid: competition.fee },
+      { transaction: t }
+    );
+    await Transaction.create(
+      {
+        memberId: req.member.id,
+        title: `${competition.title} (QPay)`,
+        amount: -competition.fee,
+        kind: 'fee',
+      },
+      { transaction: t }
+    );
+  });
+
+  await req.member.reload();
+  await registration.reload({ include: [Division] });
+  res.json({
+    ok: true,
+    member: serializeMember(req.member, req),
+    registration: serializeRegistration(registration),
   });
 });
 
