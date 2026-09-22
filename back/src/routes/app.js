@@ -240,36 +240,64 @@ router.post('/competitions/:id/register', async (req, res) => {
 });
 
 router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
+  const competition = await Competition.findByPk(req.params.id);
+  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+
+  const { divisionId, divisionAbbreviation, category, squadLabel } = req.body || {};
+  let division = null;
+  if (divisionId) {
+    division = await Division.findByPk(divisionId);
+  }
+  if (!division && divisionAbbreviation) {
+    division = await Division.findOne({ where: { abbreviation: divisionAbbreviation } });
+  }
+  if (!division && divisionId && !/^[0-9a-f-]{36}$/i.test(String(divisionId))) {
+    division = await Division.findOne({ where: { abbreviation: divisionId } });
+  }
+
   let registration = await Registration.findOne({
     where: {
       memberId: req.member.id,
-      competitionId: req.params.id,
-      status: { [Op.in]: ['waitlist', 'pending'] },
+      competitionId: competition.id,
+      status: { [Op.ne]: 'cancelled' },
     },
     include: [Division],
   });
-  if (!registration) {
-    registration = await Registration.findOne({
-      where: {
-        memberId: req.member.id,
-        competitionId: req.params.id,
-        status: 'confirmed',
-      },
-      include: [Division],
+
+  if (registration?.status === 'confirmed') {
+    return res.json({
+      ok: true,
+      already: true,
+      member: serializeMember(req.member, req),
+      registration: serializeRegistration(registration),
     });
-    if (registration) {
-      return res.json({
-        ok: true,
-        already: true,
-        member: serializeMember(req.member, req),
-        registration: serializeRegistration(registration),
-      });
-    }
-    return res.status(404).json({ message: 'Хүлээлгийн бүртгэл олдсонгүй.' });
   }
 
-  const competition = await Competition.findByPk(req.params.id);
-  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+  if (!registration) {
+    const joined = await Registration.count({
+      where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
+    });
+    if (joined >= competition.capacity) {
+      return res.status(400).json({ message: 'Хүчин чадал дүүрсэн.' });
+    }
+    const paymentReference = buildPaymentReference(competition, division, squadLabel, joined + 1);
+    registration = await Registration.create({
+      memberId: req.member.id,
+      competitionId: competition.id,
+      divisionId: division?.id || null,
+      category: category || null,
+      squadLabel: squadLabel || null,
+      status: 'waitlist',
+      paymentReference,
+      feePaid: 0,
+    });
+  } else {
+    const updates = {};
+    if (category !== undefined) updates.category = category;
+    if (squadLabel !== undefined) updates.squadLabel = squadLabel;
+    if (division?.id) updates.divisionId = division.id;
+    if (Object.keys(updates).length) await registration.update(updates);
+  }
 
   await sequelize.transaction(async (t) => {
     await req.member.increment('competitionCount', { by: 1, transaction: t });

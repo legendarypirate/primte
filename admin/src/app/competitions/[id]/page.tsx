@@ -218,27 +218,32 @@ export default function CompetitionDetailPage() {
 
   return (
     <Shell>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1">
           <Link href="/competitions" className="text-sm text-muted-foreground hover:text-primary">← Тэмцээний жагсаалт</Link>
           <h1 className="font-heading text-3xl text-primary">{form.title || "Тэмцээн"}</h1>
-          <p className="text-sm text-muted-foreground">{joined}/{form.capacity} оролцогч · {tugrik(form.fee)}</p>
+          <p className="text-base text-muted-foreground">{joined}/{form.capacity} оролцогч · {tugrik(form.fee)}</p>
         </div>
-        <Button onClick={save}>Хадгалах</Button>
+        <Button className="h-10 px-5" onClick={save}>Хадгалах</Button>
       </div>
 
-      <Tabs defaultValue="basic">
-        <TabsList className="mb-4 flex-wrap">
-          <TabsTrigger value="basic">Үндсэн</TabsTrigger>
-          <TabsTrigger value="divisions">Ангилал</TabsTrigger>
-          <TabsTrigger value="squads">Скуад & хуваарь</TabsTrigger>
-          <TabsTrigger value="content">Агуулга</TabsTrigger>
-          <TabsTrigger value="competitors">Оролцогчид ({registrations.length})</TabsTrigger>
+      <Tabs defaultValue="basic" className="gap-4">
+        <TabsList
+          variant="line"
+          className="mb-6 h-auto w-full flex-wrap items-center justify-start gap-2 border-b border-border pb-3"
+        >
+          <TabsTrigger value="basic" className="h-10 flex-none px-4 text-sm sm:text-base">Үндсэн</TabsTrigger>
+          <TabsTrigger value="divisions" className="h-10 flex-none px-4 text-sm sm:text-base">Ангилал</TabsTrigger>
+          <TabsTrigger value="squads" className="h-10 flex-none px-4 text-sm sm:text-base">Скуад & хуваарь</TabsTrigger>
+          <TabsTrigger value="content" className="h-10 flex-none px-4 text-sm sm:text-base">Агуулга</TabsTrigger>
+          <TabsTrigger value="competitors" className="h-10 flex-none px-4 text-sm sm:text-base">
+            Оролцогчид ({registrations.length})
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="basic">
+        <TabsContent value="basic" className="mt-2">
           <Card>
-            <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
+            <CardContent className="grid gap-5 pt-6 md:grid-cols-2">
               <div className="space-y-1 md:col-span-2"><Label>Нэр</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
               <div className="space-y-1"><Label>Дэд гарчиг (IPSC Action Air)</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
               <div className="space-y-1">
@@ -276,7 +281,7 @@ export default function CompetitionDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="divisions">
+        <TabsContent value="divisions" className="mt-2">
           <Card>
             <CardHeader><CardTitle>Division сонгох</CardTitle></CardHeader>
             <CardContent className="space-y-4">
@@ -302,7 +307,7 @@ export default function CompetitionDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="squads">
+        <TabsContent value="squads" className="mt-2">
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
@@ -346,7 +351,7 @@ export default function CompetitionDetailPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="content">
+        <TabsContent value="content" className="mt-2">
           <Card>
             <CardContent className="grid gap-4 pt-6">
               <div className="space-y-1"><Label>Тэмцээний тухай</Label><Textarea rows={4} value={form.about} onChange={(e) => setForm({ ...form, about: e.target.value })} /></div>
@@ -360,7 +365,7 @@ export default function CompetitionDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="competitors">
+        <TabsContent value="competitors" className="mt-2">
           <Card>
             <CardHeader><CardTitle>Оролцогчдын жагсаалт</CardTitle></CardHeader>
             <CardContent>
