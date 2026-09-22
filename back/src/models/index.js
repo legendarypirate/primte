@@ -5,6 +5,8 @@ const Parent = require('./parent');
 const Member = require('./member');
 const MemberType = require('./memberType');
 const DevelopmentActivity = require('./developmentActivity');
+const MatchType = require('./matchType');
+const Division = require('./division');
 const Product = require('./product');
 const Competition = require('./competition');
 const Training = require('./training');
@@ -64,6 +66,8 @@ module.exports = {
   Member,
   MemberType,
   DevelopmentActivity,
+  MatchType,
+  Division,
   Product,
   Competition,
   Training,

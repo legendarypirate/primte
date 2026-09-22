@@ -20,6 +20,8 @@ import {
   Briefcase,
   UserCog,
   HeartHandshake,
+  Swords,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -39,6 +41,8 @@ const nav = [
   { href: "/attendance", label: "Ирц / QR", icon: QrCode, permission: "attendance.view" },
   { href: "/member-types", label: "Гишүүний төрөл", icon: Tags, permission: "member_types.manage" },
   { href: "/activities", label: "Хөгжлийн хөтөлбөр", icon: Briefcase, permission: "activities.manage" },
+  { href: "/match-types", label: "Match type", icon: Swords, permission: "match_types.manage" },
+  { href: "/divisions", label: "Division", icon: Layers, permission: "divisions.manage" },
   { href: "/rbac", label: "RBAC / Role", icon: Shield, permission: "roles.manage" },
   { href: "/staff", label: "Админ хэрэглэгч", icon: UserCog, permission: "staff.manage" },
   { href: "/settings", label: "Тохиргоо", icon: Settings, permission: "settings.manage" },

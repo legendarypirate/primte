@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { Role, Admin, MemberType, DevelopmentActivity } = require('../models');
+const { Role, Admin, MemberType, DevelopmentActivity, MatchType, Division } = require('../models');
 const { requireAdmin, requirePermission, serializeAdmin } = require('../middleware/auth');
 const { PERMISSIONS, groupedPermissions } = require('../rbac/catalog');
 
@@ -138,6 +138,66 @@ router.delete('/development-activities/:id', requirePermission('activities.manag
   if (!activity) return res.status(404).json({ message: 'Activity олдсонгүй.' });
   if (activity.isSystem) return res.status(400).json({ message: 'Системийн activity устгах боломжгүй.' });
   await activity.destroy();
+  res.json({ ok: true });
+});
+
+router.get('/match-types', requirePermission('match_types.manage'), async (_req, res) => {
+  const matchTypes = await MatchType.findAll({ order: [['name', 'ASC']] });
+  res.json({ matchTypes });
+});
+
+router.post('/match-types', requirePermission('match_types.manage'), async (req, res) => {
+  const { name, comment } = req.body || {};
+  if (!name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
+  const matchType = await MatchType.create({ name, comment });
+  res.status(201).json({ matchType });
+});
+
+router.put('/match-types/:id', requirePermission('match_types.manage'), async (req, res) => {
+  const matchType = await MatchType.findByPk(req.params.id);
+  if (!matchType) return res.status(404).json({ message: 'Match type олдсонгүй.' });
+  await matchType.update({
+    name: req.body.name ?? matchType.name,
+    comment: req.body.comment ?? matchType.comment,
+  });
+  res.json({ matchType });
+});
+
+router.delete('/match-types/:id', requirePermission('match_types.manage'), async (req, res) => {
+  const matchType = await MatchType.findByPk(req.params.id);
+  if (!matchType) return res.status(404).json({ message: 'Match type олдсонгүй.' });
+  await matchType.destroy();
+  res.json({ ok: true });
+});
+
+router.get('/divisions', requirePermission('divisions.manage'), async (_req, res) => {
+  const divisions = await Division.findAll({ order: [['abbreviation', 'ASC']] });
+  res.json({ divisions });
+});
+
+router.post('/divisions', requirePermission('divisions.manage'), async (req, res) => {
+  const { abbreviation, name, description } = req.body || {};
+  if (!abbreviation) return res.status(400).json({ message: 'Товчлол шаардлагатай.' });
+  if (!name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
+  const division = await Division.create({ abbreviation, name, description });
+  res.status(201).json({ division });
+});
+
+router.put('/divisions/:id', requirePermission('divisions.manage'), async (req, res) => {
+  const division = await Division.findByPk(req.params.id);
+  if (!division) return res.status(404).json({ message: 'Division олдсонгүй.' });
+  await division.update({
+    abbreviation: req.body.abbreviation ?? division.abbreviation,
+    name: req.body.name ?? division.name,
+    description: req.body.description ?? division.description,
+  });
+  res.json({ division });
+});
+
+router.delete('/divisions/:id', requirePermission('divisions.manage'), async (req, res) => {
+  const division = await Division.findByPk(req.params.id);
+  if (!division) return res.status(404).json({ message: 'Division олдсонгүй.' });
+  await division.destroy();
   res.json({ ok: true });
 });
 

@@ -22,6 +22,8 @@ const PERMISSIONS = [
   { key: 'roles.manage', group: 'System', label: 'Manage roles & permissions' },
   { key: 'member_types.manage', group: 'System', label: 'Manage member types' },
   { key: 'activities.manage', group: 'System', label: 'Manage development activities' },
+  { key: 'match_types.manage', group: 'System', label: 'Manage match types' },
+  { key: 'divisions.manage', group: 'System', label: 'Manage divisions' },
   { key: 'staff.manage', group: 'System', label: 'Manage admin users' },
 ];
 
