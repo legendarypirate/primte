@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { api, tugrik } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type Order = {
   id: string;
@@ -48,10 +49,15 @@ export default function OrdersPage() {
                   <TableCell>{tugrik(o.total)}</TableCell>
                   <TableCell>{o.status}</TableCell>
                   <TableCell>
-                    <Button size="sm" variant="outline" onClick={async () => {
-                      await api(`/api/admin/orders/${o.id}`, { method: "PUT", body: JSON.stringify({ status: "fulfilled" }) });
-                      load();
-                    }}>Хүргэсэн</Button>
+                    <ActionCell>
+                      <IconActionButton
+                        action="deliver"
+                        onClick={async () => {
+                          await api(`/api/admin/orders/${o.id}`, { method: "PUT", body: JSON.stringify({ status: "fulfilled" }) });
+                          load();
+                        }}
+                      />
+                    </ActionCell>
                   </TableCell>
                 </TableRow>
               ))}

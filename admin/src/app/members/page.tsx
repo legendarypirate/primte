@@ -13,6 +13,7 @@ import { FieldSelect } from "@/components/field-select";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { can } from "@/lib/auth";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type Named = { id: string; name: string; requiresParent?: boolean };
 type Member = {
@@ -207,46 +208,57 @@ export default function MembersPage() {
                     <TableCell>{m.developmentActivity?.name || "—"}</TableCell>
                     <TableCell>{tugrik(m.walletBalance)}</TableCell>
                     <TableCell><Badge variant={m.status === "active" ? "default" : "secondary"}>{m.status}</Badge></TableCell>
-                    <TableCell className="space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => {
-                        setEditing(m.id);
-                        setForm({
-                          ...empty,
-                          name: m.name,
-                          memberCode: m.memberCode,
-                          phone: m.phone || "",
-                          level: m.level,
-                          rank: m.rank,
-                          walletBalance: m.walletBalance,
-                          validFrom: dateValue(m.validFrom),
-                          validTo: dateValue(m.validTo),
-                          status: m.status,
-                          memberTypeId: m.memberTypeId || "",
-                          developmentActivityId: m.developmentActivityId || "",
-                          parentId: m.parentId || "",
-                          parentName: m.parentName || "",
-                          parentPhone: m.parentPhone || "",
-                          parentEmail: m.parentEmail || "",
-                          avatarUrl: m.avatarUrl || "",
-                        });
-                      }}>Засах</Button>
-                      {can("members.topup") && (
-                        <Button size="sm" variant="outline" onClick={async () => {
-                          const amount = Number(prompt("Цэнэглэх дүн", String(topup.amount)) || 0);
-                          if (!amount) return;
-                          setTopup({ id: m.id, amount });
-                          await api(`/api/admin/members/${m.id}/topup`, { method: "POST", body: JSON.stringify({ amount }) });
-                          toast.success("Цэнэглэлээ");
-                          load();
-                        }}>Цэнэглэх</Button>
-                      )}
-                      {can("members.delete") && (
-                        <Button size="sm" variant="destructive" onClick={async () => {
-                          if (!confirm("Устгах уу?")) return;
-                          await api(`/api/admin/members/${m.id}`, { method: "DELETE" });
-                          load();
-                        }}>Устгах</Button>
-                      )}
+                    <TableCell>
+                      <ActionCell>
+                        <IconActionButton
+                          action="edit"
+                          onClick={() => {
+                            setEditing(m.id);
+                            setForm({
+                              ...empty,
+                              name: m.name,
+                              memberCode: m.memberCode,
+                              phone: m.phone || "",
+                              level: m.level,
+                              rank: m.rank,
+                              walletBalance: m.walletBalance,
+                              validFrom: dateValue(m.validFrom),
+                              validTo: dateValue(m.validTo),
+                              status: m.status,
+                              memberTypeId: m.memberTypeId || "",
+                              developmentActivityId: m.developmentActivityId || "",
+                              parentId: m.parentId || "",
+                              parentName: m.parentName || "",
+                              parentPhone: m.parentPhone || "",
+                              parentEmail: m.parentEmail || "",
+                              avatarUrl: m.avatarUrl || "",
+                            });
+                          }}
+                        />
+                        {can("members.topup") && (
+                          <IconActionButton
+                            action="topup"
+                            onClick={async () => {
+                              const amount = Number(prompt("Цэнэглэх дүн", String(topup.amount)) || 0);
+                              if (!amount) return;
+                              setTopup({ id: m.id, amount });
+                              await api(`/api/admin/members/${m.id}/topup`, { method: "POST", body: JSON.stringify({ amount }) });
+                              toast.success("Цэнэглэлээ");
+                              load();
+                            }}
+                          />
+                        )}
+                        {can("members.delete") && (
+                          <IconActionButton
+                            action="delete"
+                            onClick={async () => {
+                              if (!confirm("Устгах уу?")) return;
+                              await api(`/api/admin/members/${m.id}`, { method: "DELETE" });
+                              load();
+                            }}
+                          />
+                        )}
+                      </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}

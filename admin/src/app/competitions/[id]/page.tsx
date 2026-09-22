@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type Division = { id: string; abbreviation: string; name: string };
 type MatchType = { id: string; name: string };
@@ -322,7 +323,7 @@ export default function CompetitionDetailPage() {
                     <Input type="date" value={sq.date} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, date: e.target.value }; setForm({ ...form, squads }); }} />
                     <Input placeholder="18:00" value={sq.timeStart} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, timeStart: e.target.value }; setForm({ ...form, squads }); }} />
                     <Input placeholder="22:00" value={sq.timeEnd} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, timeEnd: e.target.value }; setForm({ ...form, squads }); }} />
-                    <Button size="sm" variant="destructive" onClick={() => setForm({ ...form, squads: form.squads.filter((_, j) => j !== i) })}>Устгах</Button>
+                    <IconActionButton action="delete" onClick={() => setForm({ ...form, squads: form.squads.filter((_, j) => j !== i) })} />
                   </div>
                 ))}
                 <div className="grid grid-cols-2 gap-2">
@@ -343,7 +344,7 @@ export default function CompetitionDetailPage() {
                     <Input placeholder="Stage 1-6" value={row.stages} onChange={(e) => { const schedule = [...form.schedule]; schedule[i] = { ...row, stages: e.target.value }; setForm({ ...form, schedule }); }} />
                     <Input type="date" value={row.date} onChange={(e) => { const schedule = [...form.schedule]; schedule[i] = { ...row, date: e.target.value }; setForm({ ...form, schedule }); }} />
                     <Input placeholder="SQ1-3" value={row.squads} onChange={(e) => { const schedule = [...form.schedule]; schedule[i] = { ...row, squads: e.target.value }; setForm({ ...form, schedule }); }} />
-                    <Button size="sm" variant="destructive" onClick={() => setForm({ ...form, schedule: form.schedule.filter((_, j) => j !== i) })}>Устгах</Button>
+                    <IconActionButton action="delete" onClick={() => setForm({ ...form, schedule: form.schedule.filter((_, j) => j !== i) })} />
                   </div>
                 ))}
               </CardContent>
@@ -393,13 +394,15 @@ export default function CompetitionDetailPage() {
                       <TableCell>{r.squadLabel || "—"}</TableCell>
                       <TableCell>{statusBadge(r.status)}</TableCell>
                       <TableCell>{r.feePaid ? tugrik(r.feePaid) : "—"}</TableCell>
-                      <TableCell className="space-x-1">
-                        {r.status === "waitlist" && (
-                          <Button size="sm" onClick={() => updateRegistrationStatus(r.id, "confirmed")}>Батлах</Button>
-                        )}
-                        {r.status !== "cancelled" && (
-                          <Button size="sm" variant="destructive" onClick={() => updateRegistrationStatus(r.id, "cancelled")}>Цуцлах</Button>
-                        )}
+                      <TableCell>
+                        <ActionCell>
+                          {r.status === "waitlist" && (
+                            <IconActionButton action="approve" onClick={() => updateRegistrationStatus(r.id, "confirmed")} />
+                          )}
+                          {r.status !== "cancelled" && (
+                            <IconActionButton action="cancel" onClick={() => updateRegistrationStatus(r.id, "cancelled")} />
+                          )}
+                        </ActionCell>
                       </TableCell>
                     </TableRow>
                   ))}

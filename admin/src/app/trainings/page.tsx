@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type Training = { id: string; title: string; subtitle?: string; eventDate?: string; timeLabel?: string; capacity: number; fee: number; imageUrl?: string };
 const empty = { title: "", subtitle: "", eventDate: "", timeLabel: "", capacity: 24, fee: 0, imageUrl: "" };
@@ -67,9 +68,11 @@ export default function TrainingsPage() {
                     <TableCell>{t.title}</TableCell>
                     <TableCell>{t.eventDate} {t.timeLabel}</TableCell>
                     <TableCell>{tugrik(t.fee)}</TableCell>
-                    <TableCell className="space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => { setEditing(t.id); setForm({ title: t.title, subtitle: t.subtitle || "", eventDate: String(t.eventDate || "").slice(0, 10), timeLabel: t.timeLabel || "", capacity: t.capacity, fee: t.fee, imageUrl: t.imageUrl || "" }); }}>Засах</Button>
-                      <Button size="sm" variant="destructive" onClick={async () => { await api(`/api/admin/trainings/${t.id}`, { method: "DELETE" }); load(); }}>Устгах</Button>
+                    <TableCell>
+                      <ActionCell>
+                        <IconActionButton action="edit" onClick={() => { setEditing(t.id); setForm({ title: t.title, subtitle: t.subtitle || "", eventDate: String(t.eventDate || "").slice(0, 10), timeLabel: t.timeLabel || "", capacity: t.capacity, fee: t.fee, imageUrl: t.imageUrl || "" }); }} />
+                        <IconActionButton action="delete" onClick={async () => { await api(`/api/admin/trainings/${t.id}`, { method: "DELETE" }); load(); }} />
+                      </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}

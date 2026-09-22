@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type Role = { id: string; name: string; slug: string };
 type Staff = {
@@ -115,20 +116,28 @@ export default function StaffPage() {
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.email}</TableCell>
                     <TableCell><Badge>{item.role?.name || "—"}</Badge></TableCell>
-                    <TableCell className="space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => {
-                        setEditing(item.id);
-                        setForm({ name: item.name, email: item.email, password: "", roleId: item.roleId });
-                      }}>Засах</Button>
-                      <Button size="sm" variant="destructive" onClick={async () => {
-                        if (!confirm("Устгах уу?")) return;
-                        try {
-                          await api(`/api/admin/staff/${item.id}`, { method: "DELETE" });
-                          load();
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Алдаа");
-                        }
-                      }}>Устгах</Button>
+                    <TableCell>
+                      <ActionCell>
+                        <IconActionButton
+                          action="edit"
+                          onClick={() => {
+                            setEditing(item.id);
+                            setForm({ name: item.name, email: item.email, password: "", roleId: item.roleId });
+                          }}
+                        />
+                        <IconActionButton
+                          action="delete"
+                          onClick={async () => {
+                            if (!confirm("Устгах уу?")) return;
+                            try {
+                              await api(`/api/admin/staff/${item.id}`, { method: "DELETE" });
+                              load();
+                            } catch (e) {
+                              toast.error(e instanceof Error ? e.message : "Алдаа");
+                            }
+                          }}
+                        />
+                      </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}

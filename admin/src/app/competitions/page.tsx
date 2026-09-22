@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, tugrik } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type Competition = {
   id: string;
@@ -102,13 +103,18 @@ export default function CompetitionsPage() {
                     <TableCell>{tugrik(c.fee)}</TableCell>
                     <TableCell>{c.joined || 0}/{c.capacity}</TableCell>
                     <TableCell>{c.status}</TableCell>
-                    <TableCell className="space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/competitions/${c.id}`)}>Засах</Button>
-                      <Button size="sm" variant="destructive" onClick={async () => {
-                        if (!confirm("Устгах уу?")) return;
-                        await api(`/api/admin/competitions/${c.id}`, { method: "DELETE" });
-                        load();
-                      }}>Устгах</Button>
+                    <TableCell>
+                      <ActionCell>
+                        <IconActionButton action="edit" onClick={() => router.push(`/competitions/${c.id}`)} />
+                        <IconActionButton
+                          action="delete"
+                          onClick={async () => {
+                            if (!confirm("Устгах уу?")) return;
+                            await api(`/api/admin/competitions/${c.id}`, { method: "DELETE" });
+                            load();
+                          }}
+                        />
+                      </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}

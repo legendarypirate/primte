@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { IconActionButton } from "@/components/icon-action-button";
 
 type Notice = { id: string; title: string; body: string; published: boolean; createdAt: string };
 
@@ -43,7 +44,7 @@ export default function NoticesPage() {
             <Card key={n.id}>
               <CardHeader className="flex-row items-center justify-between">
                 <CardTitle className="text-base">{n.title}</CardTitle>
-                <Button size="sm" variant="destructive" onClick={async () => { await api(`/api/admin/notices/${n.id}`, { method: "DELETE" }); load(); }}>Устгах</Button>
+                <IconActionButton action="delete" onClick={async () => { await api(`/api/admin/notices/${n.id}`, { method: "DELETE" }); load(); }} />
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">{n.body}</CardContent>
             </Card>

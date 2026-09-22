@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type Product = {
   id: string;
@@ -108,25 +109,33 @@ export default function ProductsPage() {
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{tugrik(p.price)}</TableCell>
                     <TableCell>{p.category}</TableCell>
-                    <TableCell className="space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => {
-                        setEditing(p.id);
-                        setForm({
-                          name: p.name,
-                          price: p.price,
-                          category: p.category,
-                          categoryLabel: p.categoryLabel || "",
-                          subtitle: p.subtitle || "",
-                          description: p.description || "",
-                          features: (p.features || []).join(", "),
-                          inStock: p.inStock,
-                          imageUrl: p.imageUrl || "",
-                        });
-                      }}>Засах</Button>
-                      <Button size="sm" variant="destructive" onClick={async () => {
-                        await api(`/api/admin/products/${p.id}`, { method: "DELETE" });
-                        load();
-                      }}>Устгах</Button>
+                    <TableCell>
+                      <ActionCell>
+                        <IconActionButton
+                          action="edit"
+                          onClick={() => {
+                            setEditing(p.id);
+                            setForm({
+                              name: p.name,
+                              price: p.price,
+                              category: p.category,
+                              categoryLabel: p.categoryLabel || "",
+                              subtitle: p.subtitle || "",
+                              description: p.description || "",
+                              features: (p.features || []).join(", "),
+                              inStock: p.inStock,
+                              imageUrl: p.imageUrl || "",
+                            });
+                          }}
+                        />
+                        <IconActionButton
+                          action="delete"
+                          onClick={async () => {
+                            await api(`/api/admin/products/${p.id}`, { method: "DELETE" });
+                            load();
+                          }}
+                        />
+                      </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}

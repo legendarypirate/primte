@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type MemberType = {
   id: string;
@@ -140,25 +141,33 @@ export default function MemberTypesPage() {
                       {item.requiresParent && <Badge variant="secondary">parent</Badge>}
                       {item.isInactive ? <Badge variant="secondary">inactive</Badge> : <Badge>app</Badge>}
                     </TableCell>
-                    <TableCell className="space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => {
-                        setEditing(item.id);
-                        setForm({
-                          name: item.name,
-                          category: item.category,
-                          level: item.level == null ? "" : String(item.level),
-                          isInactive: item.isInactive,
-                          requiresParent: item.requiresParent,
-                          hasAppAccess: item.hasAppAccess,
-                        });
-                      }}>Засах</Button>
-                      {!item.isSystem && (
-                        <Button size="sm" variant="destructive" onClick={async () => {
-                          if (!confirm("Устгах уу?")) return;
-                          await api(`/api/admin/member-types/${item.id}`, { method: "DELETE" });
-                          load();
-                        }}>Устгах</Button>
-                      )}
+                    <TableCell>
+                      <ActionCell>
+                        <IconActionButton
+                          action="edit"
+                          onClick={() => {
+                            setEditing(item.id);
+                            setForm({
+                              name: item.name,
+                              category: item.category,
+                              level: item.level == null ? "" : String(item.level),
+                              isInactive: item.isInactive,
+                              requiresParent: item.requiresParent,
+                              hasAppAccess: item.hasAppAccess,
+                            });
+                          }}
+                        />
+                        {!item.isSystem && (
+                          <IconActionButton
+                            action="delete"
+                            onClick={async () => {
+                              if (!confirm("Устгах уу?")) return;
+                              await api(`/api/admin/member-types/${item.id}`, { method: "DELETE" });
+                              load();
+                            }}
+                          />
+                        )}
+                      </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}

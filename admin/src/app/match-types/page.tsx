@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 
 type MatchType = {
   id: string;
@@ -93,28 +94,24 @@ export default function MatchTypesPage() {
                   <TableRow key={item.id}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.comment || "—"}</TableCell>
-                    <TableCell className="space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditing(item.id);
-                          setForm({ name: item.name, comment: item.comment || "" });
-                        }}
-                      >
-                        Засах
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={async () => {
-                          if (!confirm("Устгах уу?")) return;
-                          await api(`/api/admin/match-types/${item.id}`, { method: "DELETE" });
-                          load();
-                        }}
-                      >
-                        Устгах
-                      </Button>
+                    <TableCell>
+                      <ActionCell>
+                        <IconActionButton
+                          action="edit"
+                          onClick={() => {
+                            setEditing(item.id);
+                            setForm({ name: item.name, comment: item.comment || "" });
+                          }}
+                        />
+                        <IconActionButton
+                          action="delete"
+                          onClick={async () => {
+                            if (!confirm("Устгах уу?")) return;
+                            await api(`/api/admin/match-types/${item.id}`, { method: "DELETE" });
+                            load();
+                          }}
+                        />
+                      </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}
