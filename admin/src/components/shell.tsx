@@ -80,12 +80,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-border bg-sidebar px-4 py-6">
-        <div className="px-2 pb-6">
+        <div className="px-2 pb-4">
           <p className="text-xs tracking-[0.28em] text-primary">PRACTICAL SHOOTING</p>
           <h1 className="font-heading text-2xl font-semibold tracking-[0.2em] text-primary">PRIME</h1>
           <p className="text-xs text-muted-foreground">{roleName || "Admin console"}</p>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto" key={tick}>
+        <nav className="flex-1 space-y-0.5 overflow-y-auto" key={tick}>
           {nav.filter((item) => can(item.permission)).map((item) => {
             const active = pathname === item.href;
             const Icon = item.icon;
@@ -94,7 +94,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm transition-colors",
                   active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"
                 )}
               >
@@ -106,7 +106,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </nav>
         <Button
           variant="ghost"
-          className="justify-start"
+          className="mt-2 h-8 justify-start px-3"
           onClick={() => {
             localStorage.removeItem("prime_admin_token");
             localStorage.removeItem("prime_admin_permissions");
