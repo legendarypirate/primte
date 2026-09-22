@@ -151,25 +151,7 @@ router.post('/competitions/:id/register', async (req, res) => {
   if (competition.status === 'past') {
     return res.status(400).json({ message: 'Бүртгэл хаагдсан.' });
   }
-  const existing = await Registration.findOne({
-    where: {
-      memberId: req.member.id,
-      competitionId: competition.id,
-      status: { [Op.ne]: 'cancelled' },
-    },
-    include: [Division],
-  });
-  if (existing) {
-    return res.json({ ok: true, already: true, registration: serializeRegistration(existing) });
-  }
-
   const { divisionId, divisionAbbreviation, category, squadLabel, payNow = true } = req.body || {};
-  const joined = await Registration.count({
-    where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
-  });
-  if (joined >= competition.capacity) {
-    return res.status(400).json({ message: 'Хүчин чадал дүүрсэн.' });
-  }
 
   let division = null;
   if (divisionId) {
@@ -180,6 +162,31 @@ router.post('/competitions/:id/register', async (req, res) => {
   }
   if (!division && divisionId && !/^[0-9a-f-]{36}$/i.test(String(divisionId))) {
     division = await Division.findOne({ where: { abbreviation: divisionId } });
+  }
+
+  const existing = await Registration.findOne({
+    where: {
+      memberId: req.member.id,
+      competitionId: competition.id,
+      status: { [Op.ne]: 'cancelled' },
+    },
+    include: [Division],
+  });
+  if (existing) {
+    const updates = {};
+    if (category !== undefined) updates.category = category;
+    if (squadLabel !== undefined) updates.squadLabel = squadLabel;
+    if (division?.id) updates.divisionId = division.id;
+    if (Object.keys(updates).length) await existing.update(updates);
+    await existing.reload({ include: [Division] });
+    return res.json({ ok: true, already: true, registration: serializeRegistration(existing) });
+  }
+
+  const joined = await Registration.count({
+    where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
+  });
+  if (joined >= competition.capacity) {
+    return res.status(400).json({ message: 'Хүчин чадал дүүрсэн.' });
   }
 
   const shouldPayNow = payNow !== false;
@@ -233,7 +240,7 @@ router.post('/competitions/:id/register', async (req, res) => {
 });
 
 router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
-  const registration = await Registration.findOne({
+  let registration = await Registration.findOne({
     where: {
       memberId: req.member.id,
       competitionId: req.params.id,
@@ -241,7 +248,25 @@ router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
     },
     include: [Division],
   });
-  if (!registration) return res.status(404).json({ message: 'Хүлээлгийн бүртгэл олдсонгүй.' });
+  if (!registration) {
+    registration = await Registration.findOne({
+      where: {
+        memberId: req.member.id,
+        competitionId: req.params.id,
+        status: 'confirmed',
+      },
+      include: [Division],
+    });
+    if (registration) {
+      return res.json({
+        ok: true,
+        already: true,
+        member: serializeMember(req.member, req),
+        registration: serializeRegistration(registration),
+      });
+    }
+    return res.status(404).json({ message: 'Хүлээлгийн бүртгэл олдсонгүй.' });
+  }
 
   const competition = await Competition.findByPk(req.params.id);
   if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
