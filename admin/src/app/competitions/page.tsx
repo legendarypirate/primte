@@ -1,15 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 
 type Competition = {
@@ -20,18 +20,18 @@ type Competition = {
   location?: string;
   capacity: number;
   fee: number;
-  about?: string;
   status: string;
   joined?: number;
-  imageUrl?: string;
+  level?: string;
+  stageCount?: number;
 };
 
-const empty = { title: "", subtitle: "", eventDate: "", location: "", capacity: 50, fee: 0, about: "", status: "upcoming", imageUrl: "" };
+const empty = { title: "", subtitle: "", eventDate: "", location: "", capacity: 50, fee: 250000, status: "upcoming" };
 
 export default function CompetitionsPage() {
+  const router = useRouter();
   const [items, setItems] = useState<Competition[]>([]);
   const [form, setForm] = useState(empty);
-  const [editing, setEditing] = useState<string | null>(null);
 
   async function load() {
     const data = await api<{ competitions: Competition[] }>("/api/admin/competitions");
@@ -39,14 +39,14 @@ export default function CompetitionsPage() {
   }
   useEffect(() => { load().catch((e) => toast.error(e.message)); }, []);
 
-  async function save() {
+  async function create() {
     try {
-      if (editing) await api(`/api/admin/competitions/${editing}`, { method: "PUT", body: JSON.stringify(form) });
-      else await api("/api/admin/competitions", { method: "POST", body: JSON.stringify(form) });
-      setForm(empty);
-      setEditing(null);
-      await load();
-      toast.success("Хадгаллаа");
+      const data = await api<{ competition: Competition }>("/api/admin/competitions", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      toast.success("Үүсгэлээ");
+      router.push(`/competitions/${data.competition.id}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Алдаа");
     }
@@ -55,27 +55,27 @@ export default function CompetitionsPage() {
   return (
     <Shell>
       <h1 className="mb-6 font-heading text-3xl text-primary">Тэмцээн</h1>
-      <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[340px_1fr]">
         <Card>
-          <CardHeader><CardTitle>{editing ? "Засах" : "Шинэ тэмцээн"}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Шинэ тэмцээн</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-1"><Label>Нэр</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-            <div className="space-y-1"><Label>Дэд гарчиг</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
-            <div className="space-y-1"><Label>Огноо</Label><Input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} /></div>
+            <div className="space-y-1"><Label>Дэд гарчиг</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} placeholder="IPSC Action Air" /></div>
+            <div className="space-y-1"><Label>Эхлэх огноо</Label><Input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} /></div>
             <div className="space-y-1"><Label>Байршил</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1"><Label>Хүчин чадал</Label><Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} /></div>
               <div className="space-y-1"><Label>Хураамж</Label><Input type="number" value={form.fee} onChange={(e) => setForm({ ...form, fee: Number(e.target.value) })} /></div>
             </div>
-            <div className="space-y-1"><Label>Төлөв (upcoming/open/past)</Label><Input value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} /></div>
-            <div className="space-y-1"><Label>Тайлбар</Label><Textarea value={form.about} onChange={(e) => setForm({ ...form, about: e.target.value })} /></div>
-            <FileUpload
-              label="Зураг"
-              folder="prime/competitions"
-              value={form.imageUrl}
-              onChange={(imageUrl) => setForm({ ...form, imageUrl })}
-            />
-            <Button onClick={save}>{editing ? "Шинэчлэх" : "Үүсгэх"}</Button>
+            <div className="space-y-1">
+              <Label>Төлөв</Label>
+              <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                <option value="upcoming">upcoming</option>
+                <option value="open">open</option>
+                <option value="past">past</option>
+              </select>
+            </div>
+            <Button onClick={create} disabled={!form.title.trim()}>Үүсгэх → дэлгэрэнгүй</Button>
           </CardContent>
         </Card>
         <Card>
@@ -87,6 +87,7 @@ export default function CompetitionsPage() {
                   <TableHead>Нэр</TableHead>
                   <TableHead>Огноо</TableHead>
                   <TableHead>Хураамж</TableHead>
+                  <TableHead>Оролцогч</TableHead>
                   <TableHead>Төлөв</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -94,13 +95,21 @@ export default function CompetitionsPage() {
               <TableBody>
                 {items.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell>{c.title}</TableCell>
-                    <TableCell>{c.eventDate}</TableCell>
+                    <TableCell>
+                      <div className="font-medium">{c.title}</div>
+                      {c.subtitle && <div className="text-xs text-muted-foreground">{c.subtitle}</div>}
+                    </TableCell>
+                    <TableCell>{String(c.eventDate || "").slice(0, 10)}</TableCell>
                     <TableCell>{tugrik(c.fee)}</TableCell>
-                    <TableCell>{c.status} · {c.joined || 0}/{c.capacity}</TableCell>
+                    <TableCell>{c.joined || 0}/{c.capacity}</TableCell>
+                    <TableCell>{c.status}</TableCell>
                     <TableCell className="space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => { setEditing(c.id); setForm({ title: c.title, subtitle: c.subtitle || "", eventDate: String(c.eventDate || "").slice(0, 10), location: c.location || "", capacity: c.capacity, fee: c.fee, about: c.about || "", status: c.status, imageUrl: c.imageUrl || "" }); }}>Засах</Button>
-                      <Button size="sm" variant="destructive" onClick={async () => { await api(`/api/admin/competitions/${c.id}`, { method: "DELETE" }); load(); }}>Устгах</Button>
+                      <Button size="sm" asChild><Link href={`/competitions/${c.id}`}>Засах</Link></Button>
+                      <Button size="sm" variant="destructive" onClick={async () => {
+                        if (!confirm("Устгах уу?")) return;
+                        await api(`/api/admin/competitions/${c.id}`, { method: "DELETE" });
+                        load();
+                      }}>Устгах</Button>
                     </TableCell>
                   </TableRow>
                 ))}

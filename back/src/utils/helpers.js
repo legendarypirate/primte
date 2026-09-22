@@ -51,24 +51,149 @@ function serializeTraining(training, req, extra = {}) {
   };
 }
 
+function formatDateTime(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return `${formatDate(d)} ${formatTime(d)}`;
+}
+
+function dateRangeLabel(start, end) {
+  if (!start) return '';
+  if (!end || end === start) return formatDate(start);
+  const s = new Date(start);
+  const e = new Date(end);
+  if (s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth()) {
+    const y = s.getFullYear();
+    const m = String(s.getMonth() + 1).padStart(2, '0');
+    return `${y}.${m}.${String(s.getDate()).padStart(2, '0')} – ${String(e.getDate()).padStart(2, '0')}`;
+  }
+  return `${formatDate(start)} – ${formatDate(end)}`;
+}
+
+function buildCompetitionFacts(competition) {
+  if (Array.isArray(competition.facts) && competition.facts.length) {
+    return competition.facts;
+  }
+  const facts = [];
+  if (competition.organizer) {
+    facts.push({ icon: 'group', title: 'Зохион байгуулагч', body: competition.organizer });
+  }
+  if (competition.location) {
+    facts.push({ icon: 'location', title: 'Байршил', body: competition.location });
+  }
+  if (competition.level) {
+    facts.push({ icon: 'level', title: 'Түвшин', body: competition.level });
+  }
+  if (competition.eventDate) {
+    facts.push({
+      icon: 'calendar',
+      title: 'Огноо',
+      body: dateRangeLabel(competition.eventDate, competition.eventEndDate),
+    });
+  }
+  if (competition.stageCount) {
+    facts.push({ icon: 'target', title: 'Стэйж', body: String(competition.stageCount) });
+  }
+  if (competition.minShots) {
+    facts.push({ icon: 'shots', title: 'Мин. буудалт', body: `${competition.minShots}+` });
+  }
+  if (competition.fee) {
+    facts.push({ icon: 'fee', title: 'Хураамж', body: `${competition.fee.toLocaleString()} ₮` });
+  }
+  return facts;
+}
+
 function serializeCompetition(competition, req, extra = {}) {
+  const registration = extra.registration || null;
+  const regStatus = registration?.status;
+  const isRegistered = Boolean(extra.registered || registration);
+  let status = competition.status;
+  if (isRegistered) {
+    if (regStatus === 'waitlist' || regStatus === 'pending') status = 'waitlist';
+    else if (regStatus === 'confirmed' || regStatus === 'paid') status = 'registered';
+    else status = 'registered';
+  }
+
   return {
     id: competition.id,
     title: competition.title,
     subtitle: competition.subtitle,
-    dateLabel: formatDate(competition.eventDate),
+    dateLabel: dateRangeLabel(competition.eventDate, competition.eventEndDate) || formatDate(competition.eventDate),
     eventDate: competition.eventDate,
+    eventEndDate: competition.eventEndDate,
+    registrationOpenAt: competition.registrationOpenAt,
+    registrationCloseAt: competition.registrationCloseAt,
+    registrationOpenLabel: formatDateTime(competition.registrationOpenAt),
+    registrationCloseLabel: formatDateTime(competition.registrationCloseAt),
     location: competition.location,
+    organizer: competition.organizer,
     image: publicUrl(req, competition.imageUrl),
     imageUrl: publicUrl(req, competition.imageUrl),
     joined: extra.joined ?? 0,
     capacity: competition.capacity,
     fee: competition.fee,
+    level: competition.level,
+    stageCount: competition.stageCount,
+    minShots: competition.minShots,
     about: competition.about,
-    facts: competition.facts || [],
+    prizes: competition.prizes,
+    rules: competition.rules,
+    requirements: competition.requirements || [],
+    refundPolicy: competition.refundPolicy || [],
+    extraInfo: competition.extraInfo,
+    mdName: competition.mdName,
+    mdPhone: competition.mdPhone,
+    mdEmail: competition.mdEmail,
+    squadCapacity: competition.squadCapacity,
+    squadsPerShift: competition.squadsPerShift,
+    lateRegistrationNote: competition.lateRegistrationNote,
+    matchTypeId: competition.matchTypeId,
+    matchType: extra.matchType || (competition.MatchType
+      ? { id: competition.MatchType.id, name: competition.MatchType.name, comment: competition.MatchType.comment }
+      : null),
+    divisionIds: competition.divisionIds || [],
+    divisions: extra.divisions || [],
+    categories: competition.categories || [],
+    squads: competition.squads || [],
+    schedule: competition.schedule || [],
+    facts: buildCompetitionFacts(competition),
     tags: competition.tags || [],
-    status: extra.registered ? 'registered' : competition.status,
-    registered: Boolean(extra.registered),
+    status,
+    registered: isRegistered,
+    registration: registration ? serializeRegistration(registration) : null,
+  };
+}
+
+function serializeRegistration(registration) {
+  const member = registration.Member;
+  const division = registration.Division;
+  return {
+    id: registration.id,
+    memberId: registration.memberId,
+    competitionId: registration.competitionId,
+    divisionId: registration.divisionId,
+    category: registration.category,
+    squadLabel: registration.squadLabel,
+    status: registration.status,
+    paymentReference: registration.paymentReference,
+    feePaid: registration.feePaid,
+    createdAt: registration.createdAt,
+    member: member
+      ? {
+          id: member.id,
+          name: member.name,
+          memberCode: member.memberCode,
+          phone: member.phone,
+        }
+      : null,
+    division: division
+      ? {
+          id: division.id,
+          abbreviation: division.abbreviation,
+          name: division.name,
+        }
+      : null,
   };
 }
 
@@ -195,8 +320,11 @@ module.exports = {
   publicUrl,
   formatDate,
   formatTime,
+  formatDateTime,
+  dateRangeLabel,
   serializeProduct,
   serializeCompetition,
+  serializeRegistration,
   serializeTraining,
   serializeMember,
   serializeChildSummary,

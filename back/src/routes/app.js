@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op } = require('sequelize');
 const {
   sequelize,
   Product,
@@ -10,16 +11,61 @@ const {
   OrderItem,
   Registration,
   Setting,
+  Division,
+  MatchType,
 } = require('../models');
 const { requireMember } = require('../middleware/auth');
 const {
   serializeMember,
   serializeProduct,
   serializeCompetition,
+  serializeRegistration,
   serializeTraining,
   formatDate,
   formatTime,
 } = require('../utils/helpers');
+
+async function loadCompetitionDivisions(competition) {
+  const ids = competition.divisionIds || [];
+  if (!ids.length) return [];
+  return Division.findAll({ where: { id: ids } });
+}
+
+async function serializeCompetitionForMember(competition, req, memberId, extra = {}) {
+  const [divisions, joined, registration] = await Promise.all([
+    loadCompetitionDivisions(competition),
+    extra.joined ?? Registration.count({
+      where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
+    }),
+    memberId
+      ? Registration.findOne({
+          where: { memberId, competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
+          include: [Division],
+        })
+      : null,
+  ]);
+  return serializeCompetition(competition, req, {
+    ...extra,
+    joined,
+    registered: Boolean(registration),
+    registration,
+    divisions: divisions.map((d) => ({
+      id: d.id,
+      abbreviation: d.abbreviation,
+      name: d.name,
+      description: d.description,
+    })),
+  });
+}
+
+function buildPaymentReference(competition, division, squadLabel, seq) {
+  const year = competition.eventDate
+    ? new Date(competition.eventDate).getFullYear()
+    : new Date().getFullYear();
+  const abbr = division?.abbreviation || 'GEN';
+  const sq = (squadLabel || 'NA').replace(/\s+/g, '');
+  return `${year}-${abbr}-${sq}-${String(seq).padStart(3, '0')}`;
+}
 
 const router = express.Router();
 router.use(requireMember);
@@ -38,10 +84,9 @@ router.get('/home', async (req, res) => {
     order: [['createdAt', 'DESC']],
     limit: 10,
   });
-  const registered = await Registration.findAll({ where: { memberId: req.member.id } });
-  const registeredIds = new Set(registered.map((r) => r.competitionId));
   const counts = await Registration.findAll({
     attributes: ['competitionId', [sequelize.fn('COUNT', sequelize.col('id')), 'joined']],
+    where: { status: { [Op.ne]: 'cancelled' } },
     group: ['competitionId'],
     raw: true,
   });
@@ -50,8 +95,10 @@ router.get('/home', async (req, res) => {
   res.json({
     member: serializeMember(req.member, req),
     club,
-    competitions: competitions.map((c) =>
-      serializeCompetition(c, req, { joined: map[c.id] || 0, registered: registeredIds.has(c.id) })
+    competitions: await Promise.all(
+      competitions.map((c) =>
+        serializeCompetitionForMember(c, req, req.member.id, { joined: map[c.id] || 0 })
+      )
     ),
     trainings: trainings.map((t) => serializeTraining(t, req)),
     notices,
@@ -65,19 +112,33 @@ router.get('/products', async (req, res) => {
 });
 
 router.get('/competitions', async (req, res) => {
-  const competitions = await Competition.findAll({ order: [['eventDate', 'ASC']] });
-  const registered = await Registration.findAll({ where: { memberId: req.member.id } });
-  const registeredIds = new Set(registered.map((r) => r.competitionId));
+  const competitions = await Competition.findAll({
+    include: [{ model: MatchType, required: false }],
+    order: [['eventDate', 'ASC']],
+  });
   const counts = await Registration.findAll({
     attributes: ['competitionId', [sequelize.fn('COUNT', sequelize.col('id')), 'joined']],
+    where: { status: { [Op.ne]: 'cancelled' } },
     group: ['competitionId'],
     raw: true,
   });
   const map = Object.fromEntries(counts.map((c) => [c.competitionId, Number(c.joined)]));
   res.json({
-    competitions: competitions.map((c) =>
-      serializeCompetition(c, req, { joined: map[c.id] || 0, registered: registeredIds.has(c.id) })
+    competitions: await Promise.all(
+      competitions.map((c) =>
+        serializeCompetitionForMember(c, req, req.member.id, { joined: map[c.id] || 0 })
+      )
     ),
+  });
+});
+
+router.get('/competitions/:id', async (req, res) => {
+  const competition = await Competition.findByPk(req.params.id, {
+    include: [{ model: MatchType, required: false }],
+  });
+  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+  res.json({
+    competition: await serializeCompetitionForMember(competition, req, req.member.id),
   });
 });
 
@@ -87,22 +148,107 @@ router.post('/competitions/:id/register', async (req, res) => {
   if (competition.status === 'upcoming') {
     return res.status(400).json({ message: 'Бүртгэл хараахан нээгдээгүй.' });
   }
+  if (competition.status === 'past') {
+    return res.status(400).json({ message: 'Бүртгэл хаагдсан.' });
+  }
   const existing = await Registration.findOne({
-    where: { memberId: req.member.id, competitionId: competition.id },
+    where: {
+      memberId: req.member.id,
+      competitionId: competition.id,
+      status: { [Op.ne]: 'cancelled' },
+    },
+    include: [Division],
   });
-  if (existing) return res.json({ ok: true, already: true });
-  const joined = await Registration.count({ where: { competitionId: competition.id } });
+  if (existing) {
+    return res.json({ ok: true, already: true, registration: serializeRegistration(existing) });
+  }
+
+  const { divisionId, category, squadLabel, payNow = true } = req.body || {};
+  const joined = await Registration.count({
+    where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
+  });
   if (joined >= competition.capacity) {
     return res.status(400).json({ message: 'Хүчин чадал дүүрсэн.' });
   }
+
+  let division = null;
+  if (divisionId) {
+    division = await Division.findByPk(divisionId);
+    if (!division) return res.status(400).json({ message: 'Ангилал олдсонгүй.' });
+  }
+
+  const shouldPayNow = payNow !== false;
+  if (shouldPayNow && req.member.walletBalance < competition.fee) {
+    return res.status(400).json({ message: 'Wallet үлдэгдэл хүрэлцэхгүй байна.' });
+  }
+
+  const seq = joined + 1;
+  const paymentReference = buildPaymentReference(competition, division, squadLabel, seq);
+  const status = shouldPayNow ? 'confirmed' : 'waitlist';
+
+  let registration;
+  await sequelize.transaction(async (t) => {
+    if (shouldPayNow && competition.fee > 0) {
+      await req.member.decrement('walletBalance', { by: competition.fee, transaction: t });
+      await Transaction.create(
+        {
+          memberId: req.member.id,
+          title: competition.title,
+          amount: -competition.fee,
+          kind: 'fee',
+        },
+        { transaction: t }
+      );
+    }
+    if (shouldPayNow) {
+      await req.member.increment('competitionCount', { by: 1, transaction: t });
+    }
+    registration = await Registration.create(
+      {
+        memberId: req.member.id,
+        competitionId: competition.id,
+        divisionId: division?.id || null,
+        category: category || null,
+        squadLabel: squadLabel || null,
+        status,
+        paymentReference,
+        feePaid: shouldPayNow ? competition.fee : 0,
+      },
+      { transaction: t }
+    );
+  });
+
+  await req.member.reload();
+  const withIncludes = await Registration.findByPk(registration.id, { include: [Division] });
+  res.json({
+    ok: true,
+    member: serializeMember(req.member, req),
+    registration: serializeRegistration(withIncludes),
+  });
+});
+
+router.post('/competitions/:id/register/pay', async (req, res) => {
+  const registration = await Registration.findOne({
+    where: {
+      memberId: req.member.id,
+      competitionId: req.params.id,
+      status: { [Op.in]: ['waitlist', 'pending'] },
+    },
+    include: [Division],
+  });
+  if (!registration) return res.status(404).json({ message: 'Хүлээлгийн бүртгэл олдсонгүй.' });
+
+  const competition = await Competition.findByPk(req.params.id);
+  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
   if (req.member.walletBalance < competition.fee) {
     return res.status(400).json({ message: 'Wallet үлдэгдэл хүрэлцэхгүй байна.' });
   }
+
   await sequelize.transaction(async (t) => {
     await req.member.decrement('walletBalance', { by: competition.fee, transaction: t });
     await req.member.increment('competitionCount', { by: 1, transaction: t });
-    await Registration.create(
-      { memberId: req.member.id, competitionId: competition.id },
+    await registration.update(
+      { status: 'confirmed', feePaid: competition.fee },
       { transaction: t }
     );
     await Transaction.create(
@@ -115,8 +261,14 @@ router.post('/competitions/:id/register', async (req, res) => {
       { transaction: t }
     );
   });
+
   await req.member.reload();
-  res.json({ ok: true, member: serializeMember(req.member, req) });
+  await registration.reload({ include: [Division] });
+  res.json({
+    ok: true,
+    member: serializeMember(req.member, req),
+    registration: serializeRegistration(registration),
+  });
 });
 
 router.get('/wallet', async (req, res) => {

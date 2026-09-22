@@ -17,20 +17,61 @@ const {
   Registration,
   Attendance,
   Setting,
+  Division,
+  MatchType,
 } = require('../models');
 const { requireAdmin, requirePermission } = require('../middleware/auth');
-const { serializeMember, serializeProduct, serializeCompetition, serializeTraining } = require('../utils/helpers');
+const {
+  serializeMember,
+  serializeProduct,
+  serializeCompetition,
+  serializeRegistration,
+  serializeTraining,
+} = require('../utils/helpers');
+
+const COMPETITION_FIELDS = [
+  'title', 'subtitle', 'eventDate', 'eventEndDate', 'registrationOpenAt', 'registrationCloseAt',
+  'location', 'organizer', 'imageUrl', 'capacity', 'fee', 'level', 'stageCount', 'minShots',
+  'matchTypeId', 'divisionIds', 'categories', 'squads', 'schedule', 'about', 'prizes', 'rules',
+  'requirements', 'refundPolicy', 'extraInfo', 'mdName', 'mdPhone', 'mdEmail', 'squadCapacity',
+  'squadsPerShift', 'lateRegistrationNote', 'facts', 'tags', 'status',
+];
+
+async function loadCompetitionDivisions(competition) {
+  const ids = competition.divisionIds || [];
+  if (!ids.length) return [];
+  return Division.findAll({ where: { id: ids } });
+}
+
+async function serializeCompetitionAdmin(competition, req, extra = {}) {
+  const [divisions, joined] = await Promise.all([
+    loadCompetitionDivisions(competition),
+    extra.joined ?? Registration.count({ where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } } }),
+  ]);
+  return serializeCompetition(competition, req, {
+    ...extra,
+    joined,
+    divisions: divisions.map((d) => ({
+      id: d.id,
+      abbreviation: d.abbreviation,
+      name: d.name,
+      description: d.description,
+    })),
+  });
+}
 
 const router = express.Router();
 router.use(requireAdmin);
 
 router.get('/lookups', async (_req, res) => {
-  const [roles, memberTypes, activities] = await Promise.all([
+  const [roles, memberTypes, activities, divisions, matchTypes] = await Promise.all([
     Role.findAll({ order: [['sortOrder', 'ASC']] }),
     MemberType.findAll({ order: [['sortOrder', 'ASC']] }),
     DevelopmentActivity.findAll({ order: [['sortOrder', 'ASC']] }),
+    Division.findAll({ order: [['abbreviation', 'ASC']] }),
+    MatchType.findAll({ order: [['name', 'ASC']] }),
   ]);
-  res.json({ roles, memberTypes, activities });
+  res.json({ roles, memberTypes, activities, divisions, matchTypes });
 });
 
 function pick(body, keys) {
@@ -266,28 +307,43 @@ router.delete('/products/:id', requirePermission('products.manage'), async (req,
 });
 
 router.get('/competitions', requirePermission('competitions.view'), async (req, res) => {
-  const competitions = await Competition.findAll({ order: [['eventDate', 'ASC']] });
+  const competitions = await Competition.findAll({
+    include: [{ model: MatchType, required: false }],
+    order: [['eventDate', 'ASC']],
+  });
   const counts = await Registration.findAll({
     attributes: ['competitionId', [sequelize.fn('COUNT', sequelize.col('id')), 'joined']],
+    where: { status: { [Op.ne]: 'cancelled' } },
     group: ['competitionId'],
     raw: true,
   });
   const map = Object.fromEntries(counts.map((c) => [c.competitionId, Number(c.joined)]));
   res.json({
-    competitions: competitions.map((c) => serializeCompetition(c, req, { joined: map[c.id] || 0 })),
+    competitions: await Promise.all(
+      competitions.map((c) => serializeCompetitionAdmin(c, req, { joined: map[c.id] || 0 }))
+    ),
   });
 });
 
+router.get('/competitions/:id', requirePermission('competitions.view'), async (req, res) => {
+  const competition = await Competition.findByPk(req.params.id, {
+    include: [{ model: MatchType, required: false }],
+  });
+  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+  res.json({ competition: await serializeCompetitionAdmin(competition, req) });
+});
+
 router.post('/competitions', requirePermission('competitions.manage'), async (req, res) => {
-  const competition = await Competition.create(req.body || {});
-  res.status(201).json({ competition: serializeCompetition(competition, req, { joined: 0 }) });
+  const competition = await Competition.create(pick(req.body || {}, COMPETITION_FIELDS));
+  res.status(201).json({ competition: await serializeCompetitionAdmin(competition, req, { joined: 0 }) });
 });
 
 router.put('/competitions/:id', requirePermission('competitions.manage'), async (req, res) => {
   const competition = await Competition.findByPk(req.params.id);
   if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
-  await competition.update(req.body || {});
-  res.json({ competition: serializeCompetition(competition, req) });
+  await competition.update(pick(req.body || {}, COMPETITION_FIELDS));
+  await competition.reload({ include: [{ model: MatchType, required: false }] });
+  res.json({ competition: await serializeCompetitionAdmin(competition, req) });
 });
 
 router.delete('/competitions/:id', requirePermission('competitions.manage'), async (req, res) => {
@@ -300,10 +356,31 @@ router.delete('/competitions/:id', requirePermission('competitions.manage'), asy
 router.get('/competitions/:id/registrations', requirePermission('competitions.view'), async (req, res) => {
   const rows = await Registration.findAll({
     where: { competitionId: req.params.id },
-    include: [Member],
+    include: [Member, Division],
     order: [['createdAt', 'DESC']],
   });
-  res.json({ registrations: rows });
+  res.json({ registrations: rows.map(serializeRegistration) });
+});
+
+router.put('/competitions/:id/registrations/:registrationId', requirePermission('competitions.manage'), async (req, res) => {
+  const registration = await Registration.findOne({
+    where: { id: req.params.registrationId, competitionId: req.params.id },
+    include: [Member, Division],
+  });
+  if (!registration) return res.status(404).json({ message: 'Бүртгэл олдсонгүй.' });
+  const { status } = req.body || {};
+  if (!status) return res.status(400).json({ message: 'Төлөв шаардлагатай.' });
+  await registration.update({ status });
+  res.json({ registration: serializeRegistration(registration) });
+});
+
+router.delete('/competitions/:id/registrations/:registrationId', requirePermission('competitions.manage'), async (req, res) => {
+  const registration = await Registration.findOne({
+    where: { id: req.params.registrationId, competitionId: req.params.id },
+  });
+  if (!registration) return res.status(404).json({ message: 'Бүртгэл олдсонгүй.' });
+  await registration.update({ status: 'cancelled' });
+  res.json({ ok: true });
 });
 
 router.get('/trainings', requirePermission('trainings.view'), async (req, res) => {

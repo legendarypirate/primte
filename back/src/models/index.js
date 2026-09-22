@@ -7,6 +7,7 @@ const MemberType = require('./memberType');
 const DevelopmentActivity = require('./developmentActivity');
 const MatchType = require('./matchType');
 const Division = require('./division');
+
 const Product = require('./product');
 const Competition = require('./competition');
 const Training = require('./training');
@@ -47,6 +48,9 @@ Member.belongsToMany(Competition, { through: Registration, foreignKey: 'memberId
 Competition.belongsToMany(Member, { through: Registration, foreignKey: 'competitionId' });
 Registration.belongsTo(Member, { foreignKey: 'memberId' });
 Registration.belongsTo(Competition, { foreignKey: 'competitionId' });
+Registration.belongsTo(Division, { foreignKey: 'divisionId' });
+
+Competition.belongsTo(MatchType, { foreignKey: 'matchTypeId' });
 
 Member.hasMany(Attendance, { foreignKey: 'memberId' });
 Attendance.belongsTo(Member, { foreignKey: 'memberId' });
