@@ -108,7 +108,6 @@ function statusBadge(status: string) {
 
 export default function CompetitionDetailPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const id = params.id;
 
   const [form, setForm] = useState<CompetitionForm>(emptyForm);

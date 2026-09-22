@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -104,7 +103,7 @@ export default function CompetitionsPage() {
                     <TableCell>{c.joined || 0}/{c.capacity}</TableCell>
                     <TableCell>{c.status}</TableCell>
                     <TableCell className="space-x-2">
-                      <Button size="sm" asChild><Link href={`/competitions/${c.id}`}>Засах</Link></Button>
+                      <Button size="sm" variant="outline" onClick={() => router.push(`/competitions/${c.id}`)}>Засах</Button>
                       <Button size="sm" variant="destructive" onClick={async () => {
                         if (!confirm("Устгах уу?")) return;
                         await api(`/api/admin/competitions/${c.id}`, { method: "DELETE" });
