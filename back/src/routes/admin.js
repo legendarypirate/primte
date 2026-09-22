@@ -379,7 +379,7 @@ router.delete('/competitions/:id/registrations/:registrationId', requirePermissi
     where: { id: req.params.registrationId, competitionId: req.params.id },
   });
   if (!registration) return res.status(404).json({ message: 'Бүртгэл олдсонгүй.' });
-  await registration.update({ status: 'cancelled' });
+  await registration.destroy();
   res.json({ ok: true });
 });
 

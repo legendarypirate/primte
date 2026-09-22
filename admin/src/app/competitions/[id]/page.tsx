@@ -193,6 +193,18 @@ export default function CompetitionDetailPage() {
     }
   }
 
+  async function deleteRegistration(regId: string, memberName?: string) {
+    const label = memberName ? `"${memberName}"` : "Энэ оролцогчийг";
+    if (!confirm(`${label} бүртгэлээс бүрмөсөн устгах уу? Гишүүн дахин бүртгүүлэх боломжтой болно.`)) return;
+    try {
+      await api(`/api/admin/competitions/${id}/registrations/${regId}`, { method: "DELETE" });
+      toast.success("Устгалаа");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Алдаа");
+    }
+  }
+
   function toggleDivision(divisionId: string) {
     setForm((f) => ({
       ...f,
@@ -402,6 +414,10 @@ export default function CompetitionDetailPage() {
                           {r.status !== "cancelled" && (
                             <IconActionButton action="cancel" onClick={() => updateRegistrationStatus(r.id, "cancelled")} />
                           )}
+                          <IconActionButton
+                            action="delete"
+                            onClick={() => deleteRegistration(r.id, r.member?.name)}
+                          />
                         </ActionCell>
                       </TableCell>
                     </TableRow>
