@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "seed": "node src/seed.js",
     "seed:scoring": "node src/seed-scoring-profiles.js",
+    "seed:scoring-demo": "node src/seed-scoring-demo.js",
     "test": "node --test src/domain/scoring/scoring.test.js"
   },
   "dependencies": {
