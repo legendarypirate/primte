@@ -21,6 +21,18 @@ type Division = { id: string; abbreviation: string; name: string };
 type MatchType = { id: string; name: string };
 type SquadRow = { label: string; dayLabel: string; date: string; timeStart: string; timeEnd: string; finalDayStart: string; finalDayEnd: string };
 type ScheduleRow = { day: string; stages: string; date: string; squads: string };
+type FactRow = { icon: string; title: string; body: string };
+
+const FACT_ICONS = [
+  { value: "group", label: "Баг / group" },
+  { value: "location", label: "Байршил" },
+  { value: "level", label: "Түвшин" },
+  { value: "calendar", label: "Огноо" },
+  { value: "target", label: "Стэйж" },
+  { value: "shots", label: "Буудалт" },
+  { value: "fee", label: "Хураамж" },
+  { value: "members", label: "Гишүүд" },
+];
 
 type CompetitionForm = {
   title: string;
@@ -55,6 +67,8 @@ type CompetitionForm = {
   refundPolicy: string[];
   squads: SquadRow[];
   schedule: ScheduleRow[];
+  facts: FactRow[];
+  tags: string[];
 };
 
 type Registration = {
@@ -80,8 +94,10 @@ const emptyForm: CompetitionForm = {
   about: "", prizes: "", rules: "", extraInfo: "", mdName: "", mdPhone: "", mdEmail: "",
   squadCapacity: 8, squadsPerShift: 3, lateRegistrationNote: "", imageUrl: "", matchTypeId: "",
   divisionIds: [], categories: ["Overall", "Lady", "Junior", "Senior"], requirements: [], refundPolicy: [],
-  squads: [], schedule: [],
+  squads: [], schedule: [], facts: [], tags: [],
 };
+
+const defaultFact = (): FactRow => ({ icon: "group", title: "", body: "" });
 
 function toLocalInput(value?: string | null) {
   if (!value) return "";
@@ -158,6 +174,12 @@ export default function CompetitionDetailPage() {
       refundPolicy: c.refundPolicy || [],
       squads: (c.squads as SquadRow[])?.length ? (c.squads as SquadRow[]) : [],
       schedule: (c.schedule as ScheduleRow[])?.length ? (c.schedule as ScheduleRow[]) : [],
+      facts: ((c.facts as FactRow[]) || []).map((f) => ({
+        icon: f.icon || "group",
+        title: f.title || "",
+        body: f.body || "",
+      })),
+      tags: (c.tags as string[]) || [],
     });
     setJoined(c.joined ?? 0);
     setDivisions(lookupRes.divisions);
@@ -257,6 +279,7 @@ export default function CompetitionDetailPage() {
           <TabsTrigger value="divisions" className="h-10 flex-none px-4 text-sm sm:text-base">Ангилал</TabsTrigger>
           <TabsTrigger value="squads" className="h-10 flex-none px-4 text-sm sm:text-base">Скуад & хуваарь</TabsTrigger>
           <TabsTrigger value="content" className="h-10 flex-none px-4 text-sm sm:text-base">Агуулга</TabsTrigger>
+          <TabsTrigger value="registration" className="h-10 flex-none px-4 text-sm sm:text-base">Бүртгэл & хураамж</TabsTrigger>
           <TabsTrigger value="competitors" className="h-10 flex-none px-4 text-sm sm:text-base">
             Оролцогчид ({registrations.length})
           </TabsTrigger>
@@ -343,6 +366,8 @@ export default function CompetitionDetailPage() {
                     <Input type="date" value={sq.date} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, date: e.target.value }; setForm({ ...form, squads }); }} />
                     <Input placeholder="18:00" value={sq.timeStart} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, timeStart: e.target.value }; setForm({ ...form, squads }); }} />
                     <Input placeholder="22:00" value={sq.timeEnd} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, timeEnd: e.target.value }; setForm({ ...form, squads }); }} />
+                    <Input placeholder="Final эхлэх" value={sq.finalDayStart} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, finalDayStart: e.target.value }; setForm({ ...form, squads }); }} />
+                    <Input placeholder="Final дуусах" value={sq.finalDayEnd} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, finalDayEnd: e.target.value }; setForm({ ...form, squads }); }} />
                     <IconActionButton action="delete" onClick={() => setForm({ ...form, squads: form.squads.filter((_, j) => j !== i) })} />
                   </div>
                 ))}
