@@ -19,7 +19,7 @@ import { LayoutInspector } from "@/components/site-editor/layout-inspector";
 import { AddBlockDialog } from "@/components/site-editor/add-block-dialog";
 import { api } from "@/lib/api";
 import type { SiteBlock, SitePageData } from "@/lib/site-blocks";
-import { PAGE_SLUGS } from "@/lib/site-content";
+import { CUSTOM_TEMPLATE_SLUGS, PAGE_SLUGS } from "@/lib/site-content";
 import {
   layoutSnapshot,
   normalizeLayout,
@@ -66,6 +66,7 @@ export default function SiteEditorPage() {
   );
   const isDirty = pageDirty || layoutDirty;
   const pageMeta = draft ? Object.values(PAGE_SLUGS).find((p) => p.slug === draft.slug) : null;
+  const customTemplate = draft ? CUSTOM_TEMPLATE_SLUGS.has(draft.slug) : false;
   const inspectorBlock = draft?.blocks.find((b) => b.id === inspectorBlockId) || null;
 
   const loadPages = useCallback(async () => {
@@ -367,6 +368,11 @@ export default function SiteEditorPage() {
         {viewMode === "layout" ? (
           <>
             Header/Footer текст дээр дарж засна · <span className="text-[#e31e24]">Тохиргоо</span> дээр nav link, social засна
+          </>
+        ) : customTemplate ? (
+          <>
+            <span className="text-[#e31e24]">{pageMeta?.label || draft?.slug}</span> нь built-in хуудас — live сайт кодоор харагдана.
+            Header/Footer-ийг <span className="text-[#e31e24]">Header & Footer</span> tab-аас засна.
           </>
         ) : (
           <>

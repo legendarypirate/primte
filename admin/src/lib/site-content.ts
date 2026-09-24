@@ -23,5 +23,15 @@ export const PAGE_SLUGS: Record<string, { slug: string; path: string; label: str
   contact: { slug: "contact", path: "/contact", label: "Холбоо барих" },
 };
 
-/** Public routes that use a dedicated React page instead of CMS blocks. */
-export const CUSTOM_TEMPLATE_SLUGS = new Set<string>(["ranking"]);
+/**
+ * Live site routes that render dedicated React page components.
+ * CMS blocks in the site editor are preview/seed data until full block parity exists.
+ */
+export const CUSTOM_TEMPLATE_SLUGS = new Set<string>([
+  "home",
+  "about",
+  "training",
+  "membership",
+  "ranking",
+  "contact",
+]);

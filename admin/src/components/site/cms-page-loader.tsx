@@ -1,6 +1,7 @@
 import { CUSTOM_TEMPLATE_SLUGS, getSitePage } from "@/lib/site-content";
 import { SitePageView } from "./site-page-view";
 
+/** Opt-in CMS rendering for routes not in CUSTOM_TEMPLATE_SLUGS. */
 export async function CmsPageLoader({
   slug,
   fallback,
