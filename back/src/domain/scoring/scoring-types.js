@@ -1,0 +1,42 @@
+/** @typedef {'MAJOR'|'MINOR'|'NONE'} PowerFactor */
+/** @typedef {'DRAFT'|'ENTERED'|'CONFIRMED'|'SIGNED'|'INVALIDATED'} ScoreStatus */
+/** @typedef {'ACTIVE'|'WITHDRAWN'|'DQ'} CompetitorStatus */
+/** @typedef {'WAITING'|'ACTIVE'|'COMPLETED'} SquadStatus */
+/** @typedef {'SHORT'|'MEDIUM'|'LONG'|'CUSTOM'} CourseType */
+/** @typedef {'DRAFT'|'REGISTRATION'|'ACTIVE'|'SCORING_COMPLETE'|'PROVISIONAL'|'FINAL'} MatchStatus */
+
+const SCORE_STATUS = {
+  DRAFT: 'DRAFT',
+  ENTERED: 'ENTERED',
+  CONFIRMED: 'CONFIRMED',
+  SIGNED: 'SIGNED',
+  INVALIDATED: 'INVALIDATED',
+};
+
+const POWER_FACTOR = {
+  MAJOR: 'MAJOR',
+  MINOR: 'MINOR',
+  NONE: 'NONE',
+};
+
+const COMPETITOR_STATUS = {
+  ACTIVE: 'ACTIVE',
+  WITHDRAWN: 'WITHDRAWN',
+  DQ: 'DQ',
+};
+
+const MATCH_STATUS = {
+  DRAFT: 'DRAFT',
+  REGISTRATION: 'REGISTRATION',
+  ACTIVE: 'ACTIVE',
+  SCORING_COMPLETE: 'SCORING_COMPLETE',
+  PROVISIONAL: 'PROVISIONAL',
+  FINAL: 'FINAL',
+};
+
+module.exports = {
+  SCORE_STATUS,
+  POWER_FACTOR,
+  COMPETITOR_STATUS,
+  MATCH_STATUS,
+};

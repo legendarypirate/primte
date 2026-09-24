@@ -27,6 +27,10 @@ const PERMISSIONS = [
   { key: 'match_types.manage', group: 'System', label: 'Manage match types' },
   { key: 'divisions.manage', group: 'System', label: 'Manage divisions' },
   { key: 'staff.manage', group: 'System', label: 'Manage admin users' },
+  { key: 'scoring.view', group: 'Scoring', label: 'View scoring & results' },
+  { key: 'scoring.enter', group: 'Scoring', label: 'Enter scores' },
+  { key: 'scoring.manage', group: 'Scoring', label: 'Manage matches & override scores' },
+  { key: 'scoring.sync', group: 'Scoring', label: 'Resolve sync conflicts' },
 ];
 
 const ALL_KEYS = PERMISSIONS.map((p) => p.key);

@@ -232,6 +232,14 @@ router.post('/competitions/:id/register', async (req, res) => {
 
   await req.member.reload();
   const withIncludes = await Registration.findByPk(registration.id, { include: [Division] });
+  if (shouldPayNow || status === 'confirmed') {
+    try {
+      const { ensureCompetitorFromRegistration } = require('../services/competitorService');
+      await ensureCompetitorFromRegistration(registration.id);
+    } catch (err) {
+      console.error('Competitor auto-import failed', err);
+    }
+  }
   res.json({
     ok: true,
     member: serializeMember(req.member, req),
@@ -318,6 +326,12 @@ router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
 
   await req.member.reload();
   await registration.reload({ include: [Division] });
+  try {
+    const { ensureCompetitorFromRegistration } = require('../services/competitorService');
+    await ensureCompetitorFromRegistration(registration.id);
+  } catch (err) {
+    console.error('Competitor auto-import failed', err);
+  }
   res.json({
     ok: true,
     member: serializeMember(req.member, req),
@@ -362,6 +376,12 @@ router.post('/competitions/:id/register/pay', async (req, res) => {
 
   await req.member.reload();
   await registration.reload({ include: [Division] });
+  try {
+    const { ensureCompetitorFromRegistration } = require('../services/competitorService');
+    await ensureCompetitorFromRegistration(registration.id);
+  } catch (err) {
+    console.error('Competitor auto-import failed', err);
+  }
   res.json({
     ok: true,
     member: serializeMember(req.member, req),
