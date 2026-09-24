@@ -90,8 +90,8 @@
   --card-foreground: #f4f1ea;
   --popover: #141416;
   --popover-foreground: #f4f1ea;
-  --primary: #d4b15f;
-  --primary-foreground: #111111;
+  --primary: #e31e24;
+  --primary-foreground: #ffffff;
   --secondary: #1b1b1e;
   --secondary-foreground: #f4f1ea;
   --muted: #1b1b1e;
@@ -99,22 +99,22 @@
   --accent: #1b1b1e;
   --accent-foreground: #f4f1ea;
   --destructive: #e25555;
-  --border: #d4b15f33;
-  --input: #d4b15f33;
-  --ring: #d4b15f;
-  --chart-1: #d4b15f;
-  --chart-2: #e8d08a;
+  --border: #e31e2433;
+  --input: #e31e2433;
+  --ring: #e31e24;
+  --chart-1: #e31e24;
+  --chart-2: #f04449;
   --chart-3: #3ddc84;
   --chart-4: #9a958a;
-  --chart-5: #b8963e;
+  --chart-5: #b91419;
   --sidebar: #0e0e10;
   --sidebar-foreground: #f4f1ea;
-  --sidebar-primary: #d4b15f;
-  --sidebar-primary-foreground: #111111;
+  --sidebar-primary: #e31e24;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1b1b1e;
   --sidebar-accent-foreground: #f4f1ea;
-  --sidebar-border: #d4b15f33;
-  --sidebar-ring: #d4b15f;
+  --sidebar-border: #e31e2433;
+  --sidebar-ring: #e31e24;
 }
 
 @layer base {

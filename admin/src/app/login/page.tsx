@@ -27,7 +27,7 @@ export default function LoginPage() {
         }
       );
       saveSession(data.admin, data.token);
-      router.replace("/");
+      router.replace("/dashboard");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Нэвтрэх амжилтгүй");
     } finally {
@@ -36,7 +36,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#d4b15f22,transparent_45%),#070707] p-6">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#e31e2422,transparent_45%),#070707] p-6">
       <form onSubmit={submit} className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-8">
         <div>
           <p className="text-xs tracking-[0.3em] text-primary">PRACTICAL SHOOTING CLUB</p>
