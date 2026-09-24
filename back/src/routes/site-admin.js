@@ -1,7 +1,8 @@
 const express = require('express');
-const { SitePage } = require('../models');
+const { SitePage, SiteLayout } = require('../models');
 const { requireAdmin, requirePermission } = require('../middleware/auth');
 const { DEFAULT_PAGES } = require('../site/defaults');
+const { DEFAULT_LAYOUT } = require('../site/layout-defaults');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -93,6 +94,60 @@ router.post('/site-pages/seed', requirePermission('site.manage'), async (_req, r
   await SitePage.destroy({ where: {}, truncate: false });
   const pages = await seedDefaultPages();
   res.json({ ok: true, count: pages.length });
+});
+
+async function getOrCreateLayout() {
+  let layout = await SiteLayout.findOne();
+  if (!layout) {
+    layout = await SiteLayout.create({
+      header: DEFAULT_LAYOUT.header,
+      footer: DEFAULT_LAYOUT.footer,
+    });
+  }
+  return layout;
+}
+
+function serializeLayout(layout) {
+  return {
+    id: layout.id,
+    header: layout.header || DEFAULT_LAYOUT.header,
+    footer: layout.footer || DEFAULT_LAYOUT.footer,
+    updatedAt: layout.updatedAt,
+    createdAt: layout.createdAt,
+  };
+}
+
+router.get('/site-layout', requirePermission('site.view'), async (_req, res) => {
+  const layout = await getOrCreateLayout();
+  res.json({ layout: serializeLayout(layout) });
+});
+
+router.put('/site-layout', requirePermission('site.manage'), async (req, res) => {
+  const layout = await getOrCreateLayout();
+  const payload = {};
+  if (req.body.header !== undefined) {
+    if (!req.body.header || typeof req.body.header !== 'object') {
+      return res.status(400).json({ message: 'header must be an object' });
+    }
+    payload.header = req.body.header;
+  }
+  if (req.body.footer !== undefined) {
+    if (!req.body.footer || typeof req.body.footer !== 'object') {
+      return res.status(400).json({ message: 'footer must be an object' });
+    }
+    payload.footer = req.body.footer;
+  }
+  await layout.update(payload);
+  res.json({ layout: serializeLayout(layout) });
+});
+
+router.post('/site-layout/reset', requirePermission('site.manage'), async (_req, res) => {
+  const layout = await getOrCreateLayout();
+  await layout.update({
+    header: DEFAULT_LAYOUT.header,
+    footer: DEFAULT_LAYOUT.footer,
+  });
+  res.json({ layout: serializeLayout(layout) });
 });
 
 module.exports = router;

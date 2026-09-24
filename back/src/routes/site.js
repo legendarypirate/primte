@@ -1,5 +1,6 @@
 const express = require('express');
-const { SitePage } = require('../models');
+const { SitePage, SiteLayout } = require('../models');
+const { DEFAULT_LAYOUT } = require('../site/layout-defaults');
 
 const router = express.Router();
 
@@ -22,6 +23,28 @@ router.get('/pages', async (_req, res) => {
     order: [['sortOrder', 'ASC'], ['title', 'ASC']],
   });
   res.json({ pages });
+});
+
+async function getOrCreateLayout() {
+  let layout = await SiteLayout.findOne();
+  if (!layout) {
+    layout = await SiteLayout.create({
+      header: DEFAULT_LAYOUT.header,
+      footer: DEFAULT_LAYOUT.footer,
+    });
+  }
+  return layout;
+}
+
+router.get('/layout', async (_req, res) => {
+  const layout = await getOrCreateLayout();
+  res.json({
+    layout: {
+      header: layout.header || DEFAULT_LAYOUT.header,
+      footer: layout.footer || DEFAULT_LAYOUT.footer,
+      updatedAt: layout.updatedAt,
+    },
+  });
 });
 
 router.get('/pages/:slug', async (req, res) => {

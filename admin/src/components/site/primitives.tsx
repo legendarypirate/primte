@@ -17,29 +17,50 @@ export function LionIcon({ className }: { className?: string }) {
   );
 }
 
-export function PrimeLogo({ compact = false }: { compact?: boolean }) {
+export function PrimeLogo({
+  compact = false,
+  logoUrl,
+  brandName = "PRIME",
+  brandBadge = "IPSC",
+  brandSubtitle = "PRACTICAL SHOOTING CLUB",
+}: {
+  compact?: boolean;
+  logoUrl?: string;
+  brandName?: string;
+  brandBadge?: string;
+  brandSubtitle?: string;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div
         className={cn(
-          "relative flex items-center justify-center rounded-xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707] shadow-lg shadow-black/60",
+          "relative flex items-center justify-center overflow-hidden rounded-xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707] shadow-lg shadow-black/60",
           compact ? "size-10" : "size-12"
         )}
       >
-        <LionIcon className={cn("text-[#e31e24]", compact ? "size-6" : "size-7")} />
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoUrl} alt="" className="size-full object-cover" />
+        ) : (
+          <LionIcon className={cn("text-[#e31e24]", compact ? "size-6" : "size-7")} />
+        )}
       </div>
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5">
           <span className={cn("font-heading font-black tracking-[0.18em] text-white", compact ? "text-base" : "text-xl")}>
-            PRIME
+            {brandName}
           </span>
-          <span className="rounded bg-[#e31e24] px-1 py-0.5 text-[8px] font-bold tracking-widest text-white uppercase">
-            IPSC
-          </span>
+          {brandBadge ? (
+            <span className="rounded bg-[#e31e24] px-1 py-0.5 text-[8px] font-bold tracking-widest text-white uppercase">
+              {brandBadge}
+            </span>
+          ) : null}
         </div>
-        <span className={cn("tracking-[0.2em] font-medium text-[#e31e24]", compact ? "text-[8px]" : "text-[9px]")}>
-          PRACTICAL SHOOTING CLUB
-        </span>
+        {brandSubtitle ? (
+          <span className={cn("tracking-[0.2em] font-medium text-[#e31e24]", compact ? "text-[8px]" : "text-[9px]")}>
+            {brandSubtitle}
+          </span>
+        ) : null}
       </div>
     </div>
   );

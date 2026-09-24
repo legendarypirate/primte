@@ -1,5 +1,7 @@
 import { SiteShell } from "@/components/site/shell";
+import { getSiteLayout } from "@/lib/site-layout";
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
-  return <SiteShell>{children}</SiteShell>;
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const layout = await getSiteLayout();
+  return <SiteShell layout={layout}>{children}</SiteShell>;
 }
