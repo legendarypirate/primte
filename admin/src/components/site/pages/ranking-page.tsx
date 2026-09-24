@@ -14,30 +14,23 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { getPodiumOrder, getRankingSummaries } from "@/lib/athletes";
 import { ContentSection, LionIcon, PageHero, RedButton, SectionTag } from "../primitives";
+
+const podium = getPodiumOrder();
+const tableData = [
+  ...getRankingSummaries(),
+  { rank: 5, name: "Г.Мөнх-Оргил", slug: "", division: "Production", category: "Overall", comps: 4, best10: "1,064", total: "1,064", change: -1 },
+  { rank: 6, name: "Э.Баттулга", slug: "", division: "Production", category: "Overall", comps: 5, best10: "1,028", total: "1,028", change: 0 },
+  { rank: 7, name: "Н.Тэмүүлэн", slug: "", division: "Carry Optics", category: "Overall", comps: 5, best10: "986", total: "986", change: 4 },
+  { rank: 8, name: "Б.Учрал", slug: "", division: "Production", category: "Overall", comps: 5, best10: "962", total: "962", change: -2 },
+];
 
 const stats = [
   { icon: Users, label: "Нийт тамирчин", value: "78", change: "+12%", up: true, sub: "Өмнөх улирлаас" },
   { icon: Trophy, label: "Идэвхтэй тэмцээн", value: "6", change: "↑ +2", up: true, sub: "Энэ улиралд" },
   { icon: Calendar, label: "Шинэчлэгдсэн огноо", value: "2025.04.20", sub: "● 18:32", highlight: true },
   { icon: BarChart3, label: "Дундаж performance", value: "78.4", change: "↑ +6.3", up: true, sub: "Өмнөх улирлаас" },
-];
-
-const podium = [
-  { rank: 2, name: "Б.Эрдэнэбат", division: "Production / Overall", score: "1,245", change: "+1" },
-  { rank: 1, name: "О.Анхбаяр", division: "Open / Overall", score: "1,320", change: "+2", featured: true },
-  { rank: 3, name: "С.Золбоо", division: "Production / Overall", score: "1,190", change: "-1" },
-];
-
-const tableData = [
-  { rank: 1, name: "О.Анхбаяр", division: "Open", category: "Overall", comps: 6, best10: "1,320", total: "1,320", change: 2, medal: "🏆" },
-  { rank: 2, name: "Б.Эрдэнэбат", division: "Production", category: "Overall", comps: 6, best10: "1,245", total: "1,245", change: 1 },
-  { rank: 3, name: "С.Золбоо", division: "Production", category: "Overall", comps: 6, best10: "1,190", total: "1,190", change: -1 },
-  { rank: 4, name: "Д.Чинзориг", division: "Carry Optics", category: "Overall", comps: 5, best10: "1,102", total: "1,102", change: 3 },
-  { rank: 5, name: "Г.Мөнх-Оргил", division: "Production", category: "Overall", comps: 4, best10: "1,064", total: "1,064", change: -1 },
-  { rank: 6, name: "Э.Баттулга", division: "Production", category: "Overall", comps: 5, best10: "1,028", total: "1,028", change: 0 },
-  { rank: 7, name: "Н.Тэмүүлэн", division: "Carry Optics", category: "Overall", comps: 5, best10: "986", total: "986", change: 4 },
-  { rank: 8, name: "Б.Учрал", division: "Production", category: "Overall", comps: 5, best10: "962", total: "962", change: -2 },
 ];
 
 const recentUpdates = [
@@ -126,48 +119,64 @@ export function RankingPage() {
 
       {/* ── Top 3 Podium ── */}
       <ContentSection dark>
-        <div className="flex items-end justify-center gap-4 md:gap-6">
-          {podium.map((athlete) => (
+        <div className="grid w-full grid-cols-1 items-end gap-4 sm:grid-cols-3 md:gap-6">
+          {podium.map((athlete) => {
+            const Card = (
             <div
-              key={athlete.name}
-              className={`flex w-full max-w-[200px] flex-col items-center rounded-2xl border p-6 text-center transition-all ${
+              className={`flex w-full flex-col items-center rounded-2xl border px-6 py-8 text-center transition-all hover:border-[#e31e24]/50 ${
                 athlete.featured
-                  ? "border-[#e31e24]/60 bg-gradient-to-b from-[#1a0e10] to-[#101012] shadow-[0_0_40px_#e31e2418] md:-mt-8"
-                  : "border-border bg-card"
+                  ? "border-[#e31e24]/60 bg-gradient-to-b from-[#1a0e10] to-[#101012] shadow-[0_0_40px_#e31e2418] sm:-mt-8 sm:py-10"
+                  : "border-border bg-card sm:mt-4"
               }`}
             >
-              {/* Rank badge */}
               <div
                 className={`mb-4 flex size-8 items-center justify-center rounded-full text-sm font-bold ${
                   athlete.rank === 1
                     ? "bg-[#e31e24] text-white"
                     : athlete.rank === 2
                       ? "bg-[#c0c0c0] text-black"
-                      : "bg-[#cd7f32] text-black"
+                      : "bg-[#b91419] text-white"
                 }`}
               >
                 {athlete.rank}
               </div>
 
-              {/* Avatar placeholder */}
-              <div className={`mb-3 flex size-20 items-center justify-center rounded-full border-2 bg-[#101012] ${
-                athlete.featured ? "border-[#e31e24]" : "border-border"
-              }`}>
-                <LionIcon className="size-10 text-[#e31e24]/40" />
+              <div
+                className={`mb-4 size-24 overflow-hidden rounded-full border-2 bg-[#101012] md:size-28 ${
+                  athlete.featured ? "border-[#e31e24] ring-2 ring-[#e31e24]/30" : "border-border"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={athlete.avatar}
+                  alt={athlete.name}
+                  className="size-full object-cover"
+                />
               </div>
 
-              <p className="font-semibold">{athlete.name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{athlete.division}</p>
-              <p className={`mt-3 text-2xl font-bold ${athlete.featured ? "text-[#e31e24]" : "text-white"}`}>
+              <p className="text-lg font-semibold">{athlete.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{athlete.divisionLabel}</p>
+              <p className={`mt-4 text-3xl font-bold ${athlete.featured ? "text-[#e31e24]" : "text-white"}`}>
                 {athlete.score}
               </p>
-              <p className={`mt-1 text-sm ${
-                athlete.change.startsWith("+") ? "text-green-500" : "text-red-500"
-              }`}>
-                {athlete.change.startsWith("+") ? "↑" : "↓"} {athlete.change}
+              <p
+                className={`mt-2 flex items-center justify-center gap-1 text-sm font-medium ${
+                  athlete.change >= 0 ? "text-green-500" : "text-red-500"
+                }`}
+              >
+                {athlete.change >= 0 ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />}
+                {athlete.change >= 0 ? `+${athlete.change}` : athlete.change}
               </p>
             </div>
-          ))}
+            );
+            return athlete.slug ? (
+              <Link key={athlete.slug} href={`/ranking/${athlete.slug}`} className="block w-full">
+                {Card}
+              </Link>
+            ) : (
+              <div key={athlete.name} className="w-full">{Card}</div>
+            );
+          })}
         </div>
       </ContentSection>
 
@@ -197,7 +206,7 @@ export function RankingPage() {
                   <td className="p-4 font-semibold">
                     {row.rank <= 3 ? (
                       <span className={`inline-flex size-7 items-center justify-center rounded-full text-xs font-bold ${
-                        row.rank === 1 ? "bg-[#e31e24] text-white" : row.rank === 2 ? "bg-[#c0c0c0] text-black" : "bg-[#cd7f32] text-black"
+                        row.rank === 1 ? "bg-[#e31e24] text-white" : row.rank === 2 ? "bg-[#c0c0c0] text-black" : "bg-[#b91419] text-white"
                       }`}>
                         {row.rank}
                       </span>
@@ -206,12 +215,22 @@ export function RankingPage() {
                     )}
                   </td>
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-8 items-center justify-center rounded-full border border-border bg-[#101012]">
-                        <LionIcon className="size-4 text-[#e31e24]/40" />
+                    {"slug" in row && row.slug && "avatar" in row ? (
+                      <Link href={`/ranking/${row.slug}`} className="flex items-center gap-3 group">
+                        <div className="size-8 overflow-hidden rounded-full border border-border bg-[#101012]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={row.avatar} alt="" className="size-full object-cover" />
+                        </div>
+                        <span className="font-medium group-hover:text-[#e31e24]">{row.name}</span>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-8 items-center justify-center rounded-full border border-border bg-[#101012]">
+                          <LionIcon className="size-4 text-[#e31e24]/40" />
+                        </div>
+                        <span className="font-medium">{row.name}</span>
                       </div>
-                      <span className="font-medium">{row.name}</span>
-                    </div>
+                    )}
                   </td>
                   <td className="p-4 text-muted-foreground">{row.division}</td>
                   <td className="p-4 text-muted-foreground">{row.category}</td>

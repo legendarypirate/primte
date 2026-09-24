@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import type { FieldDef } from "@/lib/site-blocks";
+import { ImageFieldEditor } from "@/components/site-editor/image-field-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,18 @@ function setNested(obj: Record<string, unknown>, key: string, value: unknown): R
   return { ...obj, [key]: value };
 }
 
-type SimpleField = Extract<FieldDef, { type: "text" | "textarea" | "url" | "checkbox" | "number" }>;
+type SimpleField = Extract<FieldDef, { type: "text" | "textarea" | "url" | "checkbox" | "number" | "image" }>;
+
+function isSimpleField(field: FieldDef): field is SimpleField {
+  return (
+    field.type === "text" ||
+    field.type === "textarea" ||
+    field.type === "url" ||
+    field.type === "checkbox" ||
+    field.type === "number" ||
+    field.type === "image"
+  );
+}
 
 function FieldInput({
   field,
@@ -26,6 +38,17 @@ function FieldInput({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
+  if (field.type === "image") {
+    return (
+      <ImageFieldEditor
+        label={field.label}
+        value={value}
+        onChange={(v) => onChange(v)}
+        folder={field.folder}
+      />
+    );
+  }
+
   if (field.type === "checkbox") {
     return (
       <label className="flex items-center gap-2 text-sm">
@@ -77,14 +100,14 @@ function CtaEditor({
       <p className="text-xs font-medium text-muted-foreground">{field.label}</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {field.fields.map((sub) =>
-          sub.type === "cta" || sub.type === "repeater" ? null : (
+          isSimpleField(sub) ? (
             <FieldInput
               key={sub.key}
               field={sub}
               value={obj[sub.key]}
               onChange={(v) => onChange({ ...obj, [sub.key]: v })}
             />
-          )
+          ) : null
         )}
       </div>
     </div>
@@ -141,14 +164,14 @@ function RepeaterEditor({
           </div>
           <div className="grid gap-2">
             {field.fields.map((sub) =>
-              sub.type === "cta" || sub.type === "repeater" ? null : (
+              isSimpleField(sub) ? (
                 <FieldInput
                   key={sub.key}
                   field={sub}
                   value={item[sub.key]}
                   onChange={(v) => updateItem(index, { ...item, [sub.key]: v })}
                 />
-              )
+              ) : null
             )}
           </div>
         </div>
@@ -161,17 +184,26 @@ export function BlockFieldEditor({
   fields,
   data,
   onChange,
+  imageOnly = false,
+  excludeImages = false,
 }: {
   fields: FieldDef[];
   data: Record<string, unknown>;
   onChange: (data: Record<string, unknown>) => void;
+  imageOnly?: boolean;
+  excludeImages?: boolean;
 }) {
+  let visible = fields;
+  if (imageOnly) visible = fields.filter((f) => f.type === "image");
+  else if (excludeImages) visible = fields.filter((f) => f.type !== "image");
+
   return (
     <div className="space-y-4">
-      {fields.map((field) => {
+      {visible.map((field) => {
         const value = getNested(data, field.key);
 
         if (field.type === "cta") {
+          if (imageOnly) return null;
           return (
             <CtaEditor
               key={field.key}
@@ -183,6 +215,30 @@ export function BlockFieldEditor({
         }
 
         if (field.type === "repeater") {
+          if (imageOnly) {
+            const imageSub = field.fields.find((f) => f.type === "image");
+            if (!imageSub || !isSimpleField(imageSub)) return null;
+            const items = (Array.isArray(value) ? value : []) as Record<string, unknown>[];
+            return (
+              <div key={field.key} className="space-y-3">
+                <Label>{field.label} — {imageSub.label}</Label>
+                {items.map((item, index) => (
+                  <div key={index} className="rounded-lg border border-border p-3">
+                    <p className="mb-2 text-xs text-muted-foreground">{field.itemLabel} #{index + 1}</p>
+                    <FieldInput
+                      field={imageSub}
+                      value={item[imageSub.key]}
+                      onChange={(v) => {
+                        const next = [...items];
+                        next[index] = { ...item, [imageSub.key]: v };
+                        onChange(setNested(data, field.key, next));
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          }
           return (
             <RepeaterEditor
               key={field.key}
@@ -193,7 +249,7 @@ export function BlockFieldEditor({
           );
         }
 
-        if (field.type === "text" || field.type === "textarea" || field.type === "url" || field.type === "checkbox" || field.type === "number") {
+        if (isSimpleField(field)) {
           return (
             <div key={field.key} className={field.fullWidth ? "col-span-full" : ""}>
               <FieldInput

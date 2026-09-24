@@ -8,9 +8,6 @@ import {
   CheckCircle2,
   Clock,
   Crosshair,
-  Mail,
-  MapPin,
-  Phone,
   Shield,
   ShieldAlert,
   Star,
@@ -19,10 +16,10 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { toast } from "sonner";
 import type { SiteBlock } from "@/lib/site-blocks";
 import { assetUrl } from "@/lib/api";
 import { InlineEdit } from "@/components/site-editor/inline-edit";
+import { EditableImage } from "@/components/site-editor/editable-image";
 import {
   ContentSection,
   LionIcon,
@@ -31,9 +28,13 @@ import {
   SectionTag,
   Stepper,
 } from "./primitives";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  ContactCardsSection,
+  ContactCategoriesSection,
+  ContactFormMapSection,
+  ContactHeroSection,
+  ContactSocialCtaSection,
+} from "./contact-sections";
 
 const ICONS: Record<string, LucideIcon> = {
   Target,
@@ -72,8 +73,21 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
   const secondary = data.secondaryCta as Cta | undefined;
   const aside = data.asideTitle || edit ? (
     <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 shadow-2xl">
-      <div className="absolute top-4 right-4 text-[#e31e24]/15">
-        <LionIcon className="size-36" />
+      <div className="absolute top-4 right-4 h-36 w-36 text-[#e31e24]/15">
+        {edit ? (
+          <EditableImage
+            value={String(data.asideImageUrl || "")}
+            onChange={(v) => edit.onChange(patch(data, "asideImageUrl", v))}
+            edit
+            imgClassName="size-36 object-contain opacity-30"
+            placeholder="Aside зураг"
+          />
+        ) : data.asideImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={assetUrl(String(data.asideImageUrl))} alt="" className="size-36 object-contain opacity-20" />
+        ) : (
+          <LionIcon className="size-36" />
+        )}
       </div>
       {edit ? (
         <>
@@ -123,10 +137,33 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
     String(data.title || "")
   );
 
+  const bg = data.backgroundImageUrl ? assetUrl(String(data.backgroundImageUrl)) : "";
+
   return (
     <section className="relative overflow-hidden border-b border-[#ffffff10] bg-[#070707]">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
+      {bg ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={bg} alt="" className="absolute inset-0 size-full object-cover opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#070707] via-[#070707]/90 to-[#070707]/70" />
+        </>
+      ) : (
+        <>
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
+        </>
+      )}
+      {edit ? (
+        <div className="absolute left-4 top-4 z-20 h-24 w-40">
+          <EditableImage
+            value={String(data.backgroundImageUrl || "")}
+            onChange={(v) => edit.onChange(patch(data, "backgroundImageUrl", v))}
+            edit
+            placeholder="Background"
+            imgClassName="rounded-lg"
+          />
+        </div>
+      ) : null}
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div className="z-10">
           {edit || data.eyebrow ? (
@@ -293,14 +330,30 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
     }
 
     case "icon-cards": {
-      const items = (d.items as { icon?: string; title: string; body: string; href?: string }[]) || [];
+      const items = (d.items as { icon?: string; title: string; body: string; href?: string; imageUrl?: string }[]) || [];
       return (
         <ContentSection>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((item, i) => (
               <div key={i} className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6">
-                <div className="mb-4 flex size-12 items-center justify-center rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
-                  <Icon name={item.icon} className="size-6" />
+                <div className="relative mb-4 h-28 overflow-hidden rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10">
+                  {edit && onChange ? (
+                    <EditableImage
+                      value={item.imageUrl || ""}
+                      onChange={(v) => onChange(patchItem(d, "items", i, { imageUrl: v }))}
+                      edit
+                      fill
+                      imgClassName="object-cover"
+                      placeholder="Зураг"
+                    />
+                  ) : item.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={assetUrl(item.imageUrl)} alt="" className="absolute inset-0 size-full object-cover" />
+                  ) : (
+                    <div className="flex size-full items-center justify-center text-[#e31e24]">
+                      <Icon name={item.icon} className="size-6" />
+                    </div>
+                  )}
                 </div>
                 {edit && onChange ? (
                   <>
@@ -384,12 +437,28 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
     }
 
     case "course-cards": {
-      const items = (d.items as { title: string; subtitle: string; duration: string; audience: string; details: string; price: string; href?: string }[]) || [];
+      const items = (d.items as { title: string; subtitle: string; duration: string; audience: string; details: string; price: string; href?: string; imageUrl?: string }[]) || [];
       return (
         <ContentSection>
           <div className="grid gap-4 lg:grid-cols-3">
             {items.map((c, i) => (
-              <div key={i} className="flex flex-col justify-between rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl">
+              <div key={i} className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#121215] shadow-xl">
+                <div className="relative h-36 border-b border-[#ffffff10] bg-[#101012]">
+                  {edit && onChange ? (
+                    <EditableImage
+                      value={c.imageUrl || ""}
+                      onChange={(v) => onChange(patchItem(d, "items", i, { imageUrl: v }))}
+                      edit
+                      fill
+                      imgClassName="object-cover"
+                      placeholder="Зураг"
+                    />
+                  ) : c.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={assetUrl(c.imageUrl)} alt="" className="absolute inset-0 size-full object-cover" />
+                  ) : null}
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-6">
                 <div>
                   {edit && onChange ? (
                     <>
@@ -427,6 +496,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                       ) : null}
                     </>
                   )}
+                </div>
                 </div>
               </div>
             ))}
@@ -541,12 +611,23 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((m, i) => (
               <div key={i} className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 text-center">
-                <div className="mx-auto mb-4 flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#e31e24]/40 bg-[#101012]">
-                  {m.imageUrl ? (
+                <div className="relative mx-auto mb-4 size-20 overflow-hidden rounded-full border-2 border-[#e31e24]/40 bg-[#101012]">
+                  {edit && onChange ? (
+                    <EditableImage
+                      value={m.imageUrl || ""}
+                      onChange={(v) => onChange(patchItem(d, "items", i, { imageUrl: v }))}
+                      edit
+                      fill
+                      imgClassName="rounded-full object-cover"
+                      placeholder="Зураг"
+                    />
+                  ) : m.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={assetUrl(m.imageUrl)} alt={m.name} className="size-full object-cover" />
                   ) : (
-                    <LionIcon className="size-10 text-[#e31e24]/40" />
+                    <div className="flex size-full items-center justify-center">
+                      <LionIcon className="size-10 text-[#e31e24]/40" />
+                    </div>
                   )}
                 </div>
                 {edit && onChange ? (
@@ -576,7 +657,16 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((item, i) => (
               <div key={i} className="relative flex min-h-[160px] flex-col justify-end overflow-hidden rounded-2xl border border-[#ffffff15] bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707] p-8">
-                {item.imageUrl ? (
+                {edit && onChange ? (
+                  <EditableImage
+                    value={item.imageUrl || ""}
+                    onChange={(v) => onChange(patchItem(d, "items", i, { imageUrl: v }))}
+                    edit
+                    fill
+                    imgClassName="object-cover opacity-50"
+                    placeholder="Gallery"
+                  />
+                ) : item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={assetUrl(item.imageUrl)} alt={item.title} className="absolute inset-0 size-full object-cover opacity-40" />
                 ) : null}
@@ -598,10 +688,30 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
       );
     }
 
-    case "cta-banner":
+    case "cta-banner": {
+      const ctaBg = d.backgroundImageUrl ? assetUrl(String(d.backgroundImageUrl)) : "";
       return (
         <ContentSection dark>
           <div className="relative overflow-hidden rounded-3xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 text-center md:p-12">
+            {ctaBg ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={ctaBg} alt="" className="absolute inset-0 size-full object-cover opacity-25" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#070707]/80 via-[#070707]/70 to-[#070707]/80" />
+              </>
+            ) : null}
+            {edit && onChange ? (
+              <div className="absolute left-4 top-4 z-10 h-20 w-32">
+                <EditableImage
+                  value={String(d.backgroundImageUrl || "")}
+                  onChange={(v) => onChange(patch(d, "backgroundImageUrl", v))}
+                  edit
+                  placeholder="Background"
+                  imgClassName="rounded-lg"
+                />
+              </div>
+            ) : null}
+            <div className="relative z-[1]">
             {edit && onChange ? (
               <>
                 <InlineEdit value={String(d.title || "")} onChange={(v) => onChange(patch(d, "title", v))} as="h2" className="font-heading text-3xl font-extrabold uppercase text-white block" />
@@ -623,9 +733,11 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                 ) : null}
               </>
             )}
+            </div>
           </div>
         </ContentSection>
       );
+    }
 
     case "rich-text":
       return (
@@ -633,83 +745,67 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
           {edit && onChange ? (
             <>
               <InlineEdit value={String(d.title || "")} onChange={(v) => onChange(patch(d, "title", v))} as="h2" className="mb-4 font-heading text-2xl font-bold text-white block" />
+              <div className="relative mb-6 h-48 overflow-hidden rounded-xl border border-[#ffffff15] bg-[#101012]">
+                <EditableImage
+                  value={String(d.imageUrl || "")}
+                  onChange={(v) => onChange(patch(d, "imageUrl", v))}
+                  edit
+                  fill
+                  imgClassName="object-cover"
+                  placeholder="Inline зураг"
+                />
+              </div>
               <InlineEdit value={String(d.content || "")} onChange={(v) => onChange(patch(d, "content", v))} multiline className="text-sm leading-relaxed text-[#a0a0a5]" />
             </>
           ) : (
             <>
               {d.title ? <h2 className="mb-4 font-heading text-2xl font-bold text-white">{String(d.title)}</h2> : null}
+              {d.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={assetUrl(String(d.imageUrl))} alt="" className="mb-6 max-h-80 w-full rounded-xl object-cover" />
+              ) : null}
               <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-[#a0a0a5]">{String(d.content || "")}</div>
             </>
           )}
         </ContentSection>
       );
 
+    case "contact-hero":
+      return <ContactHeroSection data={d} edit={edit} />;
+
+    case "contact-cards":
+      return <ContactCardsSection data={d} edit={edit} />;
+
     case "contact-info":
       return (
-        <ContentSection>
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              { key: "address", label: "Хаяг", icon: MapPin },
-              { key: "phone", label: "Утас", icon: Phone },
-              { key: "email", label: "И-мэйл", icon: Mail },
-              { key: "hours", label: "Цаг", icon: Clock },
-            ].map(({ key, label, icon: Ico }) =>
-              d[key] || edit ? (
-                <div key={key} className="flex items-start gap-3 rounded-2xl border border-[#ffffff15] bg-[#121215] p-6">
-                  <Ico className="size-5 shrink-0 text-[#e31e24]" />
-                  <div className="flex-1">
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    {edit && onChange ? (
-                      <InlineEdit
-                        value={String(d[key] || "")}
-                        onChange={(v) => onChange(patch(d, key, v))}
-                        className="text-sm text-white block"
-                      />
-                    ) : (
-                      <p className="text-sm text-white">{String(d[key])}</p>
-                    )}
-                  </div>
-                </div>
-              ) : null
-            )}
-          </div>
-        </ContentSection>
+        <ContactCardsSection
+          data={
+            d.cards
+              ? d
+              : {
+                  sectionNumber: "01",
+                  sectionLabel: "ХОЛБОО БАРИХ МЭДЭЭЛЭЛ",
+                  cards: [
+                    d.phone && { icon: "Phone", title: "Утас", lines: String(d.phone) },
+                    d.email && { icon: "Mail", title: "И-мэйл", lines: String(d.email) },
+                    d.address && { icon: "MapPin", title: "Байршил", lines: String(d.address) },
+                    d.hours && { icon: "Clock", title: "Ажлын цаг", lines: String(d.hours) },
+                  ].filter(Boolean),
+                }
+          }
+          edit={edit}
+        />
       );
 
+    case "contact-form-map":
     case "contact-form":
-      return (
-        <ContentSection>
-          <div className="mx-auto max-w-lg rounded-2xl border border-[#ffffff15] bg-[#121215] p-6">
-            {edit && onChange ? (
-              <>
-                <InlineEdit value={String(d.title || "")} onChange={(v) => onChange(patch(d, "title", v))} as="h3" className="font-heading text-lg font-bold text-white block" />
-                <InlineEdit value={String(d.subtitle || "")} onChange={(v) => onChange(patch(d, "subtitle", v))} className="mt-1 text-xs text-[#a0a0a5] block" />
-              </>
-            ) : (
-              <>
-                {d.title ? <h3 className="font-heading text-lg font-bold text-white">{String(d.title)}</h3> : null}
-                {d.subtitle ? <p className="mt-1 text-xs text-[#a0a0a5]">{String(d.subtitle)}</p> : null}
-              </>
-            )}
-            {!edit ? (
-              <form
-                className="mt-6 space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  toast.success("Мессеж илгээгдлээ (демо)");
-                }}
-              >
-                <Input placeholder="Нэр" className="border-[#ffffff15] bg-[#0a0a0c]" />
-                <Input placeholder="И-мэйл" type="email" className="border-[#ffffff15] bg-[#0a0a0c]" />
-                <Textarea placeholder="Мессеж" rows={4} className="border-[#ffffff15] bg-[#0a0a0c]" />
-                <Button type="submit" className="w-full bg-[#e31e24] hover:bg-[#c91920]">Илгээх</Button>
-              </form>
-            ) : (
-              <p className="mt-4 rounded-lg border border-dashed border-[#ffffff20] p-4 text-center text-xs text-[#a0a0a5]">Форм — нийтлэхэд идэвхжинэ</p>
-            )}
-          </div>
-        </ContentSection>
-      );
+      return <ContactFormMapSection data={d} edit={edit} />;
+
+    case "contact-categories":
+      return <ContactCategoriesSection data={d} edit={edit} />;
+
+    case "contact-social-cta":
+      return <ContactSocialCtaSection data={d} edit={edit} />;
 
     default:
       return (
