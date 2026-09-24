@@ -39,6 +39,8 @@ const { getScoringProfile, PROFILES } = require('../domain/scoring/scoring-profi
 const router = express.Router();
 
 function serializeCompetitor(c) {
+  const md = c.MatchDivision;
+  const divisionKey = c.matchDivisionId || c.divisionId;
   return {
     id: c.id,
     matchId: c.matchId,
@@ -46,7 +48,10 @@ function serializeCompetitor(c) {
     firstName: c.firstName,
     lastName: c.lastName,
     fullName: `${c.firstName} ${c.lastName}`.trim(),
-    divisionId: c.matchDivisionId || c.divisionId,
+    divisionId: divisionKey,
+    matchDivisionId: c.matchDivisionId,
+    divisionName: md?.name || null,
+    divisionCode: md?.code || null,
     categoryId: c.categoryId,
     powerFactor: c.powerFactor,
     squadId: c.squadId,
@@ -173,9 +178,25 @@ router.get('/matches/:matchId/squads', async (req, res) => {
   });
 });
 
+router.get('/matches/:matchId/divisions', async (req, res) => {
+  const divisions = await MatchDivision.findAll({
+    where: { matchId: req.params.matchId, enabled: true },
+    order: [['name', 'ASC']],
+  });
+  res.json({
+    divisions: divisions.map((d) => ({
+      id: d.id,
+      name: d.name,
+      code: d.code,
+      label: d.code ? `${d.name} (${d.code})` : d.name,
+    })),
+  });
+});
+
 router.get('/matches/:matchId/competitors', async (req, res) => {
   const competitors = await Competitor.findAll({
     where: { matchId: req.params.matchId },
+    include: [{ model: MatchDivision, attributes: ['id', 'name', 'code'] }],
     order: [['bibNumber', 'ASC']],
   });
   res.json({ competitors: competitors.map(serializeCompetitor) });
