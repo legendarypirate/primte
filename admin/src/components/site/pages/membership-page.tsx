@@ -8,6 +8,7 @@ import {
   Target,
   Users,
 } from "lucide-react";
+import { EditableBackground } from "@/components/site/editable-background";
 import { EditableText } from "@/components/site/editable-text";
 import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag } from "../primitives";
 
@@ -74,9 +75,15 @@ export function MembershipPage() {
             />
           </div>
           <div className="flex items-center justify-center">
-            <div className="relative flex h-64 w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]">
-              <LionIcon className="size-24 text-[#e31e24]/30" />
-              <div className="absolute bottom-4 right-4 text-right">
+            <EditableBackground
+              field="about.cardImageUrl"
+              className="flex h-64 w-full items-center justify-center rounded-2xl border border-border"
+              fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]"
+              placeholder="About card зураг"
+              editMode="cover"
+            >
+              <LionIcon className="relative z-10 size-24 text-[#e31e24]/30" />
+              <div className="absolute bottom-4 right-4 z-10 text-right">
                 <EditableText
                   field="about.cardBrand"
                   defaultValue="PRIME"
@@ -93,29 +100,45 @@ export function MembershipPage() {
                 defaultValue="«Аюулгүй буудлага Илүү хариуцлагатай нийгэмд хүргэдэг.»"
                 multiline
                 as="p"
-                className="absolute top-4 right-4 max-w-[140px] text-right text-xs italic text-muted-foreground"
+                className="absolute top-4 right-4 z-10 max-w-[140px] text-right text-xs italic text-muted-foreground"
               />
               <EditableText
                 field="about.cardAuthor"
                 defaultValue="— PRIME"
-                className="absolute bottom-4 left-4 text-xs font-semibold text-muted-foreground"
+                className="absolute bottom-4 left-4 z-10 text-xs font-semibold text-muted-foreground"
               />
-            </div>
+            </EditableBackground>
           </div>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <div className="flex gap-4 rounded-xl border border-border bg-card p-5">
-            <Shield className="size-5 shrink-0 text-[#e31e24]" />
+          <EditableBackground
+            field="about.infoLeftImageUrl"
+            className="flex gap-4 rounded-xl border border-border bg-card p-5"
+            fallbackClassName="bg-card"
+            imageClassName="object-cover opacity-25"
+            overlayClassName="bg-[#101012]/80"
+            placeholder="Card background"
+            editMode="corner"
+          >
+            <Shield className="relative z-10 size-5 shrink-0 text-[#e31e24]" />
             <EditableText
               field="about.infoLeft"
               defaultValue="Прайм клубын гишүүнээр элсэхийн тулд практик буудлагын спортын аюулгүй ажиллагааны сургалтанд хамрагдах шаардлагатай."
               multiline
               as="p"
-              className="text-sm text-muted-foreground block"
+              className="relative z-10 text-sm text-muted-foreground block"
             />
-          </div>
-          <div className="rounded-xl border border-border bg-card p-5">
+          </EditableBackground>
+          <EditableBackground
+            field="about.infoRightImageUrl"
+            className="rounded-xl border border-border bg-card p-5"
+            fallbackClassName="bg-card"
+            imageClassName="object-cover opacity-25"
+            overlayClassName="bg-[#101012]/80"
+            placeholder="Card background"
+            editMode="corner"
+          >
             <EditableText
               field="about.infoRightIntro"
               defaultValue="Тухайн сургалтыг дараах газруудад авуулах эрхтэй:"
@@ -127,9 +150,9 @@ export function MembershipPage() {
               defaultValue={"• МПБХ-ны төв клуб – Төв аймаг, Сэргэлэн сум\n• МПБХ-ны Prime клуб."}
               multiline
               as="p"
-              className="mt-2 space-y-1 text-sm text-muted-foreground block whitespace-pre-line"
+              className="relative z-10 mt-2 space-y-1 text-sm text-muted-foreground block whitespace-pre-line"
             />
-          </div>
+          </EditableBackground>
         </div>
       </ContentSection>
 
@@ -137,11 +160,16 @@ export function MembershipPage() {
         <SectionTag n="02" label="ГИШҮҮНЧЛЭЛИЙН ТӨРӨЛ" fieldPrefix="section.02" />
         <div className="grid gap-6 md:grid-cols-2">
           <div className="group overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-[#e31e24]/40">
-            <div className="relative h-56 bg-gradient-to-br from-[#1a1410] via-[#161215] to-[#0d0d0f]">
-              <div className="absolute inset-0 flex items-center justify-center">
+            <EditableBackground
+              field="types.adult.imageUrl"
+              className="relative h-56"
+              fallbackClassName="bg-gradient-to-br from-[#1a1410] via-[#161215] to-[#0d0d0f]"
+              placeholder="Adult card зураг"
+            >
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
                 <LionIcon className="size-20 text-[#e31e24]/20" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0d0d0f] to-transparent p-6">
+              <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#0d0d0f] to-transparent p-6">
                 <Users className="mb-2 size-5 text-[#e31e24]" />
                 <EditableText
                   field="types.adult.title"
@@ -156,7 +184,7 @@ export function MembershipPage() {
                   className="text-xs text-muted-foreground block"
                 />
               </div>
-            </div>
+            </EditableBackground>
             <div className="p-6">
               <EditableText
                 field="types.adult.price"
@@ -171,11 +199,16 @@ export function MembershipPage() {
           </div>
 
           <div className="group overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-[#e31e24]/40">
-            <div className="relative h-56 bg-gradient-to-br from-[#101820] via-[#12151a] to-[#0d0d0f]">
-              <div className="absolute inset-0 flex items-center justify-center">
+            <EditableBackground
+              field="types.junior.imageUrl"
+              className="relative h-56"
+              fallbackClassName="bg-gradient-to-br from-[#101820] via-[#12151a] to-[#0d0d0f]"
+              placeholder="Junior card зураг"
+            >
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
                 <Award className="size-20 text-[#e31e24]/20" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0d0d0f] to-transparent p-6">
+              <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#0d0d0f] to-transparent p-6">
                 <Award className="mb-2 size-5 text-[#e31e24]" />
                 <EditableText
                   field="types.junior.title"
@@ -190,7 +223,7 @@ export function MembershipPage() {
                   className="text-xs text-muted-foreground block"
                 />
               </div>
-            </div>
+            </EditableBackground>
             <div className="p-6">
               <EditableText
                 field="types.junior.note"
@@ -206,13 +239,21 @@ export function MembershipPage() {
           </div>
         </div>
 
-        <EditableText
-          field="types.annualNote"
-          defaultValue="Гишүүнчлэлийн эрх нь сар, сараар сунгагдах ёстой бөгөөд тухайн сардаа гишүүнчлэлийн эрх нь хүчинтэй байж, клубын зохион байгуулсан аливаа үйл ажиллагаанд оролцох эрхээр хэрэгждэг. Клубын гишүүн нь тухайн сард, долоо хоног бүрийн амралтын өдрүүдэд жагсаал клубын тэмцээнүүдэд болон мэргэжил, пүрэв гарагуудад зохион байгуулдаг бэлтгэлүүдэд нэм хураамжгүйгээр оролцох боломжтой."
-          multiline
-          as="p"
-          className="mt-8 rounded-xl border border-[#ffffff15] bg-[#101012] p-6 text-sm text-muted-foreground leading-7 block"
-        />
+        <EditableBackground
+          field="types.annualNoteImageUrl"
+          className="mt-8 rounded-xl border border-[#ffffff15] p-6"
+          fallbackClassName="bg-[#101012]"
+          placeholder="Note box background"
+          editMode="corner"
+        >
+          <EditableText
+            field="types.annualNote"
+            defaultValue="Гишүүнчлэлийн эрх нь сар, сараар сунгагдах ёстой бөгөөд тухайн сардаа гишүүнчлэлийн эрх нь хүчинтэй байж, клубын зохион байгуулсан аливаа үйл ажиллагаанд оролцох эрхээр хэрэгждэг. Клубын гишүүн нь тухайн сард, долоо хоног бүрийн амралтын өдрүүдэд жагсаал клубын тэмцээнүүдэд болон мэргэжил, пүрэв гарагуудад зохион байгуулдаг бэлтгэлүүдэд нэм хураамжгүйгээр оролцох боломжтой."
+            multiline
+            as="p"
+            className="relative z-10 text-sm text-muted-foreground leading-7 block"
+          />
+        </EditableBackground>
       </ContentSection>
 
       <ContentSection>
@@ -224,8 +265,14 @@ export function MembershipPage() {
           className="mb-8 text-sm text-muted-foreground block"
         />
         <div className="grid gap-6 lg:grid-cols-[1fr_1fr_0.6fr]">
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <div className="mb-4 flex items-center gap-3">
+          <EditableBackground
+            field="training.course1.imageUrl"
+            className="rounded-2xl border border-border p-6"
+            fallbackClassName="bg-card"
+            placeholder="Course 1 background"
+            editMode="corner"
+          >
+            <div className="relative z-10 mb-4 flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-[#e31e24]/10 text-[#e31e24]">
                 <BookOpen className="size-5" />
               </div>
@@ -239,15 +286,21 @@ export function MembershipPage() {
               defaultValue="Практик буудлагын хийн гар бууны төрлийн анхан шатны мэдлэгүүлтүүд болон. Сургалтыг төгссөнөөр долоо хоног бүрийн Мягмар, Пүрэв гарагуудад явагдах бэлтгэлүүдэд оролцох болон гишүүнчлэлийн сургалтанд хамрагдах эрх нээгдэнэ."
               multiline
               as="p"
-              className="text-sm leading-7 text-muted-foreground block"
+              className="relative z-10 text-sm leading-7 text-muted-foreground block"
             />
-            <Link href="/training/course-1" className="mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
+            <Link href="/training/course-1" className="relative z-10 mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
               <EditableText field="training.course1.link" defaultValue="Дэлгэрэнгүй →" />
             </Link>
-          </div>
+          </EditableBackground>
 
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <div className="mb-4 flex items-center gap-3">
+          <EditableBackground
+            field="training.course2.imageUrl"
+            className="rounded-2xl border border-border p-6"
+            fallbackClassName="bg-card"
+            placeholder="Course 2 background"
+            editMode="corner"
+          >
+            <div className="relative z-10 mb-4 flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-[#e31e24]/10 text-[#e31e24]">
                 <Target className="size-5" />
               </div>
@@ -261,22 +314,28 @@ export function MembershipPage() {
               defaultValue="Сургалтыг тигсснөөр Прайм клубын сургалтанд гүнзгийрүүлэн элсэх, сараар 3 удаа хөнөлцөх нэм гарагийн 1р түвшний тэмцээнд оролцох эрх нээгдэж, чансааны оноо тооцоолох эхлэнэ."
               multiline
               as="p"
-              className="text-sm leading-7 text-muted-foreground block"
+              className="relative z-10 text-sm leading-7 text-muted-foreground block"
             />
-            <Link href="/training/course-2" className="mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
+            <Link href="/training/course-2" className="relative z-10 mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
               <EditableText field="training.course2.link" defaultValue="Дэлгэрэнгүй →" />
             </Link>
-          </div>
+          </EditableBackground>
 
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-[#101012] p-6 text-center">
+          <EditableBackground
+            field="training.quoteImageUrl"
+            className="flex flex-col items-center justify-center rounded-2xl border border-border p-6 text-center"
+            fallbackClassName="bg-[#101012]"
+            placeholder="Quote background"
+            editMode="corner"
+          >
             <EditableText
               field="training.quote"
               defaultValue="«Практик буудлагын спортын онцлог нь сурааг дуусна гэсэн ойлголт байхгүй, насан туршдаа хичээллэж спортоор хичээллэх боломжтой.»"
               multiline
               as="p"
-              className="text-sm italic leading-7 text-muted-foreground block"
+              className="relative z-10 text-sm italic leading-7 text-muted-foreground block"
             />
-          </div>
+          </EditableBackground>
         </div>
       </ContentSection>
 
@@ -298,36 +357,49 @@ export function MembershipPage() {
         />
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {pointMethods.map((item, idx) => (
-            <div key={idx} className="rounded-xl border border-border bg-card p-5">
+            <EditableBackground
+              key={idx}
+              field={`points.${idx}.imageUrl`}
+              className="rounded-xl border border-border p-5"
+              fallbackClassName="bg-card"
+              placeholder="Point card background"
+              editMode="corner"
+            >
               <EditableText
                 field={`points.${idx}.value`}
                 defaultValue={item.points}
                 as="p"
-                className="text-3xl font-bold text-[#e31e24] block"
+                className="relative z-10 text-3xl font-bold text-[#e31e24] block"
               />
               <EditableText
                 field={`points.${idx}.title`}
                 defaultValue={item.title}
                 multiline
                 as="p"
-                className="mt-3 text-sm font-semibold leading-6 block"
+                className="relative z-10 mt-3 text-sm font-semibold leading-6 block"
               />
-            </div>
+            </EditableBackground>
           ))}
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-[#e31e24]/30 bg-gradient-to-r from-[#14080a] to-[#101012] p-6">
+        <EditableBackground
+          field="fullMember.bannerImageUrl"
+          className="mt-10 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-[#e31e24]/30 p-6"
+          fallbackClassName="bg-gradient-to-r from-[#14080a] to-[#101012]"
+          placeholder="CTA banner background"
+          editMode="corner"
+        >
           <EditableText
             field="fullMember.ctaBody"
             defaultValue="Хэрэв 30 оноог цуглуулж дууссан бол registration@prime.mn хаягруу МПБХ-ны гишүүнчлэлийн жилийн хураамжийн төлсөн баримтыг хавсаргаж, үндсэн гишүүнчлэлээр элсэж хүсэлтээ явуулан, гишүүнчлэлийн дугаар авснаар Прайм клубын үндсэн гишүүн болох юм."
             multiline
             as="p"
-            className="text-sm text-muted-foreground block flex-1"
+            className="relative z-10 text-sm text-muted-foreground block flex-1"
           />
-          <RedButton href="/contact">
+          <RedButton href="/contact" className="relative z-10">
             <EditableText field="fullMember.ctaButton" defaultValue="ҮНДСЭН ГИШҮҮНЭЭР ЭЛСЭХ" />
           </RedButton>
-        </div>
+        </EditableBackground>
       </ContentSection>
     </>
   );

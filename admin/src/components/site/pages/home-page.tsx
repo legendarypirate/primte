@@ -22,6 +22,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { EditableBackground } from "@/components/site/editable-background";
 import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag } from "../primitives";
 
 const safetyRules = [
@@ -191,7 +192,12 @@ export function HomePage() {
         aside={
           <div className="space-y-4">
             {/* IPSC Info Box */}
-            <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#181612] via-[#101012] to-[#08080a] p-6 shadow-2xl shadow-black/80">
+            <EditableBackground
+              field="hero.aside.ipscImageUrl"
+              className="rounded-2xl border border-[#e31e24]/40 p-6 shadow-2xl shadow-black/80"
+              fallbackClassName="bg-gradient-to-br from-[#181612] via-[#101012] to-[#08080a]"
+              editMode="corner"
+            >
               <div className="flex items-center gap-3">
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-[#e31e24] bg-[#e31e24]/10 text-[#e31e24]">
                   <LionIcon className="size-7" />
@@ -213,10 +219,15 @@ export function HomePage() {
                 <span>Илүү ихийг мэдэх</span>
                 <ArrowRight className="size-3.5" />
               </Link>
-            </div>
+            </EditableBackground>
 
             {/* Tactical Banner Quote */}
-            <div className="relative overflow-hidden rounded-2xl border border-[#ffffff10] bg-[#121215] p-6 text-right shadow-xl">
+            <EditableBackground
+              field="hero.aside.quoteImageUrl"
+              className="rounded-2xl border border-[#ffffff10] p-6 text-right shadow-xl"
+              fallbackClassName="bg-[#121215]"
+              editMode="corner"
+            >
               <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(circle_at_100%_0%,#e31e2420,transparent_70%)]" />
               <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#e31e24]">
                 PRIME IPSC ACTION AIR
@@ -224,7 +235,7 @@ export function HomePage() {
               <blockquote className="mt-2 text-xs italic leading-relaxed text-white">
                 "Хурд бол ур чадвар. Нарийвчлал бол хариуцлага. Харин аюулгүй байдал бол бүхний үндэс."
               </blockquote>
-            </div>
+            </EditableBackground>
           </div>
         }
       >
@@ -250,10 +261,13 @@ export function HomePage() {
 
         {/* 4 Safety Rules Cards Horizontal Row */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {safetyRules.map((rule) => (
-            <div
+          {safetyRules.map((rule, idx) => (
+            <EditableBackground
               key={rule.n}
-              className="relative overflow-hidden rounded-xl border border-[#ffffff15] bg-[#101014] p-5 shadow-lg transition-all hover:border-[#e31e24]/60 hover:bg-[#15151a]"
+              field={`safety.rules.${idx}.imageUrl`}
+              className="rounded-xl border border-[#ffffff15] p-5 shadow-lg transition-all hover:border-[#e31e24]/60"
+              fallbackClassName="bg-[#101014]"
+              editMode="corner"
             >
               <div className="mb-3 flex items-center justify-between">
                 <span className="flex size-9 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 font-mono text-sm font-bold text-[#e31e24]">
@@ -262,17 +276,20 @@ export function HomePage() {
                 <Shield className="size-4 text-[#e31e24]/40" />
               </div>
               <h4 className="text-xs font-bold text-white">{rule.title}</h4>
-              <p className="mt-2 text-[11px] leading-relaxed text-[#a0a0a5]">{rule.body}</p>
-            </div>
+              <p className="relative z-10 mt-2 text-[11px] leading-relaxed text-[#a0a0a5]">{rule.body}</p>
+            </EditableBackground>
           ))}
         </div>
 
         {/* 4 Feature Cards */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featureCards.map(({ icon: Icon, title, body, href }) => (
-            <div
+          {featureCards.map(({ icon: Icon, title, body, href }, idx) => (
+            <EditableBackground
               key={title}
-              className="flex flex-col justify-between rounded-xl border border-[#ffffff10] bg-[#121215] p-5 transition-all hover:border-[#e31e24]/50 hover:bg-[#18181d]"
+              field={`safety.features.${idx}.imageUrl`}
+              className="flex flex-col justify-between rounded-xl border border-[#ffffff10] p-5 transition-all hover:border-[#e31e24]/50"
+              fallbackClassName="bg-[#121215]"
+              editMode="corner"
             >
               <div>
                 <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/30 bg-[#e31e24]/10 text-[#e31e24]">
@@ -288,7 +305,7 @@ export function HomePage() {
                 <span>Дэлгэрэнгүй</span>
                 <ArrowRight className="size-3" />
               </Link>
-            </div>
+            </EditableBackground>
           ))}
         </div>
 
@@ -334,10 +351,13 @@ export function HomePage() {
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_0.9fr]">
           {/* 3 Course Cards */}
           <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-3">
-            {courses.map((c) => (
-              <div
+            {courses.map((c, idx) => (
+              <EditableBackground
                 key={c.id}
-                className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#101014] p-5 shadow-xl transition-all hover:border-[#e31e24]/60"
+                field={`training.courses.${idx}.imageUrl`}
+                className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] p-5 shadow-xl transition-all hover:border-[#e31e24]/60"
+                fallbackClassName="bg-[#101014]"
+                editMode="corner"
               >
                 <div>
                   <div className="mb-3 flex items-center justify-between">
@@ -374,7 +394,7 @@ export function HomePage() {
                     <ArrowRight className="size-3.5" />
                   </Link>
                 </div>
-              </div>
+              </EditableBackground>
             ))}
           </div>
 
@@ -493,16 +513,20 @@ export function HomePage() {
 
         {/* 4 Shop Cards */}
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((p) => (
+          {products.map((p, idx) => (
             <div
               key={p.name}
               className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#121215] p-5 shadow-xl transition-all hover:border-[#e31e24]/50 hover:bg-[#18181d]"
             >
               <div>
-                {/* Visual Gear Placeholder Graphic */}
-                <div className="mb-4 flex h-36 items-center justify-center rounded-xl border border-[#ffffff10] bg-[#0a0a0c] p-4 text-[#e31e24] transition-transform group-hover:scale-105">
-                  <ShoppingCart className="size-10 text-[#e31e24]/60" />
-                </div>
+                <EditableBackground
+                  field={`shop.products.${idx}.imageUrl`}
+                  className="mb-4 flex h-36 items-center justify-center rounded-xl border border-[#ffffff10] p-4 transition-transform group-hover:scale-105"
+                  fallbackClassName="bg-[#0a0a0c]"
+                  editMode="cover"
+                >
+                  <ShoppingCart className="relative z-10 size-10 text-[#e31e24]/60" />
+                </EditableBackground>
                 <h4 className="font-heading text-sm font-bold text-white">{p.name}</h4>
                 <p className="mt-1 text-xs text-[#a0a0a5]">{p.sub}</p>
               </div>
@@ -679,7 +703,12 @@ export function HomePage() {
           </div>
 
           {/* Card 3: Banner */}
-          <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 flex flex-col justify-end shadow-2xl">
+          <EditableBackground
+            field="ranking.philosophyImageUrl"
+            className="flex flex-col justify-end rounded-2xl border border-[#e31e24]/40 p-8 shadow-2xl"
+            fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+            editMode="corner"
+          >
             <div className="absolute top-4 right-4 text-[#e31e24]/20">
               <LionIcon className="size-24" />
             </div>
@@ -689,7 +718,7 @@ export function HomePage() {
             <blockquote className="mt-2 font-heading text-2xl font-extrabold uppercase leading-tight text-white">
               "ДҮРЭМ БОЛ СПОРТЫН СҮНС"
             </blockquote>
-          </div>
+          </EditableBackground>
         </div>
       </ContentSection>
 
@@ -709,16 +738,21 @@ export function HomePage() {
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {newsItems.map((item) => (
+          {newsItems.map((item, idx) => (
             <article
               key={item.title}
               className="group overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#121215] shadow-xl transition-all hover:border-[#e31e24]/50"
             >
-              <div className="h-44 bg-gradient-to-br from-[#1a1814] via-[#121215] to-[#070707] p-5 flex items-end border-b border-[#ffffff10] relative">
-                <span className="font-mono text-xs font-bold text-[#e31e24] bg-[#000000]/60 px-2.5 py-1 rounded">
+              <EditableBackground
+                field={`news.${idx}.imageUrl`}
+                className="flex h-44 items-end border-b border-[#ffffff10] p-5"
+                fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#121215] to-[#070707]"
+                editMode="cover"
+              >
+                <span className="relative z-10 rounded bg-[#000000]/60 px-2.5 py-1 font-mono text-xs font-bold text-[#e31e24]">
                   {item.date}
                 </span>
-              </div>
+              </EditableBackground>
               <div className="p-5">
                 <h4 className="font-heading text-sm font-bold text-white transition-colors group-hover:text-[#e31e24]">
                   {item.title}

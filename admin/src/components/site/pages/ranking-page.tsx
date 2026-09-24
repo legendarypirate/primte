@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { getPodiumOrder, getRankingSummaries } from "@/lib/athletes";
+import { EditableBackground } from "@/components/site/editable-background";
 import { ContentSection, LionIcon, PageHero, RedButton, SectionTag } from "../primitives";
 
 const podium = getPodiumOrder();
@@ -120,14 +121,17 @@ export function RankingPage() {
       {/* ── Top 3 Podium ── */}
       <ContentSection dark>
         <div className="grid w-full grid-cols-1 items-end gap-4 sm:grid-cols-3 md:gap-6">
-          {podium.map((athlete) => {
+          {podium.map((athlete, idx) => {
             const Card = (
-            <div
+            <EditableBackground
+              field={`podium.${idx}.imageUrl`}
               className={`flex w-full flex-col items-center rounded-2xl border px-6 py-8 text-center transition-all hover:border-[#e31e24]/50 ${
                 athlete.featured
-                  ? "border-[#e31e24]/60 bg-gradient-to-b from-[#1a0e10] to-[#101012] shadow-[0_0_40px_#e31e2418] sm:-mt-8 sm:py-10"
-                  : "border-border bg-card sm:mt-4"
+                  ? "border-[#e31e24]/60 shadow-[0_0_40px_#e31e2418] sm:-mt-8 sm:py-10"
+                  : "border-border sm:mt-4"
               }`}
+              fallbackClassName={athlete.featured ? "bg-gradient-to-b from-[#1a0e10] to-[#101012]" : "bg-card"}
+              editMode="corner"
             >
               <div
                 className={`mb-4 flex size-8 items-center justify-center rounded-full text-sm font-bold ${
@@ -167,7 +171,7 @@ export function RankingPage() {
                 {athlete.change >= 0 ? <ArrowUp className="size-4" /> : <ArrowDown className="size-4" />}
                 {athlete.change >= 0 ? `+${athlete.change}` : athlete.change}
               </p>
-            </div>
+            </EditableBackground>
             );
             return athlete.slug ? (
               <Link key={athlete.slug} href={`/ranking/${athlete.slug}`} className="block w-full">

@@ -16,6 +16,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { EditableBackground } from "@/components/site/editable-background";
 import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag } from "../primitives";
 
 const stats = [
@@ -75,7 +76,12 @@ export function AboutPage() {
         title="БИДНИЙ ТУХАЙ"
         description="PRIME Practical Shooting Club нь 2019 онд байгуулагдсан IPSC Action Air клуб бөгөөд аюулгүй, хариуцлагатай, чадварлаг тамирчдыг хөгжүүлэхэд зориулагдсан."
         aside={
-          <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 shadow-2xl">
+          <EditableBackground
+            field="hero.aside.imageUrl"
+            className="rounded-2xl border border-[#e31e24]/40 p-8 shadow-2xl"
+            fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+            editMode="corner"
+          >
             <div className="absolute top-4 right-4 text-[#e31e24]/15">
               <LionIcon className="size-36" />
             </div>
@@ -88,7 +94,7 @@ export function AboutPage() {
             <p className="mt-3 text-xs leading-relaxed text-[#a0a0a5]">
               Аюулгүй байдал, сахилга бат, техник ур чадварыг нэгтгэсэн олон улсын практик буудлагын соёл.
             </p>
-          </div>
+          </EditableBackground>
         }
       >
         <RedButton href="#history">
@@ -143,7 +149,12 @@ export function AboutPage() {
           </div>
 
           {/* Lion emblem banner */}
-          <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-[#121215] p-8 text-center shadow-2xl">
+          <EditableBackground
+            field="history.emblemImageUrl"
+            className="rounded-2xl border border-[#e31e24]/40 p-8 text-center shadow-2xl"
+            fallbackClassName="bg-[#121215]"
+            editMode="corner"
+          >
             <LionIcon className="mx-auto size-16 text-[#e31e24]" />
             <h3 className="mt-4 font-heading text-xl font-bold uppercase tracking-wider text-white">
               PRIME PRACTICAL SHOOTING CLUB
@@ -151,7 +162,7 @@ export function AboutPage() {
             <blockquote className="mt-3 text-xs italic leading-relaxed text-[#e31e24]">
               "Илүү аюулгүй, илүү чадварлаг ирээдүйг хамтдаа бүтээе."
             </blockquote>
-          </div>
+          </EditableBackground>
         </div>
       </ContentSection>
 
@@ -263,18 +274,22 @@ export function AboutPage() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {galleryItems.map((g, idx) => (
-            <div
+            <EditableBackground
               key={idx}
-              className="group relative flex h-48 flex-col justify-end overflow-hidden rounded-2xl border border-[#ffffff15] p-5 shadow-xl transition-transform hover:scale-105"
+              field={`gallery.${idx}.imageUrl`}
+              className="group flex h-48 flex-col justify-end overflow-hidden rounded-2xl border border-[#ffffff15] p-5 shadow-xl transition-transform hover:scale-105"
+              fallbackClassName={`bg-gradient-to-t ${g.color}`}
+              imageClassName="object-cover opacity-70"
+              overlayClassName={`bg-gradient-to-t ${g.color} opacity-60`}
+              editMode="cover"
             >
-              <div className={`absolute inset-0 bg-gradient-to-t ${g.color}`} />
               <div className="relative z-10">
                 <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#e31e24]">
                   {g.tag}
                 </span>
                 <h4 className="font-heading text-base font-extrabold uppercase text-white">{g.title}</h4>
               </div>
-            </div>
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>
@@ -292,15 +307,19 @@ export function AboutPage() {
         </div>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {team.map((person) => (
+          {team.map((person, idx) => (
             <div
               key={person.name}
               className="group overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#101014] shadow-xl transition-all hover:border-[#e31e24]/60"
             >
-              {/* Graphic Profile Box */}
-              <div className="relative flex h-52 items-center justify-center bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]">
-                <LionIcon className="size-20 text-[#e31e24]/20 transition-transform group-hover:scale-110" />
-              </div>
+              <EditableBackground
+                field={`team.${idx}.imageUrl`}
+                className="relative flex h-52 items-center justify-center"
+                fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]"
+                editMode="cover"
+              >
+                <LionIcon className="relative z-10 size-20 text-[#e31e24]/20 transition-transform group-hover:scale-110" />
+              </EditableBackground>
               <div className="p-5">
                 <h4 className="font-heading text-base font-bold text-white">{person.name}</h4>
                 <p className="mt-1 text-xs font-semibold text-[#e31e24]">{person.role}</p>
@@ -313,7 +332,12 @@ export function AboutPage() {
 
       {/* 08 - НИЙГЭМЛЭГТ НЭГД */}
       <ContentSection id="cta" dark>
-        <div className="relative overflow-hidden rounded-3xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 md:p-12 shadow-2xl">
+        <EditableBackground
+          field="cta.bannerImageUrl"
+          className="rounded-3xl border border-[#e31e24]/40 p-8 shadow-2xl md:p-12"
+          fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+          editMode="corner"
+        >
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
@@ -331,7 +355,7 @@ export function AboutPage() {
               <OutlineButton href="/contact">ХОЛБОО БАРИХ →</OutlineButton>
             </div>
           </div>
-        </div>
+        </EditableBackground>
       </ContentSection>
     </>
   );

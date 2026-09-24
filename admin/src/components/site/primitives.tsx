@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Shield } from "lucide-react";
+import { EditableBackground } from "@/components/site/editable-background";
 import { EditableText } from "@/components/site/editable-text";
 import { usePageContent } from "@/components/site/page-content-context";
 import { cn } from "@/lib/utils";
@@ -120,10 +121,18 @@ export function PageHero({
 
   return (
     <section className="relative overflow-hidden border-b border-[#ffffff10] bg-[#070707]">
+      <EditableBackground
+        field={`${fieldPrefix}.backgroundImageUrl`}
+        className="absolute inset-0"
+        fallbackClassName=""
+        imageClassName="object-cover opacity-35"
+        overlayClassName="bg-gradient-to-r from-[#070707]/95 via-[#070707]/85 to-[#070707]/70"
+        placeholder="Hero background"
+      />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
 
-      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div className="z-10">
           {eyebrow !== undefined && eyebrow !== "" ? (
             <div className="mb-4 flex items-center gap-2">

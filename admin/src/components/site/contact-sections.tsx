@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { EditableBackground } from "@/components/site/editable-background";
 import { EditableText } from "@/components/site/editable-text";
 import { InlineEdit } from "@/components/site-editor/inline-edit";
 import { EditableImage } from "@/components/site-editor/editable-image";
@@ -115,7 +116,13 @@ export function ContactCardsSection({
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card p-6">
+          <EditableBackground
+            key={i}
+            field={`cards.${i}.imageUrl`}
+            className="rounded-xl border border-border p-6"
+            fallbackClassName="bg-card"
+            editMode="corner"
+          >
             <div className="mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/30 bg-[#e31e24]/10">
               <Icon name={card.icon} className="size-5 text-[#e31e24]" />
             </div>
@@ -162,7 +169,7 @@ export function ContactCardsSection({
                 ) : null}
               </>
             )}
-          </div>
+          </EditableBackground>
         ))}
       </div>
     </ContentSection>
@@ -541,16 +548,92 @@ export function ContactSocialCtaSection({
   edit?: EditCtx;
 }) {
   const socials = (data.socials as { label: string; href: string }[]) || [];
-  const bg = data.backgroundImageUrl ? assetUrl(String(data.backgroundImageUrl)) : "";
+  const inner = (
+    <>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#e31e2408,transparent_50%)]" />
+      <div className="relative flex flex-wrap items-center justify-between gap-8">
+        <div>
+          {edit ? (
+            <>
+              <InlineEdit
+                value={String(data.eyebrow || "")}
+                onChange={(v) => edit.onChange(patch(data, "eyebrow", v))}
+                className="mb-2 text-xs font-bold tracking-[0.2em] text-[#e31e24] block"
+              />
+              <InlineEdit
+                value={String(data.title || "")}
+                onChange={(v) => edit.onChange(patch(data, "title", v))}
+                as="h2"
+                className="font-heading text-3xl font-bold md:text-4xl block"
+              />
+              <InlineEdit
+                value={String(data.description || "")}
+                onChange={(v) => edit.onChange(patch(data, "description", v))}
+                multiline
+                className="mt-3 max-w-lg text-sm text-muted-foreground"
+              />
+            </>
+          ) : (
+            <>
+              {data.eyebrow ? (
+                <p className="mb-2 text-xs font-bold tracking-[0.2em] text-[#e31e24]">{String(data.eyebrow)}</p>
+              ) : null}
+              <h2 className="font-heading text-3xl font-bold md:text-4xl">{String(data.title || "")}</h2>
+              {data.description ? (
+                <p className="mt-3 max-w-lg text-sm text-muted-foreground">{String(data.description)}</p>
+              ) : null}
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-4">
+          {edit ? (
+            <InlineEdit
+              value={String(data.followLabel || "")}
+              onChange={(v) => edit.onChange(patch(data, "followLabel", v))}
+              className="text-xs text-muted-foreground"
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground">{String(data.followLabel || "Бидний дагаарай")}</p>
+          )}
+          <div className="flex gap-2 text-[10px] font-bold">
+            {socials.map((s, i) =>
+              edit ? (
+                <span
+                  key={i}
+                  className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5]"
+                >
+                  <InlineEdit
+                    value={s.label}
+                    onChange={(v) => edit.onChange(patchItem(data, "socials", i, { label: v }))}
+                    className="text-[10px]"
+                  />
+                </span>
+              ) : (
+                <a
+                  key={i}
+                  href={s.href || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5] transition-all hover:border-[#e31e24] hover:bg-[#e31e24] hover:text-white"
+                >
+                  {s.label}
+                </a>
+              )
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <ContentSection dark>
-      <div className="relative overflow-hidden rounded-2xl border border-[#ffffff15] bg-gradient-to-r from-[#12080a] via-[#0d0d0f] to-[#12080a] p-10 md:p-14">
-        {bg ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={bg} alt="" className="absolute inset-0 size-full object-cover opacity-25" />
-        ) : null}
-        {edit ? (
+      {edit ? (
+        <div className="relative overflow-hidden rounded-2xl border border-[#ffffff15] bg-gradient-to-r from-[#12080a] via-[#0d0d0f] to-[#12080a] p-10 md:p-14">
+          {data.backgroundImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={assetUrl(String(data.backgroundImageUrl))} alt="" className="absolute inset-0 size-full object-cover opacity-25" />
+          ) : null}
           <div className="absolute left-4 top-4 z-10 h-20 w-32">
             <EditableImage
               value={String(data.backgroundImageUrl || "")}
@@ -560,81 +643,19 @@ export function ContactSocialCtaSection({
               imgClassName="rounded-lg"
             />
           </div>
-        ) : null}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#e31e2408,transparent_50%)]" />
-        <div className="relative flex flex-wrap items-center justify-between gap-8">
-          <div>
-            {edit ? (
-              <>
-                <InlineEdit
-                  value={String(data.eyebrow || "")}
-                  onChange={(v) => edit.onChange(patch(data, "eyebrow", v))}
-                  className="mb-2 text-xs font-bold tracking-[0.2em] text-[#e31e24] block"
-                />
-                <InlineEdit
-                  value={String(data.title || "")}
-                  onChange={(v) => edit.onChange(patch(data, "title", v))}
-                  as="h2"
-                  className="font-heading text-3xl font-bold md:text-4xl block"
-                />
-                <InlineEdit
-                  value={String(data.description || "")}
-                  onChange={(v) => edit.onChange(patch(data, "description", v))}
-                  multiline
-                  className="mt-3 max-w-lg text-sm text-muted-foreground"
-                />
-              </>
-            ) : (
-              <>
-                {data.eyebrow ? (
-                  <p className="mb-2 text-xs font-bold tracking-[0.2em] text-[#e31e24]">{String(data.eyebrow)}</p>
-                ) : null}
-                <h2 className="font-heading text-3xl font-bold md:text-4xl">{String(data.title || "")}</h2>
-                {data.description ? (
-                  <p className="mt-3 max-w-lg text-sm text-muted-foreground">{String(data.description)}</p>
-                ) : null}
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            {edit ? (
-              <InlineEdit
-                value={String(data.followLabel || "")}
-                onChange={(v) => edit.onChange(patch(data, "followLabel", v))}
-                className="text-xs text-muted-foreground"
-              />
-            ) : (
-              <p className="text-xs text-muted-foreground">{String(data.followLabel || "Бидний дагаарай")}</p>
-            )}
-            <div className="flex gap-2 text-[10px] font-bold">
-              {socials.map((s, i) =>
-                edit ? (
-                  <span
-                    key={i}
-                    className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5]"
-                  >
-                    <InlineEdit
-                      value={s.label}
-                      onChange={(v) => edit.onChange(patchItem(data, "socials", i, { label: v }))}
-                      className="text-[10px]"
-                    />
-                  </span>
-                ) : (
-                  <a
-                    key={i}
-                    href={s.href || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5] transition-all hover:border-[#e31e24] hover:bg-[#e31e24] hover:text-white"
-                  >
-                    {s.label}
-                  </a>
-                )
-              )}
-            </div>
-          </div>
+          {inner}
         </div>
-      </div>
+      ) : (
+        <EditableBackground
+          field="socialCta.backgroundImageUrl"
+          className="rounded-2xl border border-[#ffffff15] p-10 md:p-14"
+          fallbackClassName="bg-gradient-to-r from-[#12080a] via-[#0d0d0f] to-[#12080a]"
+          imageClassName="object-cover opacity-25"
+          editMode="corner"
+        >
+          {inner}
+        </EditableBackground>
+      )}
     </ContentSection>
   );
 }
@@ -650,29 +671,44 @@ export function ContactHeroSection({
 
   return (
     <section className="relative overflow-hidden border-b border-[#ffffff10] bg-[#070707]">
-      {bg ? (
+      {edit ? (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={bg} alt="" className="absolute inset-0 size-full object-cover opacity-35" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#070707] via-[#070707]/85 to-[#070707]/60" />
+          {bg ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={bg} alt="" className="absolute inset-0 size-full object-cover opacity-35" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#070707] via-[#070707]/85 to-[#070707]/60" />
+            </>
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
+            </>
+          )}
+          <div className="absolute left-4 top-4 z-20 h-24 w-40">
+            <EditableImage
+              value={String(data.backgroundImageUrl || "")}
+              onChange={(v) => edit.onChange(patch(data, "backgroundImageUrl", v))}
+              edit
+              placeholder="Background"
+              imgClassName="rounded-lg"
+            />
+          </div>
         </>
       ) : (
         <>
+          <EditableBackground
+            field="hero.backgroundImageUrl"
+            className="absolute inset-0"
+            fallbackClassName=""
+            imageClassName="object-cover opacity-35"
+            overlayClassName="bg-gradient-to-r from-[#070707] via-[#070707]/85 to-[#070707]/60"
+            placeholder="Hero background"
+          />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
         </>
       )}
-      {edit ? (
-        <div className="absolute left-4 top-4 z-20 h-24 w-40">
-          <EditableImage
-            value={String(data.backgroundImageUrl || "")}
-            onChange={(v) => edit.onChange(patch(data, "backgroundImageUrl", v))}
-            edit
-            placeholder="Background"
-            imgClassName="rounded-lg"
-          />
-        </div>
-      ) : null}
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div className="z-10">
           {String(data.eyebrow || "") ? (

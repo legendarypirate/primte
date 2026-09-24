@@ -21,6 +21,7 @@ import {
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
+import { EditableBackground } from "@/components/site/editable-background";
 import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag, Stepper } from "../primitives";
 
 const whyUs = [
@@ -200,7 +201,12 @@ export function TrainingPage() {
         title="СУРГАЛТ"
         description="PRIME IPSC Club нь Монгол Улсад олон улсын стандарттай, аюулгүй, мэргэжлийн IPSC Action Air сургалтыг санал болгодог. Дисциплин, ур чадвар, итгэл үнэмшлийг хамтдаа бий болгоно."
         aside={
-          <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 text-right shadow-2xl">
+          <EditableBackground
+            field="hero.aside.imageUrl"
+            className="rounded-2xl border border-[#e31e24]/40 p-8 text-right shadow-2xl"
+            fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+            editMode="corner"
+          >
             <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
               DISCIPLINE · SKILL
             </p>
@@ -210,7 +216,7 @@ export function TrainingPage() {
             <p className="mt-2 text-xs leading-relaxed text-[#a0a0a5]">
               Аюулгүй байдал, практик буудлагын бодит дадлага сургалт.
             </p>
-          </div>
+          </EditableBackground>
         }
       >
         <RedButton href="#courses">
@@ -429,14 +435,19 @@ export function TrainingPage() {
         </h2>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {instructors.map((ins) => (
+          {instructors.map((ins, idx) => (
             <div
               key={ins.name}
               className="overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#121215] shadow-xl"
             >
-              <div className="flex h-44 items-center justify-center bg-gradient-to-br from-[#1a1814] to-[#070707]">
-                <LionIcon className="size-16 text-[#e31e24]/30" />
-              </div>
+              <EditableBackground
+                field={`instructors.${idx}.imageUrl`}
+                className="flex h-44 items-center justify-center"
+                fallbackClassName="bg-gradient-to-br from-[#1a1814] to-[#070707]"
+                editMode="cover"
+              >
+                <LionIcon className="relative z-10 size-16 text-[#e31e24]/30" />
+              </EditableBackground>
               <div className="p-4">
                 <h4 className="font-heading text-sm font-bold text-white">{ins.name}</h4>
                 <p className="mt-1 text-xs font-semibold text-[#e31e24]">{ins.role}</p>
@@ -604,7 +615,12 @@ export function TrainingPage() {
 
       {/* 11 - PRIME-ТАЙ ЭХЛҮҮЛ */}
       <ContentSection id="bottom-cta">
-        <div className="relative overflow-hidden rounded-3xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 md:p-12 shadow-2xl">
+        <EditableBackground
+          field="cta.bannerImageUrl"
+          className="rounded-3xl border border-[#e31e24]/40 p-8 shadow-2xl md:p-12"
+          fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+          editMode="corner"
+        >
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
@@ -619,7 +635,7 @@ export function TrainingPage() {
               <OutlineButton href="/contact">ХОЛБОО БАРИХ →</OutlineButton>
             </div>
           </div>
-        </div>
+        </EditableBackground>
       </ContentSection>
     </>
   );
