@@ -1,8 +1,10 @@
 "use client";
 
-import { InlineEdit } from "@/components/site-editor/inline-edit";
 import { cn } from "@/lib/utils";
 import { usePageContent } from "./page-content-context";
+
+const editChrome =
+  "rounded-md border border-dashed border-[#e31e24]/50 bg-[#e31e24]/8 px-2 py-1 outline-none transition-colors hover:border-[#e31e24] focus:border-[#e31e24] focus:bg-[#e31e24]/12 focus:ring-2 focus:ring-[#e31e24]/30";
 
 export function EditableText({
   field,
@@ -30,20 +32,29 @@ export function EditableText({
     return <El className={className}>{value}</El>;
   }
 
-  return (
-    <span className={cn("group/edit relative inline-block max-w-full", multiline && "block w-full")}>
-      <InlineEdit
+  const onChange = (v: string) => ctx.setField(field, v);
+
+  if (multiline) {
+    return (
+      <textarea
         value={value}
-        onChange={(v) => ctx.setField(field, v)}
-        as={as}
-        multiline={multiline}
-        className={cn(
-          "ring-1 ring-[#e31e24]/30 group-hover/edit:ring-[#e31e24]/60",
-          multiline && "block w-full",
-          className
-        )}
         placeholder={placeholder}
+        rows={Math.max(2, value.split("\n").length + 1)}
+        onClick={(e) => e.stopPropagation()}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(editChrome, "block w-full resize-y min-h-[2.5rem]", className)}
       />
-    </span>
+    );
+  }
+
+  return (
+    <input
+      type="text"
+      value={value}
+      placeholder={placeholder}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => onChange(e.target.value)}
+      className={cn(editChrome, "block w-full min-w-[3rem]", className)}
+    />
   );
 }
