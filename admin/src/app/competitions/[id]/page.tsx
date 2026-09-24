@@ -172,7 +172,15 @@ export default function CompetitionDetailPage() {
 
   async function save() {
     try {
-      await api(`/api/admin/competitions/${id}`, { method: "PUT", body: JSON.stringify(form) });
+      const payload = {
+        ...form,
+        eventDate: form.eventDate || null,
+        eventEndDate: form.eventEndDate || null,
+        registrationOpenAt: form.registrationOpenAt || null,
+        registrationCloseAt: form.registrationCloseAt || null,
+        matchTypeId: form.matchTypeId || null,
+      };
+      await api(`/api/admin/competitions/${id}`, { method: "PUT", body: JSON.stringify(payload) });
       toast.success("Хадгаллаа");
       await load();
     } catch (e) {

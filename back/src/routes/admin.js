@@ -82,6 +82,24 @@ function pick(body, keys) {
   return out;
 }
 
+const COMPETITION_DATE_FIELDS = ['eventDate', 'eventEndDate', 'registrationOpenAt', 'registrationCloseAt'];
+
+function sanitizeCompetitionInput(body) {
+  const out = pick(body || {}, COMPETITION_FIELDS);
+  for (const key of COMPETITION_DATE_FIELDS) {
+    if (!(key in out)) continue;
+    const value = out[key];
+    if (value === '' || value === null || value === 'Invalid date') {
+      out[key] = null;
+      continue;
+    }
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) out[key] = null;
+  }
+  if (out.matchTypeId === '') out.matchTypeId = null;
+  return out;
+}
+
 router.get('/dashboard', requirePermission('dashboard.view'), async (_req, res) => {
   const [members, products, competitions, orders, attendanceToday, walletSum] = await Promise.all([
     Member.count(),
@@ -334,14 +352,14 @@ router.get('/competitions/:id', requirePermission('competitions.view'), async (r
 });
 
 router.post('/competitions', requirePermission('competitions.manage'), async (req, res) => {
-  const competition = await Competition.create(pick(req.body || {}, COMPETITION_FIELDS));
+  const competition = await Competition.create(sanitizeCompetitionInput(req.body));
   res.status(201).json({ competition: await serializeCompetitionAdmin(competition, req, { joined: 0 }) });
 });
 
 router.put('/competitions/:id', requirePermission('competitions.manage'), async (req, res) => {
   const competition = await Competition.findByPk(req.params.id);
   if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
-  await competition.update(pick(req.body || {}, COMPETITION_FIELDS));
+  await competition.update(sanitizeCompetitionInput(req.body));
   await competition.reload({ include: [{ model: MatchType, required: false }] });
   res.json({ competition: await serializeCompetitionAdmin(competition, req) });
 });
