@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const {
   Match,
+  Competition,
+  MatchType,
   Stage,
   Squad,
   Competitor,
@@ -52,6 +54,27 @@ function serializeCompetitor(c) {
   };
 }
 
+function serializeMatch(m) {
+  const c = m.Competition;
+  const mt = c?.MatchType;
+  return {
+    id: m.id,
+    competitionId: m.competitionId,
+    name: m.name,
+    title: c?.title || m.name,
+    subtitle: c?.subtitle || null,
+    discipline: m.discipline || mt?.name || 'IPSC',
+    scoringProfileId: m.scoringProfileId,
+    status: m.status,
+    location: m.location || c?.location || null,
+    startDate: m.startDate || c?.eventDate || null,
+    endDate: m.endDate || c?.eventEndDate || null,
+    organizer: c?.organizer || 'Монголын Практик Буудлагын Холбоо',
+    imageUrl: c?.imageUrl || null,
+    matchTypeName: mt?.name || null,
+  };
+}
+
 function serializeScore(s) {
   return {
     id: s.id,
@@ -81,16 +104,73 @@ function serializeScore(s) {
 router.use(requireAdmin);
 
 router.get('/matches', async (_req, res) => {
-  const matches = await Match.findAll({ order: [['startDate', 'DESC']] });
-  res.json({ matches });
+  const matches = await Match.findAll({
+    order: [['startDate', 'DESC']],
+    include: [{ model: Competition, include: [MatchType] }],
+  });
+  res.json({ matches: matches.map(serializeMatch) });
 });
 
 router.get('/matches/:matchId', async (req, res) => {
   const match = await Match.findByPk(req.params.matchId, {
-    include: [Stage, Squad, MatchDivision, MatchCategory],
+    include: [
+      { model: Competition, include: [MatchType] },
+      Stage,
+      Squad,
+      MatchDivision,
+      MatchCategory,
+    ],
   });
   if (!match) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
-  res.json({ match });
+  res.json({ match: { ...serializeMatch(match), Stages: match.Stages, Squads: match.Squads } });
+});
+
+router.get('/matches/:matchId/squads', async (req, res) => {
+  const matchId = req.params.matchId;
+  const squads = await Squad.findAll({ where: { matchId }, order: [['startTime', 'ASC'], ['name', 'ASC']] });
+  const competitors = await Competitor.findAll({ where: { matchId, status: 'ACTIVE' } });
+  const bySquad = {};
+  for (const c of competitors) {
+    if (!c.squadId) continue;
+    bySquad[c.squadId] = (bySquad[c.squadId] || 0) + 1;
+  }
+  const eligible = competitors.length || 1;
+  const activeStage = await Stage.findOne({ where: { matchId, status: 'ACTIVE' } });
+  let signedBySquad = {};
+  if (activeStage) {
+    const signed = await Score.findAll({
+      where: { matchId, stageId: activeStage.id, status: 'SIGNED' },
+      attributes: ['competitorId'],
+    });
+    const signedIds = new Set(signed.map((s) => s.competitorId));
+    for (const c of competitors) {
+      if (c.squadId && signedIds.has(c.id)) {
+        signedBySquad[c.squadId] = (signedBySquad[c.squadId] || 0) + 1;
+      }
+    }
+  }
+  res.json({
+    squads: squads.map((s) => {
+      const filled = bySquad[s.id] || 0;
+      const done = signedBySquad[s.id] || 0;
+      const progress = filled > 0 ? (done / filled) * 100 : 0;
+      let statusLabel = 'Хүлээгдэж байна';
+      if (progress >= 100) statusLabel = 'Дууссан';
+      else if (progress > 0) statusLabel = 'Явж байгаа';
+      else if (s.status === 'ACTIVE') statusLabel = 'Явж байгаа';
+      return {
+        id: s.id,
+        name: s.name,
+        capacity: s.capacity,
+        filled,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        status: s.status,
+        statusLabel,
+        progress,
+      };
+    }),
+  });
 });
 
 router.get('/matches/:matchId/competitors', async (req, res) => {
@@ -248,13 +328,39 @@ router.get('/matches/:matchId/progress', async (req, res) => {
 
   const stages = await Stage.findAll({ where: { matchId } });
   const stageProgress = [];
+  let completedStages = 0;
+  let activeStagesCount = 0;
   for (const stage of stages) {
     const completed = await Score.count({ where: { matchId, stageId: stage.id, status: 'SIGNED' } });
     const progress = calculateStageProgress(completed, eligibleCompetitors);
-    stageProgress.push({ stageId: stage.id, number: stage.number, progress });
+    if (progress >= 100) completedStages += 1;
+    else if (progress > 0) activeStagesCount += 1;
+    stageProgress.push({
+      stageId: stage.id,
+      number: stage.number,
+      name: stage.name,
+      courseType: stage.courseType,
+      maximumPoints: stage.maximumPoints,
+      minimumRounds: stage.minimumRounds,
+      progress,
+      status: progress >= 100 ? 'COMPLETED' : progress > 0 ? 'ACTIVE' : 'WAITING',
+    });
   }
 
-  res.json({ matchProgress, stageProgress, signedScores, expectedScores: eligibleCompetitors * activeStages });
+  res.json({
+    matchProgress,
+    stageProgress,
+    signedScores,
+    expectedScores: eligibleCompetitors * activeStages,
+    stats: {
+      competitors: eligibleCompetitors,
+      stages: activeStages,
+      squads: await Squad.count({ where: { matchId } }),
+      completedStages,
+      activeStages: activeStagesCount,
+      remainingStages: Math.max(0, stages.length - completedStages - activeStagesCount),
+    },
+  });
 });
 
 router.post('/sync', async (req, res) => {
