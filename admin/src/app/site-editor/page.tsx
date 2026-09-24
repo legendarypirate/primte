@@ -1,61 +1,69 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowDown,
-  ArrowUp,
-  Copy,
+  ArrowLeft,
   ExternalLink,
-  Eye,
+  Globe,
   Layers,
   RefreshCw,
-  Save,
-  Trash2,
+  Send,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Shell } from "@/components/shell";
-import { BlockFieldEditor } from "@/components/site-editor/field-editor";
-import { SitePageRenderer } from "@/components/site/block-renderer";
+import { EditableCanvas } from "@/components/site-editor/editable-canvas";
+import { BlockInspector } from "@/components/site-editor/block-inspector";
+import { AddBlockDialog } from "@/components/site-editor/add-block-dialog";
 import { api } from "@/lib/api";
-import { BLOCK_SCHEMAS, BLOCK_SCHEMA_MAP, newBlock, type SiteBlock, type SitePageData } from "@/lib/site-blocks";
+import type { SiteBlock, SitePageData } from "@/lib/site-blocks";
 import { PAGE_SLUGS } from "@/lib/site-content";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+
+function snapshot(page: SitePageData | null) {
+  if (!page) return "";
+  return JSON.stringify({
+    title: page.title,
+    metaTitle: page.metaTitle,
+    metaDescription: page.metaDescription,
+    published: page.published,
+    blocks: page.blocks,
+  });
+}
 
 export default function SiteEditorPage() {
   const [pages, setPages] = useState<SitePageData[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<SitePageData | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState("");
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [inspectorBlockId, setInspectorBlockId] = useState<string | null>(null);
+  const [addBlockOpen, setAddBlockOpen] = useState(false);
+  const [addBlockIndex, setAddBlockIndex] = useState(0);
+  const [publishing, setPublishing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const initialLoad = useRef(true);
+
+  const isDirty = useMemo(() => snapshot(draft) !== savedSnapshot, [draft, savedSnapshot]);
+  const pageMeta = draft ? Object.values(PAGE_SLUGS).find((p) => p.slug === draft.slug) : null;
+  const inspectorBlock = draft?.blocks.find((b) => b.id === inspectorBlockId) || null;
 
   const loadPages = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api<{ pages: SitePageData[] }>("/api/admin/site-pages");
       setPages(data.pages);
-      if (!selectedId && data.pages.length) {
+      if (initialLoad.current && data.pages.length) {
         setSelectedId(data.pages[0].id);
+        initialLoad.current = false;
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Алдаа");
     } finally {
       setLoading(false);
     }
-  }, [selectedId]);
+  }, []);
 
   useEffect(() => {
     loadPages();
@@ -66,13 +74,12 @@ export default function SiteEditorPage() {
     api<{ page: SitePageData }>(`/api/admin/site-pages/${selectedId}`)
       .then((d) => {
         setDraft(d.page);
-        setSelectedBlockId(d.page.blocks[0]?.id || null);
+        setSavedSnapshot(snapshot(d.page));
+        setSelectedBlockId(null);
+        setInspectorBlockId(null);
       })
       .catch((e) => toast.error(e.message));
   }, [selectedId]);
-
-  const selectedBlock = draft?.blocks.find((b) => b.id === selectedBlockId) || null;
-  const pageMeta = draft ? Object.values(PAGE_SLUGS).find((p) => p.slug === draft.slug) : null;
 
   const updateDraft = (patch: Partial<SitePageData>) => {
     setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -96,9 +103,11 @@ export default function SiteEditorPage() {
 
   const removeBlock = (blockId: string) => {
     if (!draft) return;
+    if (!confirm("Энэ блокийг устгах уу?")) return;
     const next = draft.blocks.filter((b) => b.id !== blockId);
     updateDraft({ blocks: next });
-    if (selectedBlockId === blockId) setSelectedBlockId(next[0]?.id || null);
+    if (selectedBlockId === blockId) setSelectedBlockId(null);
+    if (inspectorBlockId === blockId) setInspectorBlockId(null);
   };
 
   const duplicateBlock = (block: SiteBlock) => {
@@ -111,16 +120,17 @@ export default function SiteEditorPage() {
     setSelectedBlockId(copy.id);
   };
 
-  const addBlock = (type: string) => {
+  const insertBlock = (block: SiteBlock) => {
     if (!draft) return;
-    const block = newBlock(type);
-    updateDraft({ blocks: [...draft.blocks, block] });
+    const next = [...draft.blocks];
+    next.splice(addBlockIndex, 0, block);
+    updateDraft({ blocks: next });
     setSelectedBlockId(block.id);
   };
 
-  const save = async () => {
+  const publish = async () => {
     if (!draft) return;
-    setSaving(true);
+    setPublishing(true);
     try {
       const data = await api<{ page: SitePageData }>(`/api/admin/site-pages/${draft.id}`, {
         method: "PUT",
@@ -128,25 +138,27 @@ export default function SiteEditorPage() {
           title: draft.title,
           metaTitle: draft.metaTitle,
           metaDescription: draft.metaDescription,
-          published: draft.published,
+          published: true,
           blocks: draft.blocks,
         }),
       });
-      setDraft(data.page);
-      setPages((prev) => prev.map((p) => (p.id === data.page.id ? { ...p, ...data.page } : p)));
-      toast.success("Хадгаллаа");
+      setDraft({ ...data.page, published: true });
+      setSavedSnapshot(snapshot({ ...data.page, published: true }));
+      setPages((prev) => prev.map((p) => (p.id === data.page.id ? { ...p, ...data.page, published: true } : p)));
+      toast.success("Нийтлэгдлээ!");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Хадгалахад алдаа");
+      toast.error(e instanceof Error ? e.message : "Нийтлэхэд алдаа");
     } finally {
-      setSaving(false);
+      setPublishing(false);
     }
   };
 
   const reseed = async () => {
-    if (!confirm("Бүх хуудсыг анхны агуулгаар дахин үүсгэх үү? Одоогийн өөрчлөлтүүд устана.")) return;
+    if (!confirm("Бүх хуудсыг анхны агуулгаар дахин үүсгэх үү?")) return;
     try {
       await api("/api/admin/site-pages/seed", { method: "POST" });
       toast.success("Анхны агуулга сэргээлээ");
+      initialLoad.current = true;
       setSelectedId(null);
       await loadPages();
     } catch (e) {
@@ -154,203 +166,136 @@ export default function SiteEditorPage() {
     }
   };
 
+  const switchPage = (id: string) => {
+    if (isDirty && !confirm("Хадгалаагүй өөрчлөлт байна. Шилжих үү?")) return;
+    setSelectedId(id);
+  };
+
   if (loading && !pages.length) {
-    return (
-      <Shell>
-        <div className="text-muted-foreground">Уншиж байна...</div>
-      </Shell>
-    );
+    return <div className="flex min-h-screen items-center justify-center text-[#a0a0a5]">Уншиж байна...</div>;
   }
 
   return (
-    <Shell>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-3xl text-primary">Вэб сайт засварлагч</h1>
-          <p className="text-sm text-muted-foreground">Landing page-ийн блокуудыг визуал editor-оор удирдана</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={reseed}>
-            <RefreshCw className="size-4" />
-            Анхны агуулга
-          </Button>
-          {pageMeta ? (
-            <Link
-              href={pageMeta.path}
-              target="_blank"
-              className="inline-flex h-8 items-center gap-2 rounded-lg border border-border bg-background px-3 text-xs font-medium hover:bg-muted"
+    <>
+      {/* Top editor chrome */}
+      <header className="sticky top-0 z-[100] border-b border-[#ffffff15] bg-[#0e0e10]/95 backdrop-blur-md">
+        <div className="flex items-center gap-3 border-b border-[#ffffff10] px-4 py-2">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-xs text-[#a0a0a5] transition-colors hover:text-white"
+          >
+            <ArrowLeft className="size-3.5" />
+            Admin
+          </Link>
+          <span className="text-[#ffffff20]">|</span>
+          <Globe className="size-4 text-[#e31e24]" />
+          <span className="font-heading text-sm font-semibold tracking-wider text-white">PRIME SITE EDITOR</span>
+          {isDirty ? (
+            <Badge variant="outline" className="border-[#e31e24]/50 text-[#e31e24] text-[10px]">
+              Хадгалаагүй
+            </Badge>
+          ) : draft?.published ? (
+            <Badge className="bg-green-600/20 text-green-400 text-[10px]">Нийтэлсэн</Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] text-[#a0a0a5]">Ноорог</Badge>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            <Button type="button" size="sm" variant="ghost" className="h-8 text-[#a0a0a5] hover:text-white" onClick={reseed}>
+              <RefreshCw className="size-3.5" />
+              Reset
+            </Button>
+            {pageMeta ? (
+              <Link
+                href={pageMeta.path}
+                target="_blank"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs text-[#a0a0a5] hover:bg-[#ffffff10] hover:text-white"
+              >
+                <ExternalLink className="size-3.5" />
+                Live
+              </Link>
+            ) : null}
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 bg-[#e31e24] px-4 hover:bg-[#c91920]"
+              disabled={publishing || !draft}
+              onClick={publish}
             >
-              <ExternalLink className="size-4" />
-              Сайт дээр харах
-            </Link>
-          ) : null}
-          <Button size="sm" onClick={save} disabled={saving || !draft}>
-            <Save className="size-4" />
-            {saving ? "Хадгалж байна..." : "Хадгалах"}
-          </Button>
+              <Send className="size-3.5" />
+              {publishing ? "Нийтэлж байна..." : "Нийтэх"}
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[220px_280px_1fr]">
-        {/* Page list */}
-        <div className="rounded-xl border border-border bg-card p-3">
-          <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        {/* Horizontal page tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto px-4 py-2.5">
+          <span className="flex shrink-0 items-center gap-1.5 pr-2 text-[10px] font-bold uppercase tracking-widest text-[#a0a0a5]">
             <Layers className="size-3.5" />
             Хуудсууд
-          </p>
-          <div className="space-y-1">
-            {pages.map((page) => (
+          </span>
+          {pages.map((page) => {
+            const active = selectedId === page.id;
+            const meta = Object.values(PAGE_SLUGS).find((p) => p.slug === page.slug);
+            return (
               <button
                 key={page.id}
                 type="button"
-                onClick={() => setSelectedId(page.id)}
-                className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                  selectedId === page.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                }`}
-              >
-                <div className="font-medium">{page.title}</div>
-                <div className={`text-xs ${selectedId === page.id ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  /{page.slug} · {page.blockCount ?? page.blocks?.length ?? 0} блок
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Block list */}
-        <div className="flex flex-col rounded-xl border border-border bg-card">
-          <div className="border-b border-border p-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Блокууд</p>
-            {draft ? (
-              <div className="mt-2 flex gap-2">
-                <Select onValueChange={(v) => { if (typeof v === "string") addBlock(v); }}>
-                  <SelectTrigger className="h-8 flex-1 text-xs">
-                    <SelectValue placeholder="Блок нэмэх..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BLOCK_SCHEMAS.map((s) => (
-                      <SelectItem key={s.type} value={s.type}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
-          </div>
-          <div className="flex-1 space-y-1 overflow-y-auto p-2">
-            {draft?.blocks.map((block, index) => {
-              const schema = BLOCK_SCHEMA_MAP[block.type];
-              const active = block.id === selectedBlockId;
-              return (
-                <div
-                  key={block.id}
-                  className={`rounded-lg border p-2 transition-colors ${active ? "border-primary bg-primary/5" : "border-transparent hover:bg-muted/50"}`}
-                >
-                  <button type="button" className="w-full text-left" onClick={() => setSelectedBlockId(block.id)}>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium">{schema?.label || block.type}</span>
-                      <Badge variant="outline" className="text-[10px]">
-                        {index + 1}
-                      </Badge>
-                    </div>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {block.type === "hero" ? String(block.data.title || "") : schema?.description}
-                    </p>
-                  </button>
-                  <div className="mt-2 flex gap-1">
-                    <Button type="button" size="sm" variant="ghost" className="h-7 px-2" disabled={index === 0} onClick={() => moveBlock(index, -1)}>
-                      <ArrowUp className="size-3.5" />
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" className="h-7 px-2" disabled={index === draft.blocks.length - 1} onClick={() => moveBlock(index, 1)}>
-                      <ArrowDown className="size-3.5" />
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" className="h-7 px-2" onClick={() => duplicateBlock(block)}>
-                      <Copy className="size-3.5" />
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-destructive" onClick={() => removeBlock(block.id)}>
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-            {!draft?.blocks.length ? (
-              <p className="p-4 text-center text-xs text-muted-foreground">Блок байхгүй. Дээрх селектээс нэмнэ үү.</p>
-            ) : null}
-          </div>
-        </div>
-
-        {/* Editor + Preview */}
-        <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card">
-          {!draft ? (
-            <div className="flex flex-1 items-center justify-center text-muted-foreground">Хуудас сонгоно уу</div>
-          ) : (
-            <Tabs defaultValue="edit" className="flex min-h-0 flex-1 flex-col">
-              <div className="flex items-center justify-between border-b border-border px-4 py-2">
-                <TabsList>
-                  <TabsTrigger value="edit">Засвар</TabsTrigger>
-                  <TabsTrigger value="preview">
-                    <Eye className="size-3.5" />
-                    Preview
-                  </TabsTrigger>
-                </TabsList>
-                <label className="flex items-center gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={draft.published}
-                    onChange={(e) => updateDraft({ published: e.target.checked })}
-                  />
-                  Нийтэлсэн
-                </label>
-              </div>
-
-              <TabsContent value="edit" className="flex-1 overflow-y-auto p-4 m-0 space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label>Хуудсын нэр</Label>
-                    <Input value={draft.title} onChange={(e) => updateDraft({ title: e.target.value })} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label>Slug</Label>
-                    <Input value={draft.slug} disabled className="bg-muted" />
-                  </div>
-                  <div className="space-y-1 md:col-span-2">
-                    <Label>Meta title</Label>
-                    <Input value={draft.metaTitle || ""} onChange={(e) => updateDraft({ metaTitle: e.target.value })} />
-                  </div>
-                  <div className="space-y-1 md:col-span-2">
-                    <Label>Meta description</Label>
-                    <Textarea value={draft.metaDescription || ""} rows={2} onChange={(e) => updateDraft({ metaDescription: e.target.value })} />
-                  </div>
-                </div>
-
-                {selectedBlock && BLOCK_SCHEMA_MAP[selectedBlock.type] ? (
-                  <div className="rounded-lg border border-border p-4">
-                    <div className="mb-4">
-                      <h3 className="font-medium">{BLOCK_SCHEMA_MAP[selectedBlock.type].label}</h3>
-                      <p className="text-xs text-muted-foreground">{BLOCK_SCHEMA_MAP[selectedBlock.type].description}</p>
-                    </div>
-                    <BlockFieldEditor
-                      fields={BLOCK_SCHEMA_MAP[selectedBlock.type].fields}
-                      data={selectedBlock.data}
-                      onChange={(data) => updateBlock(selectedBlock.id, { data })}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Засах блок сонгоно уу</p>
+                onClick={() => switchPage(page.id)}
+                className={cn(
+                  "flex shrink-0 flex-col rounded-lg border px-4 py-2 text-left transition-all",
+                  active
+                    ? "border-[#e31e24] bg-[#e31e24] text-white shadow-lg shadow-[#e31e24]/20"
+                    : "border-[#ffffff15] bg-[#141416] text-white hover:border-[#e31e24]/40"
                 )}
-              </TabsContent>
-
-              <TabsContent value="preview" className="flex-1 overflow-y-auto m-0 bg-[#070707]">
-                <div className="pointer-events-none">
-                  <SitePageRenderer blocks={draft.blocks} />
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
+              >
+                <span className="text-sm font-semibold whitespace-nowrap">{page.title}</span>
+                <span className={cn("text-[10px] whitespace-nowrap", active ? "text-white/75" : "text-[#a0a0a5]")}>
+                  {meta?.path || `/${page.slug}`} · {page.blockCount ?? page.blocks?.length ?? 0} блок
+                </span>
+              </button>
+            );
+          })}
         </div>
+      </header>
+
+      {/* Hint bar */}
+      <div className="border-b border-[#ffffff08] bg-[#0a0a0c] px-4 py-2 text-center text-[11px] text-[#a0a0a5]">
+        Текст дээр дарж шууд засна · Блок сонгоход хяналтын самбар гарна · <span className="text-[#e31e24]">⚙</span> дээр дарж link, meta засна
       </div>
-    </Shell>
+
+      {/* WYSIWYG canvas — the page itself */}
+      {draft ? (
+        <EditableCanvas
+          blocks={draft.blocks}
+          selectedBlockId={selectedBlockId}
+          onSelectBlock={setSelectedBlockId}
+          onUpdateBlock={updateBlock}
+          onMoveBlock={moveBlock}
+          onDuplicateBlock={duplicateBlock}
+          onRemoveBlock={removeBlock}
+          onOpenInspector={setInspectorBlockId}
+          onAddBlockAt={(index) => {
+            setAddBlockIndex(index);
+            setAddBlockOpen(true);
+          }}
+        />
+      ) : (
+        <div className="flex min-h-[50vh] items-center justify-center text-[#a0a0a5]">Хуудас сонгоно уу</div>
+      )}
+
+      {inspectorBlock ? (
+        <BlockInspector
+          block={inspectorBlock}
+          onClose={() => setInspectorBlockId(null)}
+          onChange={(data) => updateBlock(inspectorBlock.id, { data })}
+        />
+      ) : null}
+
+      <AddBlockDialog
+        open={addBlockOpen}
+        onOpenChange={setAddBlockOpen}
+        onAdd={insertBlock}
+      />
+    </>
   );
 }
