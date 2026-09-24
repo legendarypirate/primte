@@ -13,13 +13,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { SiteShell } from "@/components/site/shell";
-import { EditableCanvas } from "@/components/site-editor/editable-canvas";
-import { BlockInspector } from "@/components/site-editor/block-inspector";
 import { LayoutInspector } from "@/components/site-editor/layout-inspector";
-import { AddBlockDialog } from "@/components/site-editor/add-block-dialog";
+import { SitePagePreview, isLivePagePreview } from "@/components/site/site-page-preview";
 import { api } from "@/lib/api";
-import type { SiteBlock, SitePageData } from "@/lib/site-blocks";
-import { CUSTOM_TEMPLATE_SLUGS, PAGE_SLUGS } from "@/lib/site-content";
+import type { SitePageData } from "@/lib/site-blocks";
+import { PAGE_SLUGS } from "@/lib/site-content";
 import {
   layoutSnapshot,
   normalizeLayout,
@@ -31,45 +29,24 @@ import { Button } from "@/components/ui/button";
 
 type ViewMode = "page" | "layout";
 
-function pageSnapshot(page: SitePageData | null) {
-  if (!page) return "";
-  return JSON.stringify({
-    title: page.title,
-    metaTitle: page.metaTitle,
-    metaDescription: page.metaDescription,
-    published: page.published,
-    blocks: page.blocks,
-  });
-}
-
 export default function SiteEditorPage() {
   const [pages, setPages] = useState<SitePageData[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("page");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<SitePageData | null>(null);
-  const [savedPageSnapshot, setSavedPageSnapshot] = useState("");
+  const [selectedSlug, setSelectedSlug] = useState<string>("home");
   const [layoutDraft, setLayoutDraft] = useState<SiteLayoutData | null>(null);
   const [savedLayoutSnapshot, setSavedLayoutSnapshot] = useState("");
-  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
-  const [inspectorBlockId, setInspectorBlockId] = useState<string | null>(null);
   const [layoutInspector, setLayoutInspector] = useState<"header" | "footer" | null>(null);
-  const [addBlockOpen, setAddBlockOpen] = useState(false);
-  const [addBlockIndex, setAddBlockIndex] = useState(0);
   const [publishing, setPublishing] = useState(false);
   const [loading, setLoading] = useState(true);
   const initialLoad = useRef(true);
 
-  const pageDirty = useMemo(() => pageSnapshot(draft) !== savedPageSnapshot, [draft, savedPageSnapshot]);
   const layoutDirty = useMemo(
     () => layoutSnapshot(layoutDraft) !== savedLayoutSnapshot,
     [layoutDraft, savedLayoutSnapshot]
   );
-  const isDirty = pageDirty || layoutDirty;
-  const pageMeta = draft ? Object.values(PAGE_SLUGS).find((p) => p.slug === draft.slug) : null;
-  const customTemplate = draft ? CUSTOM_TEMPLATE_SLUGS.has(draft.slug) : false;
-  const inspectorBlock = draft?.blocks.find((b) => b.id === inspectorBlockId) || null;
+  const pageMeta = Object.values(PAGE_SLUGS).find((p) => p.slug === selectedSlug) ?? null;
 
-  const loadPages = useCallback(async () => {
+  const loadEditor = useCallback(async () => {
     setLoading(true);
     try {
       const [pagesData, layoutData] = await Promise.all([
@@ -81,7 +58,9 @@ export default function SiteEditorPage() {
       setLayoutDraft(layout);
       setSavedLayoutSnapshot(layoutSnapshot(layout));
       if (initialLoad.current && pagesData.pages.length) {
-        setSelectedId(pagesData.pages[0].id);
+        const first =
+          pagesData.pages.find((p) => p.slug === "home") ?? pagesData.pages[0];
+        setSelectedSlug(first.slug);
         initialLoad.current = false;
       }
     } catch (e) {
@@ -92,101 +71,23 @@ export default function SiteEditorPage() {
   }, []);
 
   useEffect(() => {
-    loadPages();
-  }, [loadPages]);
-
-  useEffect(() => {
-    if (viewMode !== "page" || !selectedId) return;
-    api<{ page: SitePageData }>(`/api/admin/site-pages/${selectedId}`)
-      .then((d) => {
-        setDraft(d.page);
-        setSavedPageSnapshot(pageSnapshot(d.page));
-        setSelectedBlockId(null);
-        setInspectorBlockId(null);
-      })
-      .catch((e) => toast.error(e.message));
-  }, [selectedId, viewMode]);
-
-  const updateDraft = (patch: Partial<SitePageData>) => {
-    setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
-  };
-
-  const updateBlock = (blockId: string, patch: Partial<SiteBlock>) => {
-    if (!draft) return;
-    updateDraft({
-      blocks: draft.blocks.map((b) => (b.id === blockId ? { ...b, ...patch } : b)),
-    });
-  };
-
-  const moveBlock = (index: number, dir: -1 | 1) => {
-    if (!draft) return;
-    const next = [...draft.blocks];
-    const target = index + dir;
-    if (target < 0 || target >= next.length) return;
-    [next[index], next[target]] = [next[target], next[index]];
-    updateDraft({ blocks: next });
-  };
-
-  const removeBlock = (blockId: string) => {
-    if (!draft) return;
-    if (!confirm("Энэ блокийг устгах уу?")) return;
-    const next = draft.blocks.filter((b) => b.id !== blockId);
-    updateDraft({ blocks: next });
-    if (selectedBlockId === blockId) setSelectedBlockId(null);
-    if (inspectorBlockId === blockId) setInspectorBlockId(null);
-  };
-
-  const duplicateBlock = (block: SiteBlock) => {
-    if (!draft) return;
-    const copy = { ...block, id: crypto.randomUUID(), data: JSON.parse(JSON.stringify(block.data)) };
-    const index = draft.blocks.findIndex((b) => b.id === block.id);
-    const next = [...draft.blocks];
-    next.splice(index + 1, 0, copy);
-    updateDraft({ blocks: next });
-    setSelectedBlockId(copy.id);
-  };
-
-  const insertBlock = (block: SiteBlock) => {
-    if (!draft) return;
-    const next = [...draft.blocks];
-    next.splice(addBlockIndex, 0, block);
-    updateDraft({ blocks: next });
-    setSelectedBlockId(block.id);
-  };
+    loadEditor();
+  }, [loadEditor]);
 
   const publish = async () => {
-    if (!isDirty) return;
+    if (!layoutDirty || !layoutDraft) return;
     setPublishing(true);
     try {
-      if (layoutDirty && layoutDraft) {
-        const layoutRes = await api<{ layout: SiteLayoutData }>("/api/admin/site-layout", {
-          method: "PUT",
-          body: JSON.stringify({
-            header: layoutDraft.header,
-            footer: layoutDraft.footer,
-          }),
-        });
-        const layout = normalizeLayout(layoutRes.layout);
-        setLayoutDraft(layout);
-        setSavedLayoutSnapshot(layoutSnapshot(layout));
-      }
-
-      if (pageDirty && draft) {
-        const data = await api<{ page: SitePageData }>(`/api/admin/site-pages/${draft.id}`, {
-          method: "PUT",
-          body: JSON.stringify({
-            title: draft.title,
-            metaTitle: draft.metaTitle,
-            metaDescription: draft.metaDescription,
-            published: true,
-            blocks: draft.blocks,
-          }),
-        });
-        setDraft({ ...data.page, published: true });
-        setSavedPageSnapshot(pageSnapshot({ ...data.page, published: true }));
-        setPages((prev) => prev.map((p) => (p.id === data.page.id ? { ...p, ...data.page, published: true } : p)));
-      }
-
+      const layoutRes = await api<{ layout: SiteLayoutData }>("/api/admin/site-layout", {
+        method: "PUT",
+        body: JSON.stringify({
+          header: layoutDraft.header,
+          footer: layoutDraft.footer,
+        }),
+      });
+      const layout = normalizeLayout(layoutRes.layout);
+      setLayoutDraft(layout);
+      setSavedLayoutSnapshot(layoutSnapshot(layout));
       toast.success("Нийтлэгдлээ!");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Нийтлэхэд алдаа");
@@ -195,47 +96,31 @@ export default function SiteEditorPage() {
     }
   };
 
-  const reseed = async () => {
-    if (viewMode === "layout") {
-      if (!confirm("Header болон footer-ийг анхны агуулгаар сэргээх үү?")) return;
-      try {
-        const data = await api<{ layout: SiteLayoutData }>("/api/admin/site-layout/reset", { method: "POST" });
-        const layout = normalizeLayout(data.layout);
-        setLayoutDraft(layout);
-        setSavedLayoutSnapshot(layoutSnapshot(layout));
-        toast.success("Layout сэргээлээ");
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Алдаа");
-      }
-      return;
-    }
-
-    if (!confirm("Бүх хуудсыг анхны агуулгаар дахин үүсгэх үү?")) return;
+  const resetLayout = async () => {
+    if (!confirm("Header болон footer-ийг анхны агуулгаар сэргээх үү?")) return;
     try {
-      await api("/api/admin/site-pages/seed", { method: "POST" });
-      toast.success("Анхны агуулга сэргээлээ");
-      initialLoad.current = true;
-      setSelectedId(null);
-      await loadPages();
+      const data = await api<{ layout: SiteLayoutData }>("/api/admin/site-layout/reset", { method: "POST" });
+      const layout = normalizeLayout(data.layout);
+      setLayoutDraft(layout);
+      setSavedLayoutSnapshot(layoutSnapshot(layout));
+      toast.success("Layout сэргээлээ");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Алдаа");
     }
   };
 
-  const confirmDiscard = () => !isDirty || confirm("Хадгалаагүй өөрчлөлт байна. Шилжих үү?");
+  const confirmDiscard = () => !layoutDirty || confirm("Хадгалаагүй өөрчлөлт байна. Шилжих үү?");
 
-  const switchPage = (id: string) => {
+  const switchPage = (slug: string) => {
     if (!confirmDiscard()) return;
     setViewMode("page");
     setLayoutInspector(null);
-    setSelectedId(id);
+    setSelectedSlug(slug);
   };
 
   const switchLayout = () => {
     if (!confirmDiscard()) return;
     setViewMode("layout");
-    setSelectedBlockId(null);
-    setInspectorBlockId(null);
     setLayoutInspector(null);
   };
 
@@ -254,6 +139,15 @@ export default function SiteEditorPage() {
       }
     : undefined;
 
+  const pageTabs = pages.length
+    ? pages.filter((p) => isLivePagePreview(p.slug))
+    : Object.values(PAGE_SLUGS).map((p, i) => ({
+        id: p.slug,
+        slug: p.slug,
+        title: p.label,
+        sortOrder: i,
+      }));
+
   return (
     <>
       <header className="sticky top-0 z-[100] border-b border-[#ffffff15] bg-[#0e0e10]/95 backdrop-blur-md">
@@ -268,46 +162,37 @@ export default function SiteEditorPage() {
           <span className="text-[#ffffff20]">|</span>
           <Globe className="size-4 text-[#e31e24]" />
           <span className="font-heading text-sm font-semibold tracking-wider text-white">PRIME SITE EDITOR</span>
-          {isDirty ? (
+          {layoutDirty ? (
             <Badge variant="outline" className="border-[#e31e24]/50 text-[#e31e24] text-[10px]">
               Хадгалаагүй
             </Badge>
-          ) : viewMode === "page" && draft?.published ? (
-            <Badge className="bg-green-600/20 text-green-400 text-[10px]">Нийтэлсэн</Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px] text-[#a0a0a5]">
-              {viewMode === "layout" ? "Layout" : "Ноорог"}
-            </Badge>
+            <Badge className="bg-green-600/20 text-green-400 text-[10px]">Нийтэлсэн</Badge>
           )}
           <div className="ml-auto flex items-center gap-2">
-            <Button type="button" size="sm" variant="ghost" className="h-8 text-[#a0a0a5] hover:text-white" onClick={reseed}>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-8 text-[#a0a0a5] hover:text-white"
+              onClick={resetLayout}
+            >
               <RefreshCw className="size-3.5" />
-              Reset
+              Reset layout
             </Button>
-            {viewMode === "page" && pageMeta ? (
-              <Link
-                href={pageMeta.path}
-                target="_blank"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs text-[#a0a0a5] hover:bg-[#ffffff10] hover:text-white"
-              >
-                <ExternalLink className="size-3.5" />
-                Live
-              </Link>
-            ) : viewMode === "layout" ? (
-              <Link
-                href="/"
-                target="_blank"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs text-[#a0a0a5] hover:bg-[#ffffff10] hover:text-white"
-              >
-                <ExternalLink className="size-3.5" />
-                Live
-              </Link>
-            ) : null}
+            <Link
+              href={viewMode === "layout" ? "/" : pageMeta?.path || "/"}
+              target="_blank"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs text-[#a0a0a5] hover:bg-[#ffffff10] hover:text-white"
+            >
+              <ExternalLink className="size-3.5" />
+              Live
+            </Link>
             <Button
               type="button"
               size="sm"
               className="h-8 bg-[#e31e24] px-4 hover:bg-[#c91920]"
-              disabled={publishing || !isDirty}
+              disabled={publishing || !layoutDirty}
               onClick={publish}
             >
               <Send className="size-3.5" />
@@ -339,14 +224,14 @@ export default function SiteEditorPage() {
               Navbar · Footer · Logo
             </span>
           </button>
-          {pages.map((page) => {
-            const active = viewMode === "page" && selectedId === page.id;
+          {pageTabs.map((page) => {
+            const active = viewMode === "page" && selectedSlug === page.slug;
             const meta = Object.values(PAGE_SLUGS).find((p) => p.slug === page.slug);
             return (
               <button
-                key={page.id}
+                key={page.slug}
                 type="button"
-                onClick={() => switchPage(page.id)}
+                onClick={() => switchPage(page.slug)}
                 className={cn(
                   "flex shrink-0 flex-col rounded-lg border px-4 py-2 text-left transition-all",
                   active
@@ -356,7 +241,7 @@ export default function SiteEditorPage() {
               >
                 <span className="text-sm font-semibold whitespace-nowrap">{page.title}</span>
                 <span className={cn("text-[10px] whitespace-nowrap", active ? "text-white/75" : "text-[#a0a0a5]")}>
-                  {meta?.path || `/${page.slug}`} · {page.blockCount ?? page.blocks?.length ?? 0} блок
+                  {meta?.path || `/${page.slug}`} · Live preview
                 </span>
               </button>
             );
@@ -369,14 +254,11 @@ export default function SiteEditorPage() {
           <>
             Header/Footer текст дээр дарж засна · <span className="text-[#e31e24]">Тохиргоо</span> дээр nav link, social засна
           </>
-        ) : customTemplate ? (
-          <>
-            <span className="text-[#e31e24]">{pageMeta?.label || draft?.slug}</span> нь built-in хуудас — live сайт кодоор харагдана.
-            Header/Footer-ийг <span className="text-[#e31e24]">Header & Footer</span> tab-аас засна.
-          </>
         ) : (
           <>
-            Текст дээр дарж шууд засна · Блок сонгоход хяналтын самбар гарна · Header/Footer мөн засагдана
+            Live сайттай ижил preview · Header/Footer-ийг{" "}
+            <span className="text-[#e31e24]">Header & Footer</span> tab-аас засна ·{" "}
+            <span className="text-[#e31e24]">Нийтэх</span> дарахад layout хадгалагдана
           </>
         )}
       </div>
@@ -391,33 +273,10 @@ export default function SiteEditorPage() {
                 <span className="text-[#e31e24]">Тохиргоо</span> товчоор нээнэ.
               </p>
             </div>
-          ) : draft ? (
-            <EditableCanvas
-              blocks={draft.blocks}
-              selectedBlockId={selectedBlockId}
-              onSelectBlock={setSelectedBlockId}
-              onUpdateBlock={updateBlock}
-              onMoveBlock={moveBlock}
-              onDuplicateBlock={duplicateBlock}
-              onRemoveBlock={removeBlock}
-              onOpenInspector={setInspectorBlockId}
-              onAddBlockAt={(index) => {
-                setAddBlockIndex(index);
-                setAddBlockOpen(true);
-              }}
-            />
           ) : (
-            <div className="flex min-h-[50vh] items-center justify-center text-[#a0a0a5]">Хуудас сонгоно уу</div>
+            <SitePagePreview slug={selectedSlug} />
           )}
         </SiteShell>
-      ) : null}
-
-      {inspectorBlock ? (
-        <BlockInspector
-          block={inspectorBlock}
-          onClose={() => setInspectorBlockId(null)}
-          onChange={(data) => updateBlock(inspectorBlock.id, { data })}
-        />
       ) : null}
 
       {layoutInspector && layoutDraft ? (
@@ -430,8 +289,6 @@ export default function SiteEditorPage() {
           onClose={() => setLayoutInspector(null)}
         />
       ) : null}
-
-      <AddBlockDialog open={addBlockOpen} onOpenChange={setAddBlockOpen} onAdd={insertBlock} />
     </>
   );
 }
