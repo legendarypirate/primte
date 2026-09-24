@@ -7,10 +7,17 @@ const { serializeMember } = require('../utils/helpers');
 const router = express.Router();
 
 router.post('/admin/login', async (req, res) => {
-  const { email, password } = req.body || {};
-  const admin = await Admin.findOne({ where: { email }, include: [Role] });
+  const { email, username, password } = req.body || {};
+  const identifier = String(username || email || '').trim();
+  if (!identifier) {
+    return res.status(400).json({ message: 'Нэвтрэх нэр эсвэл имэйл оруулна уу.' });
+  }
+  const where = identifier.includes('@')
+    ? { email: identifier.toLowerCase() }
+    : { username: identifier.toLowerCase() };
+  const admin = await Admin.findOne({ where, include: [Role] });
   if (!admin || !(await bcrypt.compare(password || '', admin.passwordHash))) {
-    return res.status(401).json({ message: 'Имэйл эсвэл нууц үг буруу.' });
+    return res.status(401).json({ message: 'Нэвтрэх нэр эсвэл нууц үг буруу.' });
   }
   return res.json({
     token: signToken({ id: admin.id, role: 'admin' }),

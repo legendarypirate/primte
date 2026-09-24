@@ -24,6 +24,7 @@ function serializeAdmin(admin) {
   return {
     id: admin.id,
     name: admin.name,
+    username: admin.username || null,
     email: admin.email,
     roleId: admin.roleId,
     role: role

@@ -13,6 +13,8 @@ const {
   Member,
   Registration,
   Competitor,
+  Admin,
+  Role,
 } = require('./models');
 const { IPSC_HANDGUN, IPSC_ACTION_AIR } = require('./domain/scoring/scoring-profile');
 const { ensureCompetitorFromRegistration } = require('./services/competitorService');
@@ -118,9 +120,30 @@ async function seedDemo() {
     await ensureCompetitorFromRegistration(registration.id);
   }
 
+  const scoringRole =
+    (await Role.findOne({ where: { slug: 'admin' } })) ||
+    (await Role.findOne({ where: { slug: 'head-admin' } }));
+  const scoringPasswordHash = await bcrypt.hash('123', 10);
+  let scoringAdmin = await Admin.findOne({ where: { username: 'ganbat' } });
+  if (scoringAdmin) {
+    await scoringAdmin.update({
+      passwordHash: scoringPasswordHash,
+      roleId: scoringRole?.id ?? scoringAdmin.roleId,
+    });
+  } else {
+    scoringAdmin = await Admin.create({
+      name: 'Ganbat',
+      username: 'ganbat',
+      email: 'ganbat.scoring@prime.mn',
+      passwordHash: scoringPasswordHash,
+      roleId: scoringRole?.id,
+    });
+  }
+
   console.log('Scoring demo seeded.');
   console.log(`Match: ${match.name} (${match.id})`);
-  console.log('Admin login: admin@prime.mn / PrimeAdmin0328');
+  console.log('Score app login: ganbat / 123');
+  console.log('Primeadmin login: admin@prime.mn / PrimeAdmin0328');
   console.log('Score app: flutter run --dart-define=API_BASE=http://localhost:3151');
   await sequelize.close();
 }
