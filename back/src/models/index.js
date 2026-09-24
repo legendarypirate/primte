@@ -20,6 +20,7 @@ const Attendance = require('./attendance');
 const MemberProgress = require('./memberProgress');
 const Payment = require('./payment');
 const Setting = require('./setting');
+const SitePage = require('./sitePage');
 
 Admin.belongsTo(Role, { foreignKey: 'roleId' });
 Role.hasMany(Admin, { foreignKey: 'roleId' });
@@ -84,4 +85,5 @@ module.exports = {
   MemberProgress,
   Payment,
   Setting,
+  SitePage,
 };

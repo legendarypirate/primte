@@ -18,6 +18,8 @@ const PERMISSIONS = [
   { key: 'notices.manage', group: 'Club', label: 'Manage notices' },
   { key: 'attendance.view', group: 'Club', label: 'View attendance' },
   { key: 'attendance.scan', group: 'Club', label: 'Scan QR / check-in' },
+  { key: 'site.view', group: 'Site', label: 'View site pages' },
+  { key: 'site.manage', group: 'Site', label: 'Edit site pages' },
   { key: 'settings.manage', group: 'System', label: 'Club settings' },
   { key: 'roles.manage', group: 'System', label: 'Manage roles & permissions' },
   { key: 'member_types.manage', group: 'System', label: 'Manage member types' },
@@ -51,6 +53,8 @@ const ROLE_PRESETS = {
     'notices.manage',
     'attendance.view',
     'attendance.scan',
+    'site.view',
+    'site.manage',
   ],
   'assistant-admin': [
     'dashboard.view',
@@ -64,6 +68,7 @@ const ROLE_PRESETS = {
     'notices.manage',
     'attendance.view',
     'attendance.scan',
+    'site.view',
   ],
 };
 

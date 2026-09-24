@@ -15,7 +15,9 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, name: 'PRIME API' }));
 app.use('/api/auth', authRoutes);
+app.use('/api/site', require('./routes/site'));
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin', require('./routes/site-admin'));
 app.use('/api/admin', require('./routes/rbac'));
 app.use('/api/admin/parents', require('./routes/parents-admin'));
 app.use('/api/app', appRoutes);

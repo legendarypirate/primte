@@ -22,6 +22,7 @@ import {
   HeartHandshake,
   Swords,
   Layers,
+  LayoutTemplate,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ const nav = [
   { href: "/divisions", label: "Division", icon: Layers, permission: "divisions.manage" },
   { href: "/rbac", label: "RBAC / Role", icon: Shield, permission: "roles.manage" },
   { href: "/staff", label: "Админ хэрэглэгч", icon: UserCog, permission: "staff.manage" },
+  { href: "/site-editor", label: "Вэб сайт", icon: LayoutTemplate, permission: "site.view" },
   { href: "/settings", label: "Тохиргоо", icon: Settings, permission: "settings.manage" },
 ];
 
