@@ -16,6 +16,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { EditableText } from "@/components/site/editable-text";
 import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag } from "../primitives";
 
 const pointMethods = [
@@ -65,19 +66,22 @@ export function MembershipPage() {
 
       {/* ── 01 About Membership ── */}
       <ContentSection>
-        <SectionTag n="01" label="ABOUT MEMBERSHIP" />
+        <SectionTag n="01" label="ABOUT MEMBERSHIP" fieldPrefix="section.01" />
         <div className="grid gap-10 lg:grid-cols-2">
           <div>
-            <h2 className="font-heading text-3xl font-bold">
-              ПРАЙМ КЛУБЫН ГИШҮҮНЧЛЭЛ
-            </h2>
-            <p className="mt-6 text-sm leading-7 text-muted-foreground">
-              Prime Practical Shooting Club нь практик буудлагын спорт клуб бөгөөд
-              ОУПБХ, МПБХ-ноос олгосон эрхийн дагуу IPSC Action Air тамирын
-              бэлтгэл зохиогоор сургалт явуулах, тэмцээн уралдаан зохион байгуулах,
-              ОУ-ын тэмцээнд тамирчдаа бэлтгэн оролцуулах үндсэн зорилготойгоор
-              2019 онд байгуулагдсан.
-            </p>
+            <EditableText
+              field="about.title"
+              defaultValue="ПРАЙМ КЛУБЫН ГИШҮҮНЧЛЭЛ"
+              as="h2"
+              className="font-heading text-3xl font-bold"
+            />
+            <EditableText
+              field="about.body"
+              defaultValue="Prime Practical Shooting Club нь практик буудлагын спорт клуб бөгөөд ОУПБХ, МПБХ-ноос олгосон эрхийн дагуу IPSC Action Air тамирын бэлтгэл зохиогоор сургалт явуулах, тэмцээн уралдаан зохион байгуулах, ОУ-ын тэмцээнд тамирчдаа бэлтгэн оролцуулах үндсэн зорилготойгоор 2019 онд байгуулагдсан."
+              multiline
+              as="p"
+              className="mt-6 text-sm leading-7 text-muted-foreground block"
+            />
           </div>
           <div className="flex items-center justify-center">
             <div className="relative flex h-64 w-full items-center justify-center overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]">

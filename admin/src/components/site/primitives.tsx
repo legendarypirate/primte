@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight, Shield } from "lucide-react";
+import { EditableText } from "@/components/site/editable-text";
+import { usePageContent } from "@/components/site/page-content-context";
 import { cn } from "@/lib/utils";
 
 export function LionIcon({ className }: { className?: string }) {
@@ -66,12 +68,29 @@ export function PrimeLogo({
   );
 }
 
-export function SectionTag({ n, label }: { n: string; label: string }) {
+export function SectionTag({
+  n,
+  label,
+  fieldPrefix,
+}: {
+  n: string;
+  label: string;
+  fieldPrefix?: string;
+}) {
+  const prefix = fieldPrefix ?? `section.${n}`;
   return (
     <div className="mb-4 flex items-center gap-3">
-      <span className="font-mono text-xs font-bold tracking-[0.2em] text-[#e31e24]">{n}</span>
+      <EditableText
+        field={`${prefix}.n`}
+        defaultValue={n}
+        className="font-mono text-xs font-bold tracking-[0.2em] text-[#e31e24]"
+      />
       <span className="h-px w-10 bg-gradient-to-r from-[#e31e24] to-transparent" />
-      <span className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">{label}</span>
+      <EditableText
+        field={`${prefix}.label`}
+        defaultValue={label}
+        className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground"
+      />
     </div>
   );
 }
@@ -79,43 +98,106 @@ export function SectionTag({ n, label }: { n: string; label: string }) {
 export function PageHero({
   eyebrow,
   title,
+  titleText,
+  renderTitle,
   description,
   children,
   aside,
+  fieldPrefix = "hero",
 }: {
   eyebrow?: string;
-  title: React.ReactNode;
+  title?: React.ReactNode;
+  titleText?: string;
+  renderTitle?: (text: string) => React.ReactNode;
   description?: string;
   children?: React.ReactNode;
   aside?: React.ReactNode;
+  fieldPrefix?: string;
 }) {
+  const resolvedTitleText = titleText ?? (typeof title === "string" ? title : undefined);
+  const titleClass =
+    "font-heading text-4xl font-extrabold uppercase leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl";
+
   return (
     <section className="relative overflow-hidden border-b border-[#ffffff10] bg-[#070707]">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
-      
+
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div className="z-10">
-          {eyebrow && (
+          {eyebrow !== undefined && eyebrow !== "" ? (
             <div className="mb-4 flex items-center gap-2">
-              <span className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]">{eyebrow}</span>
+              <EditableText
+                field={`${fieldPrefix}.eyebrow`}
+                defaultValue={eyebrow}
+                className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]"
+              />
               <span className="h-px w-8 bg-[#e31e24]" />
             </div>
-          )}
-          <h1 className="font-heading text-4xl font-extrabold uppercase leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
-            {title}
-          </h1>
-          {description && (
-            <p className="mt-6 max-w-2xl text-sm leading-relaxed text-[#a0a0a5] md:text-base">
-              {description}
-            </p>
-          )}
-          {children && <div className="mt-8 flex flex-wrap gap-4">{children}</div>}
+          ) : null}
+          {resolvedTitleText ? (
+            renderTitle ? (
+              <TitleFromContent
+                field={`${fieldPrefix}.title`}
+                defaultValue={resolvedTitleText}
+                className={titleClass}
+                render={renderTitle}
+              />
+            ) : (
+              <EditableText
+                field={`${fieldPrefix}.title`}
+                defaultValue={resolvedTitleText}
+                multiline
+                as="h1"
+                className={cn(titleClass, "block whitespace-pre-line")}
+              />
+            )
+          ) : title ? (
+            <h1 className={titleClass}>{title}</h1>
+          ) : null}
+          {description !== undefined && description !== "" ? (
+            <EditableText
+              field={`${fieldPrefix}.description`}
+              defaultValue={description}
+              multiline
+              as="p"
+              className="mt-6 max-w-2xl text-sm leading-relaxed text-[#a0a0a5] md:text-base block"
+            />
+          ) : null}
+          {children ? <div className="mt-8 flex flex-wrap gap-4">{children}</div> : null}
         </div>
         {aside}
       </div>
     </section>
   );
+}
+
+function TitleFromContent({
+  field,
+  defaultValue,
+  className,
+  render,
+}: {
+  field: string;
+  defaultValue: string;
+  className?: string;
+  render: (text: string) => React.ReactNode;
+}) {
+  const ctx = usePageContent();
+  const text = ctx ? ctx.getField(field, defaultValue) : defaultValue;
+  if (ctx?.editing) {
+    return (
+      <EditableText
+        field={field}
+        defaultValue={defaultValue}
+        multiline
+        as="h1"
+        className={cn(className, "block whitespace-pre-line")}
+        placeholder="Гарчиг"
+      />
+    );
+  }
+  return <h1 className={className}>{render(text)}</h1>;
 }
 
 export function RedButton({

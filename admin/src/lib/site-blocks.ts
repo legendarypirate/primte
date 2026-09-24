@@ -13,6 +13,7 @@ export type SitePageData = {
   published: boolean;
   sortOrder: number;
   blocks: SiteBlock[];
+  content?: Record<string, string>;
   blockCount?: number;
   updatedAt?: string;
 };

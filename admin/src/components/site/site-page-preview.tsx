@@ -7,6 +7,8 @@ import { HomePage } from "@/components/site/pages/home-page";
 import { MembershipPage } from "@/components/site/pages/membership-page";
 import { RankingPage } from "@/components/site/pages/ranking-page";
 import { TrainingPage } from "@/components/site/pages/training-page";
+import type { PageContent } from "@/components/site/page-content-context";
+import { PageContentProvider } from "@/components/site/page-content-context";
 import { CUSTOM_TEMPLATE_SLUGS } from "@/lib/site-content";
 
 const PAGES: Record<string, ComponentType> = {
@@ -18,7 +20,17 @@ const PAGES: Record<string, ComponentType> = {
   contact: ContactPage,
 };
 
-export function SitePagePreview({ slug }: { slug: string }) {
+export function SitePagePreview({
+  slug,
+  content,
+  editing = false,
+  onContentChange,
+}: {
+  slug: string;
+  content: PageContent;
+  editing?: boolean;
+  onContentChange?: (content: PageContent) => void;
+}) {
   const Cmp = PAGES[slug];
   if (!Cmp) {
     return (
@@ -27,7 +39,12 @@ export function SitePagePreview({ slug }: { slug: string }) {
       </div>
     );
   }
-  return <Cmp />;
+
+  return (
+    <PageContentProvider content={content} editing={editing} onChange={onContentChange}>
+      <Cmp />
+    </PageContentProvider>
+  );
 }
 
 export function isLivePagePreview(slug: string) {

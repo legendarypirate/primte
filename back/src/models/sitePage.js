@@ -12,6 +12,7 @@ const SitePage = sequelize.define(
     published: { type: DataTypes.BOOLEAN, defaultValue: true },
     sortOrder: { type: DataTypes.INTEGER, defaultValue: 0 },
     blocks: { type: DataTypes.JSONB, defaultValue: [] },
+    content: { type: DataTypes.JSONB, defaultValue: {} },
   },
   { tableName: 'site_pages' }
 );

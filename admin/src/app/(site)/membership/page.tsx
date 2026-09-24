@@ -1,5 +1,10 @@
 import { MembershipPage } from "@/components/site/pages/membership-page";
+import { SitePageWithContent } from "@/components/site/site-page-with-content";
 
 export default function Membership() {
-  return <MembershipPage />;
+  return (
+    <SitePageWithContent slug="membership">
+      <MembershipPage />
+    </SitePageWithContent>
+  );
 }

@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { SiteShell } from "@/components/site/shell";
 import { LayoutInspector } from "@/components/site-editor/layout-inspector";
 import { SitePagePreview, isLivePagePreview } from "@/components/site/site-page-preview";
+import { SitePreviewGuard } from "@/components/site/site-preview-guard";
+import type { PageContent } from "@/components/site/page-content-context";
 import { api } from "@/lib/api";
 import type { SitePageData } from "@/lib/site-blocks";
 import { PAGE_SLUGS } from "@/lib/site-content";
@@ -29,10 +31,17 @@ import { Button } from "@/components/ui/button";
 
 type ViewMode = "page" | "layout";
 
+function contentSnapshot(content: PageContent) {
+  return JSON.stringify(content);
+}
+
 export default function SiteEditorPage() {
   const [pages, setPages] = useState<SitePageData[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("page");
   const [selectedSlug, setSelectedSlug] = useState<string>("home");
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
+  const [pageContentDraft, setPageContentDraft] = useState<PageContent>({});
+  const [savedPageContentSnapshot, setSavedPageContentSnapshot] = useState("{}");
   const [layoutDraft, setLayoutDraft] = useState<SiteLayoutData | null>(null);
   const [savedLayoutSnapshot, setSavedLayoutSnapshot] = useState("");
   const [layoutInspector, setLayoutInspector] = useState<"header" | "footer" | null>(null);
@@ -44,6 +53,11 @@ export default function SiteEditorPage() {
     () => layoutSnapshot(layoutDraft) !== savedLayoutSnapshot,
     [layoutDraft, savedLayoutSnapshot]
   );
+  const pageContentDirty = useMemo(
+    () => contentSnapshot(pageContentDraft) !== savedPageContentSnapshot,
+    [pageContentDraft, savedPageContentSnapshot]
+  );
+  const isDirty = layoutDirty || pageContentDirty;
   const pageMeta = Object.values(PAGE_SLUGS).find((p) => p.slug === selectedSlug) ?? null;
 
   const loadEditor = useCallback(async () => {
@@ -58,9 +72,9 @@ export default function SiteEditorPage() {
       setLayoutDraft(layout);
       setSavedLayoutSnapshot(layoutSnapshot(layout));
       if (initialLoad.current && pagesData.pages.length) {
-        const first =
-          pagesData.pages.find((p) => p.slug === "home") ?? pagesData.pages[0];
+        const first = pagesData.pages.find((p) => p.slug === "home") ?? pagesData.pages[0];
         setSelectedSlug(first.slug);
+        setSelectedPageId(first.id);
         initialLoad.current = false;
       }
     } catch (e) {
@@ -74,20 +88,44 @@ export default function SiteEditorPage() {
     loadEditor();
   }, [loadEditor]);
 
+  useEffect(() => {
+    if (!selectedPageId || viewMode !== "page") return;
+    api<{ page: SitePageData }>(`/api/admin/site-pages/${selectedPageId}`)
+      .then((d) => {
+        const content = (d.page.content as PageContent) || {};
+        setPageContentDraft(content);
+        setSavedPageContentSnapshot(contentSnapshot(content));
+      })
+      .catch((e) => toast.error(e.message));
+  }, [selectedPageId, viewMode]);
+
   const publish = async () => {
-    if (!layoutDirty || !layoutDraft) return;
+    if (!isDirty) return;
     setPublishing(true);
     try {
-      const layoutRes = await api<{ layout: SiteLayoutData }>("/api/admin/site-layout", {
-        method: "PUT",
-        body: JSON.stringify({
-          header: layoutDraft.header,
-          footer: layoutDraft.footer,
-        }),
-      });
-      const layout = normalizeLayout(layoutRes.layout);
-      setLayoutDraft(layout);
-      setSavedLayoutSnapshot(layoutSnapshot(layout));
+      if (layoutDirty && layoutDraft) {
+        const layoutRes = await api<{ layout: SiteLayoutData }>("/api/admin/site-layout", {
+          method: "PUT",
+          body: JSON.stringify({
+            header: layoutDraft.header,
+            footer: layoutDraft.footer,
+          }),
+        });
+        const layout = normalizeLayout(layoutRes.layout);
+        setLayoutDraft(layout);
+        setSavedLayoutSnapshot(layoutSnapshot(layout));
+      }
+
+      if (pageContentDirty && selectedPageId) {
+        const pageRes = await api<{ page: SitePageData }>(`/api/admin/site-pages/${selectedPageId}`, {
+          method: "PUT",
+          body: JSON.stringify({ content: pageContentDraft, published: true }),
+        });
+        const content = (pageRes.page.content as PageContent) || {};
+        setPageContentDraft(content);
+        setSavedPageContentSnapshot(contentSnapshot(content));
+      }
+
       toast.success("Нийтлэгдлээ!");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Нийтлэхэд алдаа");
@@ -109,13 +147,14 @@ export default function SiteEditorPage() {
     }
   };
 
-  const confirmDiscard = () => !layoutDirty || confirm("Хадгалаагүй өөрчлөлт байна. Шилжих үү?");
+  const confirmDiscard = () => !isDirty || confirm("Хадгалаагүй өөрчлөлт байна. Шилжих үү?");
 
-  const switchPage = (slug: string) => {
+  const switchPage = (slug: string, pageId: string) => {
     if (!confirmDiscard()) return;
     setViewMode("page");
     setLayoutInspector(null);
     setSelectedSlug(slug);
+    setSelectedPageId(pageId);
   };
 
   const switchLayout = () => {
@@ -162,7 +201,7 @@ export default function SiteEditorPage() {
           <span className="text-[#ffffff20]">|</span>
           <Globe className="size-4 text-[#e31e24]" />
           <span className="font-heading text-sm font-semibold tracking-wider text-white">PRIME SITE EDITOR</span>
-          {layoutDirty ? (
+          {isDirty ? (
             <Badge variant="outline" className="border-[#e31e24]/50 text-[#e31e24] text-[10px]">
               Хадгалаагүй
             </Badge>
@@ -192,7 +231,7 @@ export default function SiteEditorPage() {
               type="button"
               size="sm"
               className="h-8 bg-[#e31e24] px-4 hover:bg-[#c91920]"
-              disabled={publishing || !layoutDirty}
+              disabled={publishing || !isDirty}
               onClick={publish}
             >
               <Send className="size-3.5" />
@@ -231,7 +270,7 @@ export default function SiteEditorPage() {
               <button
                 key={page.slug}
                 type="button"
-                onClick={() => switchPage(page.slug)}
+                onClick={() => switchPage(page.slug, page.id)}
                 className={cn(
                   "flex shrink-0 flex-col rounded-lg border px-4 py-2 text-left transition-all",
                   active
@@ -241,7 +280,7 @@ export default function SiteEditorPage() {
               >
                 <span className="text-sm font-semibold whitespace-nowrap">{page.title}</span>
                 <span className={cn("text-[10px] whitespace-nowrap", active ? "text-white/75" : "text-[#a0a0a5]")}>
-                  {meta?.path || `/${page.slug}`} · Live preview
+                  {meta?.path || `/${page.slug}`} · Засварлах
                 </span>
               </button>
             );
@@ -256,27 +295,33 @@ export default function SiteEditorPage() {
           </>
         ) : (
           <>
-            Live сайттай ижил preview · Header/Footer-ийг{" "}
-            <span className="text-[#e31e24]">Header & Footer</span> tab-аас засна ·{" "}
-            <span className="text-[#e31e24]">Нийтэх</span> дарахад layout хадгалагдана
+            Улаан хүрээтэй текст дээр дарж засна · Header/Footer мөн засагдана ·{" "}
+            <span className="text-[#e31e24]">Нийтэх</span> дарахад хадгалагдана
           </>
         )}
       </div>
 
       {layoutDraft ? (
-        <SiteShell layout={layoutDraft} edit={layoutEdit}>
-          {viewMode === "layout" ? (
-            <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4 py-16 text-center">
-              <LayoutTemplate className="size-10 text-[#e31e24]/50" />
-              <p className="max-w-md text-sm text-[#a0a0a5]">
-                Header болон footer дээр шууд засвар хийнэ. Nav link, social хаяг, logo-г{" "}
-                <span className="text-[#e31e24]">Тохиргоо</span> товчоор нээнэ.
-              </p>
-            </div>
-          ) : (
-            <SitePagePreview slug={selectedSlug} />
-          )}
-        </SiteShell>
+        <SitePreviewGuard>
+          <SiteShell layout={layoutDraft} edit={layoutEdit}>
+            {viewMode === "layout" ? (
+              <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4 py-16 text-center">
+                <LayoutTemplate className="size-10 text-[#e31e24]/50" />
+                <p className="max-w-md text-sm text-[#a0a0a5]">
+                  Header болон footer дээр шууд засвар хийнэ. Nav link, social хаяг, logo-г{" "}
+                  <span className="text-[#e31e24]">Тохиргоо</span> товчоор нээнэ.
+                </p>
+              </div>
+            ) : (
+              <SitePagePreview
+                slug={selectedSlug}
+                content={pageContentDraft}
+                editing
+                onContentChange={setPageContentDraft}
+              />
+            )}
+          </SiteShell>
+        </SitePreviewGuard>
       ) : null}
 
       {layoutInspector && layoutDraft ? (

@@ -7,7 +7,7 @@ const { DEFAULT_LAYOUT } = require('../site/layout-defaults');
 const router = express.Router();
 router.use(requireAdmin);
 
-const PAGE_FIELDS = ['title', 'metaTitle', 'metaDescription', 'published', 'sortOrder', 'blocks'];
+const PAGE_FIELDS = ['title', 'metaTitle', 'metaDescription', 'published', 'sortOrder', 'blocks', 'content'];
 
 function pick(body, keys) {
   const out = {};
@@ -27,6 +27,7 @@ function serializeAdminPage(page) {
     published: page.published,
     sortOrder: page.sortOrder,
     blocks: page.blocks || [],
+    content: page.content || {},
     blockCount: (page.blocks || []).length,
     updatedAt: page.updatedAt,
     createdAt: page.createdAt,
@@ -84,6 +85,11 @@ router.put('/site-pages/:id', requirePermission('site.manage'), async (req, res)
   if (payload.blocks !== undefined) {
     const err = validateBlocks(payload.blocks);
     if (err) return res.status(400).json({ message: err });
+  }
+  if (payload.content !== undefined) {
+    if (!payload.content || typeof payload.content !== 'object' || Array.isArray(payload.content)) {
+      return res.status(400).json({ message: 'content must be an object' });
+    }
   }
 
   await page.update(payload);

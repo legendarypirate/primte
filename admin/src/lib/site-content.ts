@@ -1,6 +1,11 @@
 import { API } from "@/lib/api";
 import type { SitePageData } from "@/lib/site-blocks";
 
+export async function getPageContent(slug: string): Promise<Record<string, string>> {
+  const page = await getSitePage(slug);
+  return (page?.content as Record<string, string>) || {};
+}
+
 export async function getSitePage(slug: string): Promise<SitePageData | null> {
   try {
     const res = await fetch(`${API}/api/site/pages/${slug}`, {

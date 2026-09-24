@@ -171,12 +171,22 @@ export function HomePage() {
       {/* 01 - HERO / ТАНИЛЦУУЛГА */}
       <PageHero
         eyebrow="01 —— ТАНИЛЦУУЛГА"
-        title={
-          <>
-            ИЛҮҮ САЙН ХҮН <br />
-            <span className="text-[#e31e24]">ИЛҮҮ АЮУЛГҮЙ</span> НИЙГЭМ
-          </>
-        }
+        titleText={"ИЛҮҮ САЙН ХҮН\nИЛҮҮ АЮУЛГҮЙ НИЙГЭМ"}
+        renderTitle={(text) => {
+          const [line1, line2 = ""] = text.split("\n");
+          return (
+            <>
+              {line1}
+              {line2 ? (
+                <>
+                  <br />
+                  <span className="text-[#e31e24]">{line2.replace(" НИЙГЭМ", "").trim()}</span>
+                  {line2.includes("НИЙГЭМ") ? " НИЙГЭМ" : null}
+                </>
+              ) : null}
+            </>
+          );
+        }}
         description="PRIME IPSC Club нь практик буудлагын спортыг Монголд хөгжүүлэх, аюулгүй, хариуцлагатай, мэргэжлийн соёл түгээх зорилготой клуб юм."
         aside={
           <div className="space-y-4">

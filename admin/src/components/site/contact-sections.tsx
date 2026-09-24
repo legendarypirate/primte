@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { EditableText } from "@/components/site/editable-text";
 import { InlineEdit } from "@/components/site-editor/inline-edit";
 import { EditableImage } from "@/components/site-editor/editable-image";
 import { ContentSection, RedButton, SectionTag } from "./primitives";
@@ -674,19 +675,22 @@ export function ContactHeroSection({
       ) : null}
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div className="z-10">
-          {edit ? (
+          {String(data.eyebrow || "") ? (
             <div className="mb-4 flex items-center gap-2">
-              <InlineEdit
-                value={String(data.eyebrow || "")}
-                onChange={(v) => edit.onChange(patch(data, "eyebrow", v))}
-                className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]"
-                placeholder="Eyebrow"
-              />
-              <span className="h-px w-8 bg-[#e31e24]" />
-            </div>
-          ) : data.eyebrow ? (
-            <div className="mb-4 flex items-center gap-2">
-              <span className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]">{String(data.eyebrow)}</span>
+              {edit ? (
+                <InlineEdit
+                  value={String(data.eyebrow || "")}
+                  onChange={(v) => edit.onChange(patch(data, "eyebrow", v))}
+                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]"
+                  placeholder="Eyebrow"
+                />
+              ) : (
+                <EditableText
+                  field="hero.eyebrow"
+                  defaultValue={String(data.eyebrow || "")}
+                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]"
+                />
+              )}
               <span className="h-px w-8 bg-[#e31e24]" />
             </div>
           ) : null}
@@ -698,9 +702,12 @@ export function ContactHeroSection({
               className="font-heading text-4xl font-extrabold uppercase leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl block"
             />
           ) : (
-            <h1 className="font-heading text-4xl font-extrabold uppercase leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
-              {String(data.title || "")}
-            </h1>
+            <EditableText
+              field="hero.title"
+              defaultValue={String(data.title || "")}
+              as="h1"
+              className="font-heading text-4xl font-extrabold uppercase leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl block"
+            />
           )}
           {edit ? (
             <InlineEdit
@@ -709,9 +716,15 @@ export function ContactHeroSection({
               multiline
               className="mt-6 max-w-2xl text-sm leading-relaxed text-[#a0a0a5] md:text-base"
             />
-          ) : data.description ? (
-            <p className="mt-6 max-w-2xl text-sm leading-relaxed text-[#a0a0a5] md:text-base">{String(data.description)}</p>
-          ) : null}
+          ) : (
+            <EditableText
+              field="hero.description"
+              defaultValue={String(data.description || "")}
+              multiline
+              as="p"
+              className="mt-6 max-w-2xl text-sm leading-relaxed text-[#a0a0a5] md:text-base block"
+            />
+          )}
         </div>
         <div className="hidden lg:flex lg:justify-end">
           {edit ? (

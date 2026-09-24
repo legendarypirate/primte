@@ -12,6 +12,7 @@ function serializePage(page) {
     metaTitle: page.metaTitle,
     metaDescription: page.metaDescription,
     blocks: page.blocks || [],
+    content: page.content || {},
     updatedAt: page.updatedAt,
   };
 }
