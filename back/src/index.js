@@ -1,8 +1,10 @@
 require('dotenv').config();
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { sequelize } = require('./models');
+const { attachRealtime } = require('./realtime');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const appRoutes = require('./routes/app');
@@ -39,7 +41,9 @@ sequelize
   .then(() => require('./services/productCategoryService').ensureProductCategories())
   .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
   .then(() => {
-    app.listen(port, () => {
+    const server = http.createServer(app);
+    attachRealtime(server);
+    server.listen(port, () => {
       console.log(`PRIME API running on http://localhost:${port}`);
     });
   })

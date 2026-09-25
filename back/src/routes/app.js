@@ -72,6 +72,7 @@ function buildPaymentReference(competition, division, squadLabel, seq) {
 const router = express.Router();
 router.use((req, res, next) => {
   if (req.path.startsWith('/parent')) return next();
+  if (req.method === 'GET' && /^\/competitions\/[^/]+\/leaderboard$/.test(req.path)) return next();
   return requireMember(req, res, next);
 });
 
@@ -141,6 +142,11 @@ router.get('/competitions', async (req, res) => {
       )
     ),
   });
+});
+
+router.get('/competitions/:id/leaderboard', async (req, res) => {
+  const { getLeaderboardForCompetition } = require('../services/liveLeaderboard');
+  res.json(await getLeaderboardForCompetition(req.params.id));
 });
 
 router.get('/competitions/:id', async (req, res) => {

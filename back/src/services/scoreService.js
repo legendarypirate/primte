@@ -133,7 +133,18 @@ async function createOrUpdateScore(payload, actorId, deviceId) {
     }
 
     return score;
+  }).then((saved) => {
+    emitLeaderboard(saved.matchId);
+    return saved;
   });
+}
+
+function emitLeaderboard(matchId) {
+  try {
+    require('../realtime').broadcastLeaderboard(matchId);
+  } catch (err) {
+    console.error('leaderboard emit failed', err);
+  }
 }
 
 async function confirmScore(scoreId, pin, competitorId, officialId, deviceId) {
@@ -177,6 +188,7 @@ async function confirmScore(scoreId, pin, competitorId, officialId, deviceId) {
     score.stageId,
     score.Competitor.matchDivisionId || score.Competitor.divisionId
   );
+  emitLeaderboard(score.matchId);
 
   return score;
 }
@@ -200,6 +212,7 @@ async function invalidateScore(scoreId, actorId, reason, deviceId) {
     score.stageId,
     score.Competitor?.matchDivisionId || score.Competitor?.divisionId
   );
+  emitLeaderboard(score.matchId);
   return score;
 }
 
