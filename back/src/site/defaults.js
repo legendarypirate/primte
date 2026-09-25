@@ -122,7 +122,7 @@ const DEFAULT_PAGES = [
         title: 'БИДНИЙ ТУХАЙ',
         description:
           'PRIME Practical Shooting Club нь 2019 онд байгуулагдсан IPSC Action Air клуб бөгөөд аюулгүй, хариуцлагатай, чадварлаг тамирчдыг хөгжүүлэхэд зориулагдсан.',
-        primaryCta: { text: 'Бидний түүх', href: '#history' },
+        primaryCta: { text: 'Бидний түүх', href: '#timeline' },
         asideTag: 'PRIME IPSC CLUB',
         asideTitle: 'MORE THAN A SPORT',
         asideBody: 'Аюулгүй байдал, сахилга бат, техник ур чадварыг нэгтгэсэн олон улсын практик буудлагын соёл.',

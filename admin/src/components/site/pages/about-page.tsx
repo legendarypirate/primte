@@ -108,7 +108,7 @@ export function AboutPage() {
           </EditableBackground>
         }
       >
-        <RedButton href="#history">
+        <RedButton href="#timeline">
           <EditableText field="hero.ctaPrimary" defaultValue="Бидний түүх" />
           <ArrowRight className="size-4" />
         </RedButton>
@@ -170,60 +170,9 @@ export function AboutPage() {
         </div>
       )}
 
-      {/* 02 - КЛУБЫН ТАНИЛЦУУЛГА */}
-      <ContentSection id="history" dark>
-        <SectionTag n="02" label="КЛУБЫН ТАНИЛЦУУЛГА" />
-        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-          <div>
-            <EditableText
-              field="history.title"
-              defaultValue="ДИСЦИПЛИН. ХӨГЖИЛ. ИЛҮҮ САЙН ӨНӨӨДӨР."
-              multiline
-              as="h2"
-              className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
-            />
-            <EditableText
-              field="history.body"
-              defaultValue="PRIME Practical Shooting Club нь 2019 онд байгуулагдсан IPSC Action Air төрлийн тамирчдын клуб юм. Бид практик буудлагын спортын соёлыг түгээж, тамирчдыг бэлтгэж, сургалт явуулах, тэмцээн зохион байгуулах, олон улсын тавцанд оролцох замаар Монгол дахь IPSC хөдөлгөөнийг хөгжүүлэхэд зорьж ажилладаг."
-              multiline
-              as="p"
-              className="mt-4 text-sm leading-relaxed text-[#a0a0a5] block"
-            />
-            <div className="mt-6">
-              <OutlineButton href="/training">
-                <EditableText field="history.cta" defaultValue="Илүү дэлгэрэнгүй →" />
-              </OutlineButton>
-            </div>
-          </div>
-
-          {/* Lion emblem banner */}
-          <EditableBackground
-            field="history.emblemImageUrl"
-            className="rounded-2xl border border-[#e31e24]/40 p-8 text-center shadow-2xl"
-            fallbackClassName="bg-[#121215]"
-            editMode="corner"
-          >
-            <LionIcon className="relative z-10 mx-auto size-16 text-[#e31e24]" />
-            <EditableText
-              field="history.emblemTitle"
-              defaultValue="PRIME PRACTICAL SHOOTING CLUB"
-              as="h3"
-              className="relative z-10 mt-4 font-heading text-xl font-bold uppercase tracking-wider text-white block"
-            />
-            <EditableText
-              field="history.emblemQuote"
-              defaultValue={'"Илүү аюулгүй, илүү чадварлаг ирээдүйг хамтдаа бүтээе."'}
-              multiline
-              as="blockquote"
-              className="relative z-10 mt-3 text-xs italic leading-relaxed text-[#e31e24] block"
-            />
-          </EditableBackground>
-        </div>
-      </ContentSection>
-
-      {/* 03 - ТООН ҮЗҮҮЛЭЛТ */}
+      {/* 02 - ТООН ҮЗҮҮЛЭЛТ */}
       <ContentSection id="stats">
-        <SectionTag n="03" label="ТООН ҮЗҮҮЛЭЛТ" />
+        <SectionTag n="02" label="ТООН ҮЗҮҮЛЭЛТ" fieldPrefix="section.03" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map(({ icon: Icon, value, label }, idx) => (
             <EditableBackground
@@ -256,7 +205,7 @@ export function AboutPage() {
 
       {/* 04 - БИДНИЙ ҮНЭТ ЗҮЙЛС */}
       <ContentSection id="values" dark>
-        <SectionTag n="04" label="БИДНИЙ ҮНЭТ ЗҮЙЛС" />
+        <SectionTag n="03" label="БИДНИЙ ҮНЭТ ЗҮЙЛС" fieldPrefix="section.04" />
         <EditableText
           field="values.title"
           defaultValue="БИДНИЙ ЗОРИЛГО, АЛСЫН ХАРАА, ҮНЭТ ЗҮЙЛС"
@@ -348,7 +297,7 @@ export function AboutPage() {
 
       {/* 05 - БИДНИЙ ЗАМНАЛ */}
       <ContentSection id="timeline">
-        <SectionTag n="05" label="БИДНИЙ ЗАМНАЛ" />
+        <SectionTag n="04" label="БИДНИЙ ЗАМНАЛ" fieldPrefix="section.05" />
         <EditableText
           field="timeline.title"
           defaultValue="ӨСӨЛТ, ХӨГЖЛИЙН ТҮҮХ"
@@ -393,7 +342,7 @@ export function AboutPage() {
 
       {/* 06 - КЛУБЫН АМЬДРАЛ */}
       <ContentSection id="gallery" dark>
-        <SectionTag n="06" label="КЛУБЫН АМЬДРАЛ" />
+        <SectionTag n="05" label="КЛУБЫН АМЬДРАЛ" fieldPrefix="section.06" />
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <EditableText
@@ -446,7 +395,7 @@ export function AboutPage() {
 
       {/* 07 - БАГШ, ИНСТРУКТОР */}
       <ContentSection id="team">
-        <SectionTag n="07" label="БАГШ, ИНСТРУКТОР" />
+        <SectionTag n="06" label="БАГШ, ИНСТРУКТОР" fieldPrefix="section.07" />
         <div className="flex flex-col gap-2">
           <EditableText
             field="team.title"
