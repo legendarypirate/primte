@@ -60,7 +60,7 @@ async function getLeaderboardForMatch(matchId, competitionId) {
       }));
   }
 
-  const latest = scores.slice(0, 12).map((score) => ({
+  const latest = scores.slice(0, 20).map((score) => ({
     competitorId: score.competitorId,
     name: athleteName(score.Competitor),
     stageName: score.Stage ? `${score.Stage.number || ''}. ${score.Stage.name || ''}`.trim() : 'Stage',
@@ -68,6 +68,22 @@ async function getLeaderboardForMatch(matchId, competitionId) {
     timeSeconds: Number(score.timeSeconds || 0),
     status: score.status,
     at: score.updatedAt,
+  }));
+
+  const stagesByCompetitor = new Map();
+  for (const score of [...scores].reverse()) {
+    const id = score.competitorId;
+    if (!stagesByCompetitor.has(id)) stagesByCompetitor.set(id, []);
+    stagesByCompetitor.get(id).push({
+      stageName: score.Stage ? `${score.Stage.number || ''}. ${score.Stage.name || ''}`.trim() : 'Stage',
+      hitFactor: Number(score.hitFactor || 0),
+      timeSeconds: Number(score.timeSeconds || 0),
+      status: score.status,
+    });
+  }
+  results = results.map((row) => ({
+    ...row,
+    stages: stagesByCompetitor.get(row.competitorId) || [],
   }));
 
   return {
