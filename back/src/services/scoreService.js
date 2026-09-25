@@ -145,8 +145,16 @@ async function confirmScore(scoreId, pin, competitorId, officialId, deviceId) {
   const member = await require('../models/member').findByPk(score.Competitor.memberId);
   if (!member) throw new Error(MESSAGES.COMPETITOR_NOT_FOUND);
 
-  const ok = await bcrypt.compare(String(pin), member.pinHash);
-  if (!ok) throw new Error('PIN код буруу байна.');
+  const code = String(pin ?? '').trim();
+  const candidates = [...new Set([code, code.toUpperCase()])].filter(Boolean);
+  let ok = false;
+  for (const candidate of candidates) {
+    if (member.pinHash && (await bcrypt.compare(candidate, member.pinHash))) {
+      ok = true;
+      break;
+    }
+  }
+  if (!ok) throw new Error('Гишүүний код буруу байна.');
 
   await score.update({
     status: SCORE_STATUS.SIGNED,
