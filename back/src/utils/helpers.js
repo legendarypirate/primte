@@ -20,12 +20,16 @@ function formatTime(value) {
 }
 
 function serializeProduct(product, req) {
+  const images = (product.images?.length ? product.images : [product.imageUrl])
+    .filter(Boolean)
+    .map((path) => publicUrl(req, path));
   return {
     id: product.id,
     name: product.name,
     price: product.price,
-    image: publicUrl(req, product.imageUrl),
-    imageUrl: publicUrl(req, product.imageUrl),
+    image: images[0] || null,
+    imageUrl: images[0] || null,
+    images,
     category: product.category,
     categoryLabel: product.categoryLabel,
     subtitle: product.subtitle,

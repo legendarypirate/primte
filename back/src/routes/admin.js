@@ -364,6 +364,15 @@ async function sanitizeProductInput(body, productId) {
   if (input.sortOrder !== undefined) input.sortOrder = Number(input.sortOrder) || 0;
   if (input.features !== undefined && !Array.isArray(input.features)) input.features = [];
 
+  if (body.images !== undefined) {
+    input.images = (Array.isArray(body.images) ? body.images : [])
+      .map((url) => String(url || '').trim())
+      .filter(Boolean);
+    input.imageUrl = input.images[0] || null;
+  } else if (body.imageUrl !== undefined) {
+    input.images = body.imageUrl ? [body.imageUrl] : [];
+  }
+
   if (body.category !== undefined) {
     const category = await ProductCategory.findOne({ where: { slug: body.category } });
     if (!category) {
