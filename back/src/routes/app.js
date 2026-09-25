@@ -70,7 +70,10 @@ function buildPaymentReference(competition, division, squadLabel, seq) {
 }
 
 const router = express.Router();
-router.use(requireMember);
+router.use((req, res, next) => {
+  if (req.path.startsWith('/parent')) return next();
+  return requireMember(req, res, next);
+});
 
 router.get('/home', async (req, res) => {
   const clubRow = await Setting.findByPk('club');
