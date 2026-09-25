@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Plus, Search } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,12 +88,37 @@ function num(value: number | "") {
   return value === "" ? 0 : Number(value);
 }
 
+const PAGE_SIZE = 50;
+type SortKey = "name" | "code" | "type" | "parent" | "program" | "wallet" | "status";
+
+function sortValue(member: Member, key: SortKey) {
+  switch (key) {
+    case "name":
+      return member.name || "";
+    case "code":
+      return member.memberCode || "";
+    case "type":
+      return member.memberType?.name || "";
+    case "parent":
+      return member.parentName || "";
+    case "program":
+      return member.developmentActivity?.name || "";
+    case "wallet":
+      return member.walletBalance ?? 0;
+    case "status":
+      return member.status || "";
+  }
+}
+
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [parents, setParents] = useState<ParentRow[]>([]);
   const [memberTypes, setMemberTypes] = useState<Named[]>([]);
   const [activities, setActivities] = useState<Named[]>([]);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
 
@@ -130,13 +155,35 @@ export default function MembersPage() {
   }, []);
 
   const q = query.trim().toLowerCase();
-  const visible = members.filter(
-    (m) =>
-      !q ||
-      [m.name, m.username, m.memberCode, m.phone, m.parentName, m.memberType?.name]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q))
-  );
+  const filtered = useMemo(() => {
+    const rows = members.filter((m) => {
+      if (!q) return true;
+      return [m.name, m.memberCode].some((v) => String(v || "").toLowerCase().includes(q));
+    });
+    const next = [...rows].sort((a, b) => {
+      const av = sortValue(a, sortKey);
+      const bv = sortValue(b, sortKey);
+      const cmp =
+        typeof av === "number" && typeof bv === "number"
+          ? av - bv
+          : String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: "base" });
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return next;
+  }, [members, q, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+    setPage(1);
+  }
 
   function openCreate() {
     setEditing(null);
@@ -161,19 +208,33 @@ export default function MembersPage() {
 
       <Card>
         <CardContent className="space-y-4 pt-6">
-          <div className="relative max-w-sm">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="pl-8" placeholder="Нэр, код, утас..." value={query} onChange={(e) => setQuery(e.target.value)} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="relative max-w-sm flex-1">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                placeholder="Нэр эсвэл кодаар хайх..."
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {filtered.length} гишүүн · хуудас {currentPage}/{pageCount}
+            </div>
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Нэр</TableHead>
-                <TableHead>Төрөл</TableHead>
-                <TableHead>Эцэг/эх</TableHead>
-                <TableHead>Хөтөлбөр</TableHead>
-                <TableHead>Wallet</TableHead>
-                <TableHead>Төлөв</TableHead>
+                <SortHead label="Нэр" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
+                <SortHead label="Код" active={sortKey === "code"} dir={sortDir} onClick={() => toggleSort("code")} />
+                <SortHead label="Төрөл" active={sortKey === "type"} dir={sortDir} onClick={() => toggleSort("type")} />
+                <SortHead label="Эцэг/эх" active={sortKey === "parent"} dir={sortDir} onClick={() => toggleSort("parent")} />
+                <SortHead label="Хөтөлбөр" active={sortKey === "program"} dir={sortDir} onClick={() => toggleSort("program")} />
+                <SortHead label="Wallet" active={sortKey === "wallet"} dir={sortDir} onClick={() => toggleSort("wallet")} />
+                <SortHead label="Төлөв" active={sortKey === "status"} dir={sortDir} onClick={() => toggleSort("status")} />
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -183,12 +244,12 @@ export default function MembersPage() {
                   <TableCell>
                     <div className="font-medium">{m.name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {m.username ? `@${m.username} · ` : ""}
-                      {m.memberCode}
-                      {m.phone ? ` · ${m.phone}` : ""}
+                      {m.username ? `@${m.username}` : ""}
+                      {m.phone ? `${m.username ? " · " : ""}${m.phone}` : ""}
                       {m.hasPassword ? " · нууц үгтэй" : ""}
                     </div>
                   </TableCell>
+                  <TableCell className="font-mono text-xs">{m.memberCode}</TableCell>
                   <TableCell>{m.memberType?.name || "—"}</TableCell>
                   <TableCell>{m.parentName || "—"}</TableCell>
                   <TableCell>{m.developmentActivity?.name || "—"}</TableCell>
@@ -227,13 +288,28 @@ export default function MembersPage() {
               ))}
               {visible.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                     Гишүүн алга.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
+          {filtered.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} / {filtered.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>
+                  Өмнөх
+                </Button>
+                <Button variant="outline" size="sm" disabled={currentPage >= pageCount} onClick={() => setPage(currentPage + 1)}>
+                  Дараах
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -256,6 +332,28 @@ export default function MembersPage() {
         </SheetContent>
       </Sheet>
     </Shell>
+  );
+}
+
+function SortHead({
+  label,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+}) {
+  const Icon = !active ? ChevronsUpDown : dir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <TableHead>
+      <button type="button" onClick={onClick} className="inline-flex items-center gap-1 hover:text-foreground">
+        {label}
+        <Icon className={cn("size-3.5", active ? "text-foreground" : "text-muted-foreground")} />
+      </button>
+    </TableHead>
   );
 }
 

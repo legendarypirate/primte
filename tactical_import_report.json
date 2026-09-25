@@ -1,0 +1,94 @@
+{
+  "source": 458,
+  "created": 441,
+  "skipped": 17,
+  "failed": 0,
+  "skippedRows": [
+    {
+      "usercode": "001",
+      "name": "Arslan A",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "002",
+      "name": "Tulga B",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "999",
+      "name": "test testing",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "HKG2",
+      "name": "Pakyu Ayren Lau",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "HKG5",
+      "name": "Ka Yee Wong",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "3010",
+      "name": "Sofiia Melnik",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "3014",
+      "name": "Timur Bokov",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "4008",
+      "name": "Sergey Tuluev",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "3010",
+      "name": "Ruslan Eniseev",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "S49",
+      "name": "Tamir M",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "076",
+      "name": "Altangerel D",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "0012",
+      "name": "Munguntuya Purevsambuu",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "1049",
+      "name": "Amir Naranbaatar",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "J116",
+      "name": "Margad Odgerel",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "1049",
+      "name": "Amir Naranbaatar",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "0000",
+      "name": "Билгүүн Энхбаатар",
+      "reason": "memberCode already exists"
+    },
+    {
+      "usercode": "1049",
+      "name": "Amie Naranbaatar",
+      "reason": "memberCode already exists"
+    }
+  ],
+  "failedRows": []
+}
