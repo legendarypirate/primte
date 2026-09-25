@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -19,9 +20,11 @@ import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { cn } from "@/lib/utils";
 
 type Named = { id: string; name: string; requiresParent?: boolean };
+type ParentRow = { id: string; name: string; phone?: string; email?: string };
 type Member = {
   id: string;
   name: string;
+  username?: string | null;
   memberCode: string;
   hasPassword?: boolean;
   phone?: string;
@@ -33,10 +36,8 @@ type Member = {
   validTo?: string;
   memberTypeId?: string | null;
   developmentActivityId?: string | null;
-  parentId?: string | null;
+  parentAccountId?: string | null;
   parentName?: string | null;
-  parentPhone?: string | null;
-  parentEmail?: string | null;
   avatarUrl?: string | null;
   memberType?: { name: string; requiresParent?: boolean } | null;
   developmentActivity?: { name: string } | null;
@@ -44,6 +45,7 @@ type Member = {
 
 type MemberForm = {
   name: string;
+  username: string;
   memberCode: string;
   phone: string;
   password: string;
@@ -55,15 +57,13 @@ type MemberForm = {
   status: string;
   memberTypeId: string;
   developmentActivityId: string;
-  parentId: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string;
+  parentAccountId: string;
   avatarUrl: string;
 };
 
 const empty: MemberForm = {
   name: "",
+  username: "",
   memberCode: "",
   phone: "",
   password: "",
@@ -75,10 +75,7 @@ const empty: MemberForm = {
   status: "active",
   memberTypeId: "",
   developmentActivityId: "",
-  parentId: "",
-  parentName: "",
-  parentPhone: "",
-  parentEmail: "",
+  parentAccountId: "",
   avatarUrl: "",
 };
 
@@ -93,6 +90,7 @@ function num(value: number | "") {
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [parents, setParents] = useState<ParentRow[]>([]);
   const [memberTypes, setMemberTypes] = useState<Named[]>([]);
   const [activities, setActivities] = useState<Named[]>([]);
   const [query, setQuery] = useState("");
@@ -100,13 +98,15 @@ export default function MembersPage() {
   const [editing, setEditing] = useState<Member | null>(null);
 
   async function load() {
-    const [memberData, lookups] = await Promise.all([
+    const [memberData, lookups, parentData] = await Promise.all([
       api<{ members: Member[] }>("/api/admin/members"),
       api<{ memberTypes: Named[]; activities: Named[] }>("/api/admin/lookups"),
+      api<{ parents: ParentRow[] }>("/api/admin/parents"),
     ]);
     setMembers(memberData.members);
     setMemberTypes(lookups.memberTypes);
     setActivities(lookups.activities);
+    setParents(parentData.parents);
   }
 
   useEffect(() => {
@@ -114,12 +114,14 @@ export default function MembersPage() {
     Promise.all([
       api<{ members: Member[] }>("/api/admin/members"),
       api<{ memberTypes: Named[]; activities: Named[] }>("/api/admin/lookups"),
+      api<{ parents: ParentRow[] }>("/api/admin/parents"),
     ])
-      .then(([memberData, lookups]) => {
+      .then(([memberData, lookups, parentData]) => {
         if (cancelled) return;
         setMembers(memberData.members);
         setMemberTypes(lookups.memberTypes);
         setActivities(lookups.activities);
+        setParents(parentData.parents);
       })
       .catch((e) => toast.error(e.message));
     return () => {
@@ -131,7 +133,7 @@ export default function MembersPage() {
   const visible = members.filter(
     (m) =>
       !q ||
-      [m.name, m.memberCode, m.phone, m.parentName, m.memberType?.name]
+      [m.name, m.username, m.memberCode, m.phone, m.parentName, m.memberType?.name]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q))
   );
@@ -181,6 +183,7 @@ export default function MembersPage() {
                   <TableCell>
                     <div className="font-medium">{m.name}</div>
                     <div className="text-xs text-muted-foreground">
+                      {m.username ? `@${m.username} · ` : ""}
                       {m.memberCode}
                       {m.phone ? ` · ${m.phone}` : ""}
                       {m.hasPassword ? " · нууц үгтэй" : ""}
@@ -240,7 +243,7 @@ export default function MembersPage() {
             <MemberDrawer
               key={editing?.id ?? "new"}
               member={editing}
-              members={members}
+              parents={parents}
               memberTypes={memberTypes}
               activities={activities}
               onSaved={async () => {
@@ -270,14 +273,14 @@ function Field({ label, required, children }: { label: string; required?: boolea
 
 function MemberDrawer({
   member,
-  members,
+  parents,
   memberTypes,
   activities,
   onSaved,
   onCancel,
 }: {
   member: Member | null;
-  members: Member[];
+  parents: ParentRow[];
   memberTypes: Named[];
   activities: Named[];
   onSaved: () => Promise<void>;
@@ -288,6 +291,7 @@ function MemberDrawer({
       ? {
           ...empty,
           name: member.name,
+          username: member.username || "",
           memberCode: member.memberCode,
           phone: member.phone || "",
           level: member.level,
@@ -298,10 +302,7 @@ function MemberDrawer({
           status: member.status,
           memberTypeId: member.memberTypeId || "",
           developmentActivityId: member.developmentActivityId || "",
-          parentId: member.parentId || "",
-          parentName: member.parentName || "",
-          parentPhone: member.parentPhone || "",
-          parentEmail: member.parentEmail || "",
+          parentAccountId: member.parentAccountId || "",
           avatarUrl: member.avatarUrl || "",
         }
       : empty
@@ -317,23 +318,13 @@ function MemberDrawer({
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function chooseParent(parentId: string) {
-    const parent = members.find((m) => m.id === parentId);
-    setForm((current) => ({
-      ...current,
-      parentId,
-      parentName: parent?.name || current.parentName,
-      parentPhone: parent?.phone || current.parentPhone,
-    }));
-  }
-
   async function save() {
-    if (!form.name.trim() || !form.memberCode.trim()) {
-      toast.error("Нэр болон код оруулна уу");
+    if (!form.name.trim() || !form.username.trim() || !form.memberCode.trim()) {
+      toast.error("Нэр, нэвтрэх нэр, код оруулна уу");
       return;
     }
-    if (selectedType?.requiresParent && !form.parentId && !form.parentName.trim()) {
-      toast.error("Эцэг/эх сонгох эсвэл нэрийг нь оруулна уу");
+    if (selectedType?.requiresParent && !form.parentAccountId) {
+      toast.error("Эцэг/эх сонгоно уу");
       return;
     }
     setSaving(true);
@@ -344,7 +335,8 @@ function MemberDrawer({
         rank: num(form.rank),
         memberTypeId: form.memberTypeId || null,
         developmentActivityId: form.developmentActivityId || null,
-        parentId: form.parentId || null,
+        parentAccountId: form.parentAccountId || null,
+        parentId: null,
         password: form.password.trim() || undefined,
       };
       if (member) await api(`/api/admin/members/${member.id}`, { method: "PUT", body: JSON.stringify(body) });
@@ -374,6 +366,9 @@ function MemberDrawer({
           <Field label="Нэр" required>
             <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
           </Field>
+          <Field label="Нэвтрэх нэр" required>
+            <Input value={form.username} placeholder="j.temuulen" onChange={(e) => set("username", e.target.value)} autoComplete="off" />
+          </Field>
           <Field label="Утас">
             <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
           </Field>
@@ -393,15 +388,20 @@ function MemberDrawer({
               ))}
             </FieldSelect>
           </Field>
-          <Field label="Эцэг/эх">
-            <FieldSelect value={form.parentId} onChange={chooseParent}>
+          <Field label="Эцэг/эх" required={selectedType?.requiresParent}>
+            <FieldSelect value={form.parentAccountId} onChange={(parentAccountId) => set("parentAccountId", parentAccountId)}>
               <option value="">Сонгох</option>
-              {members
-                .filter((m) => m.id !== member?.id)
-                .map((m) => (
-                  <option key={m.id} value={m.id}>{m.name} ({m.memberCode})</option>
-                ))}
+              {parents.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}{p.phone ? ` · ${p.phone}` : ""}
+                </option>
+              ))}
             </FieldSelect>
+            {parents.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Эхлээд <Link href="/parents" className="text-primary underline">Эцэг эх</Link> хуудаснаас бүртгэнэ үү.
+              </p>
+            )}
           </Field>
           <Field label="Нууц үг">
             <Input
@@ -412,15 +412,6 @@ function MemberDrawer({
               autoComplete="new-password"
             />
             <p className="text-xs text-muted-foreground">Хоосон бол гишүүний кодоор нэвтэрнэ. Оноо баталгаажуулахад код хэвээр хэрэглэнэ.</p>
-          </Field>
-          <Field label="Эцэг/эхийн нэр">
-            <Input value={form.parentName} onChange={(e) => set("parentName", e.target.value)} />
-          </Field>
-          <Field label="Эцэг/эхийн утас">
-            <Input value={form.parentPhone} onChange={(e) => set("parentPhone", e.target.value)} />
-          </Field>
-          <Field label="Эцэг/эхийн имэйл">
-            <Input value={form.parentEmail} onChange={(e) => set("parentEmail", e.target.value)} />
           </Field>
           <Field label="Дуусах огноо">
             <Input type="date" value={form.validTo} onChange={(e) => set("validTo", e.target.value)} />

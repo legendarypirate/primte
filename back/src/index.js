@@ -37,6 +37,7 @@ sequelize
   .authenticate()
   .then(() => sequelize.sync({ alter: true }))
   .then(() => require('./services/productCategoryService').ensureProductCategories())
+  .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
   .then(() => {
     app.listen(port, () => {
       console.log(`PRIME API running on http://localhost:${port}`);

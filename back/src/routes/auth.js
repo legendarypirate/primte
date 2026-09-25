@@ -27,37 +27,30 @@ router.post('/admin/login', async (req, res) => {
 });
 
 router.post('/member/login', async (req, res) => {
-  const { name, code } = req.body || {};
-  if (!name || !code) {
-    return res.status(400).json({ message: 'Нэр болон нэвтрэх кодоо оруулна уу.' });
+  const { name, username, code } = req.body || {};
+  const login = String(username || name || '').trim();
+  if (!login || !code) {
+    return res.status(400).json({ message: 'Нэвтрэх нэр болон нууц үгээ оруулна уу.' });
   }
-  const typedName = String(name).trim().toLowerCase();
+  const typed = login.toLowerCase();
   const secret = String(code).trim();
   const include = [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }];
-  const sameName = (member) => member.name.trim().toLowerCase() === typedName;
+  const matchesLogin = (member) =>
+    (member.username && member.username.toLowerCase() === typed) ||
+    member.name.trim().toLowerCase() === typed;
 
-  let member = await Member.findOne({ where: { memberCode: secret }, include });
+  let member =
+    (await Member.findOne({ where: { username: typed }, include })) ||
+    (await Member.findOne({ where: { name: { [Op.iLike]: login } }, include }));
   let ok = false;
-  if (member && sameName(member)) {
-    ok = Boolean(member.pinHash) && (await bcrypt.compare(secret, member.pinHash));
-    if (!ok && member.passwordHash) ok = await bcrypt.compare(secret, member.passwordHash);
+  if (member && matchesLogin(member)) {
+    if (member.passwordHash) ok = await bcrypt.compare(secret, member.passwordHash);
+    if (!ok && member.pinHash) ok = await bcrypt.compare(secret, member.pinHash);
   } else {
     member = null;
   }
 
-  if (!ok) {
-    const candidates = await Member.findAll({ where: { name: { [Op.iLike]: String(name).trim() } }, include });
-    for (const candidate of candidates) {
-      if (!sameName(candidate) || !candidate.passwordHash) continue;
-      if (await bcrypt.compare(secret, candidate.passwordHash)) {
-        member = candidate;
-        ok = true;
-        break;
-      }
-    }
-  }
-
-  if (!member || !ok) return res.status(401).json({ message: 'Гишүүн олдсонгүй эсвэл нэвтрэх код буруу.' });
+  if (!member || !ok) return res.status(401).json({ message: 'Нэвтрэх нэр эсвэл нууц үг буруу.' });
   const type = member.MemberType;
   if (member.status !== 'active' || (type && type.hasAppAccess === false)) {
     return res.status(401).json({ message: 'Гишүүн идэвхгүй байна.' });

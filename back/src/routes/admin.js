@@ -20,6 +20,7 @@ const {
   Setting,
   Division,
   MatchType,
+  Parent,
 } = require('../models');
 const { requireAdmin, requirePermission } = require('../middleware/auth');
 const {
@@ -155,6 +156,7 @@ router.get('/members', requirePermission('members.view'), async (req, res) => {
     ? {
         [Op.or]: [
           { name: { [Op.iLike]: `%${q}%` } },
+          { username: { [Op.iLike]: `%${q}%` } },
           { memberCode: { [Op.iLike]: `%${q}%` } },
           { phone: { [Op.iLike]: `%${q}%` } },
         ],
@@ -162,7 +164,12 @@ router.get('/members', requirePermission('members.view'), async (req, res) => {
     : undefined;
   const members = await Member.findAll({
     where,
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }],
+    include: [
+      MemberType,
+      DevelopmentActivity,
+      { model: Member, as: 'parent' },
+      { model: Parent, as: 'parentAccount' },
+    ],
     order: [['createdAt', 'DESC']],
   });
   res.json({ members: members.map((m) => serializeMember(m, req)) });
@@ -171,6 +178,7 @@ router.get('/members', requirePermission('members.view'), async (req, res) => {
 router.post('/members', requirePermission('members.create'), async (req, res) => {
   const {
     name,
+    username,
     memberCode,
     phone,
     motto,
@@ -192,14 +200,21 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     password,
   } = req.body || {};
   if (!name || !memberCode) return res.status(400).json({ message: 'Нэр болон код шаардлагатай.' });
+  const loginName = String(username || '').trim().toLowerCase();
+  if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
   const exists = await Member.findOne({ where: { memberCode } });
   if (exists) return res.status(400).json({ message: 'Энэ гишүүний код бүртгэлтэй.' });
+  const usernameTaken = await Member.findOne({ where: { username: loginName } });
+  if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
   const type = memberTypeId ? await MemberType.findByPk(memberTypeId) : null;
-  if (type?.requiresParent && !parentId && !parentAccountId && !parentName) {
-    return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх мэдээлэл шаардлагатай.' });
+  if (type?.requiresParent && !parentAccountId && !parentId && !parentName) {
+    return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх сонгоно уу.' });
   }
+  const parentAccount = parentAccountId ? await Parent.findByPk(parentAccountId) : null;
+  if (parentAccountId && !parentAccount) return res.status(400).json({ message: 'Эцэг/эх олдсонгүй.' });
   const member = await Member.create({
     name,
+    username: loginName,
     memberCode,
     pinHash: await bcrypt.hash(memberCode, 10),
     passwordHash: password ? await bcrypt.hash(String(password), 10) : null,
@@ -214,22 +229,22 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     walletBalance: walletBalance ?? 0,
     memberTypeId,
     developmentActivityId,
-    parentId: parentId || null,
-    parentAccountId: parentAccountId || null,
-    parentName,
-    parentPhone,
-    parentEmail,
+    parentId: null,
+    parentAccountId: parentAccount?.id || null,
+    parentName: parentAccount?.name || parentName || null,
+    parentPhone: parentAccount?.phone || parentPhone || null,
+    parentEmail: parentAccount?.email || parentEmail || null,
     avatarUrl,
   });
   const created = await Member.findByPk(member.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: require('../models').Parent, as: 'parentAccount' }],
+    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
   });
   res.status(201).json({ member: serializeMember(created, req) });
 });
 
 router.get('/members/:id', requirePermission('members.view'), async (req, res) => {
   const member = await Member.findByPk(req.params.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }],
+    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
   });
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
   const [transactions, orders, registrations, attendance] = await Promise.all([
@@ -246,6 +261,7 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
   const data = pick(req.body, [
     'name',
+    'username',
     'memberCode',
     'phone',
     'motto',
@@ -268,9 +284,30 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   if (data.memberTypeId) {
     const type = await MemberType.findByPk(data.memberTypeId);
     if (type?.isInactive) data.status = 'inactive';
-    if (type?.requiresParent && !data.parentId && !data.parentAccountId && !data.parentName && !member.parentName) {
-      return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх мэдээлэл шаардлагатай.' });
+    if (type?.requiresParent && !data.parentAccountId && !data.parentId && !data.parentName && !member.parentAccountId) {
+      return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх сонгоно уу.' });
     }
+  }
+  if (data.parentAccountId) {
+    const parentAccount = await Parent.findByPk(data.parentAccountId);
+    if (!parentAccount) return res.status(400).json({ message: 'Эцэг/эх олдсонгүй.' });
+    data.parentId = null;
+    data.parentName = parentAccount.name;
+    data.parentPhone = parentAccount.phone;
+    data.parentEmail = parentAccount.email;
+  } else if (data.parentAccountId === null || data.parentAccountId === '') {
+    data.parentAccountId = null;
+    data.parentId = null;
+    data.parentName = null;
+    data.parentPhone = null;
+    data.parentEmail = null;
+  }
+  if (data.username !== undefined) {
+    const loginName = String(data.username || '').trim().toLowerCase();
+    if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
+    const usernameTaken = await Member.findOne({ where: { username: loginName, id: { [Op.ne]: member.id } } });
+    if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
+    data.username = loginName;
   }
   if (data.memberCode && data.memberCode !== member.memberCode) {
     data.pinHash = await bcrypt.hash(data.memberCode, 10);
@@ -279,7 +316,7 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   if (password) data.passwordHash = await bcrypt.hash(password, 10);
   await member.update(data);
   const updated = await Member.findByPk(member.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }],
+    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
   });
   res.json({ member: serializeMember(updated, req) });
 });

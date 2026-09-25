@@ -291,9 +291,11 @@ function serializeMember(member, req) {
   const type = member.MemberType;
   const activity = member.DevelopmentActivity;
   const parent = member.parent;
+  const parentAccount = member.parentAccount;
   return {
     id: member.id,
     name: member.name,
+    username: member.username || null,
     memberCode: member.memberCode,
     hasPassword: Boolean(member.passwordHash),
     phone: member.phone,
@@ -311,9 +313,10 @@ function serializeMember(member, req) {
     memberTypeId: member.memberTypeId,
     developmentActivityId: member.developmentActivityId,
     parentId: member.parentId,
-    parentName: member.parentName || parent?.name || null,
-    parentPhone: member.parentPhone || parent?.phone || null,
-    parentEmail: member.parentEmail || null,
+    parentAccountId: member.parentAccountId,
+    parentName: parentAccount?.name || member.parentName || parent?.name || null,
+    parentPhone: parentAccount?.phone || member.parentPhone || parent?.phone || null,
+    parentEmail: parentAccount?.email || member.parentEmail || null,
     memberType: type
       ? {
           id: type.id,
