@@ -3,9 +3,13 @@
 import type { ComponentType } from "react";
 import { AboutPage } from "@/components/site/pages/about-page";
 import { ContactPage } from "@/components/site/pages/contact-page";
+import { Course1Page } from "@/components/site/pages/course-1-page";
+import { Course2Page } from "@/components/site/pages/course-2-page";
 import { HomePage } from "@/components/site/pages/home-page";
+import { JuniorPage } from "@/components/site/pages/junior-page";
 import { MembershipPage } from "@/components/site/pages/membership-page";
 import { RankingPage } from "@/components/site/pages/ranking-page";
+import { RankingRulesPage } from "@/components/site/pages/ranking-rules-page";
 import { TrainingPage } from "@/components/site/pages/training-page";
 import type { PageContent } from "@/components/site/page-content-context";
 import { PageContentProvider } from "@/components/site/page-content-context";
@@ -18,6 +22,10 @@ const PAGES: Record<string, ComponentType> = {
   membership: MembershipPage,
   ranking: RankingPage,
   contact: ContactPage,
+  "course-1": Course1Page,
+  "course-2": Course2Page,
+  junior: JuniorPage,
+  "ranking-rules": RankingRulesPage,
 };
 
 export function SitePagePreview({

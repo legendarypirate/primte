@@ -23,6 +23,8 @@ import {
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
+import { EditableBackground } from "@/components/site/editable-background";
+import { EditableText } from "@/components/site/editable-text";
 import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag } from "../primitives";
 
 const faqs = [
@@ -80,74 +82,127 @@ export function Course2Page() {
         <div className="relative mx-auto max-w-7xl px-4 md:px-6">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div>
-              <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
-                TRAIN. COMPETE. BELONG.
-              </p>
-              <h1 className="mt-3 font-heading text-4xl font-extrabold uppercase leading-none tracking-tight text-white md:text-5xl lg:text-6xl">
-                COURSE 2
-              </h1>
-              <h2 className="mt-2 font-heading text-xl font-bold uppercase text-[#e31e24] md:text-2xl">
-                ГИШҮҮНЧЛЭЛИЙН АНХАН ДУНД ШАТНЫ СУРГАЛТ
-              </h2>
-              <p className="mt-4 max-w-xl text-xs leading-relaxed text-[#a0a0a5]">
-                Анхан шатны мэдлэгээ баталгаажуулж, илүү нарийн техник, тактик, хөдөлгөөн, дасгалын гүйцэтгэлийг эзэмшихэд зориулагдсан дунд шатны сургалт юм.
-              </p>
+              <EditableText
+                field="hero.eyebrow"
+                defaultValue="TRAIN. COMPETE. BELONG."
+                as="p"
+                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+              />
+              <EditableText
+                field="hero.title"
+                defaultValue="COURSE 2"
+                as="h1"
+                className="mt-3 font-heading text-4xl font-extrabold uppercase leading-none tracking-tight text-white md:text-5xl lg:text-6xl block"
+              />
+              <EditableText
+                field="hero.subtitle"
+                defaultValue="ГИШҮҮНЧЛЭЛИЙН АНХАН ДУНД ШАТНЫ СУРГАЛТ"
+                as="h2"
+                className="mt-2 font-heading text-xl font-bold uppercase text-[#e31e24] md:text-2xl block"
+              />
+              <EditableText
+                field="hero.description"
+                defaultValue="Анхан шатны мэдлэгээ баталгаажуулж, илүү нарийн техник, тактик, хөдөлгөөн, дасгалын гүйцэтгэлийг эзэмшихэд зориулагдсан дунд шатны сургалт юм."
+                multiline
+                as="p"
+                className="mt-4 max-w-xl text-xs leading-relaxed text-[#a0a0a5] block"
+              />
               <div className="mt-6 flex flex-wrap gap-3">
                 <RedButton href="#register">
-                  БҮРТГҮҮЛЭХ <ArrowRight className="size-4" />
+                  <EditableText field="hero.ctaPrimary" defaultValue="БҮРТГҮҮЛЭХ" /> <ArrowRight className="size-4" />
                 </RedButton>
                 <OutlineButton href="#video">
                   <Play className="size-3.5 fill-current text-[#e31e24]" />
-                  <span>Сургалтын тухай видео үзэх</span>
+                  <EditableText field="hero.ctaSecondary" defaultValue="Сургалтын тухай видео үзэх" />
                 </OutlineButton>
               </div>
             </div>
 
             {/* Quote Graphic Card */}
-            <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 text-right shadow-2xl">
+            <EditableBackground
+              field="hero.cardImageUrl"
+              className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 p-8 text-right shadow-2xl"
+              fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+              placeholder="Hero card background"
+              editMode="corner"
+            >
               <LionIcon className="absolute top-4 left-4 size-24 text-[#e31e24]/15" />
-              <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
-                IPSC ACTION AIR
-              </p>
-              <h3 className="mt-2 font-heading text-2xl font-extrabold uppercase text-white">
-                DISCIPLINE CREATES FREEDOM
-              </h3>
-              <p className="mt-4 font-serif text-base italic text-[#e31e24]">
-                "Ур чадвар, тактикаа дараагийн түвшинд ахиул."
-              </p>
-            </div>
+              <EditableText
+                field="hero.cardEyebrow"
+                defaultValue="IPSC ACTION AIR"
+                as="p"
+                className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+              />
+              <EditableText
+                field="hero.cardTitle"
+                defaultValue="DISCIPLINE CREATES FREEDOM"
+                as="h3"
+                className="relative z-10 mt-2 font-heading text-2xl font-extrabold uppercase text-white block"
+              />
+              <EditableText
+                field="hero.cardQuote"
+                defaultValue={'"Ур чадвар, тактикаа дараагийн түвшинд ахиул."'}
+                multiline
+                as="p"
+                className="relative z-10 mt-4 font-serif text-base italic text-[#e31e24] block"
+              />
+            </EditableBackground>
           </div>
 
           {/* Quick Info Bar */}
           <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center gap-3 rounded-xl border border-[#ffffff15] bg-[#121215] p-4">
-              <Clock className="size-5 text-[#e31e24]" />
-              <div>
-                <p className="text-[10px] uppercase text-[#a0a0a5]">Сургалтын хугацаа</p>
-                <p className="text-xs font-bold text-white">3-9 долоо хоног</p>
+            <EditableBackground
+              field="quickInfo.duration.imageUrl"
+              className="flex items-center gap-3 rounded-xl border border-[#ffffff15] p-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Info tile background"
+              editMode="corner"
+            >
+              <Clock className="relative z-10 size-5 text-[#e31e24]" />
+              <div className="relative z-10">
+                <EditableText field="quickInfo.duration.label" defaultValue="Сургалтын хугацаа" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
+                <EditableText field="quickInfo.duration.value" defaultValue="3-9 долоо хоног" as="p" className="text-xs font-bold text-white block" />
               </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl border border-[#ffffff15] bg-[#121215] p-4">
-              <Users className="size-5 text-[#e31e24]" />
-              <div>
-                <p className="text-[10px] uppercase text-[#a0a0a5]">Анги дүүргэлт</p>
-                <p className="text-xs font-bold text-white">4-6 суралцагч</p>
+            </EditableBackground>
+            <EditableBackground
+              field="quickInfo.capacity.imageUrl"
+              className="flex items-center gap-3 rounded-xl border border-[#ffffff15] p-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Info tile background"
+              editMode="corner"
+            >
+              <Users className="relative z-10 size-5 text-[#e31e24]" />
+              <div className="relative z-10">
+                <EditableText field="quickInfo.capacity.label" defaultValue="Анги дүүргэлт" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
+                <EditableText field="quickInfo.capacity.value" defaultValue="4-6 суралцагч" as="p" className="text-xs font-bold text-white block" />
               </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl border border-[#ffffff15] bg-[#121215] p-4">
-              <Shield className="size-5 text-[#e31e24]" />
-              <div>
-                <p className="text-[10px] uppercase text-[#a0a0a5]">Багш инструктор</p>
-                <p className="text-xs font-bold text-white">МПБХ-ны багш</p>
+            </EditableBackground>
+            <EditableBackground
+              field="quickInfo.instructor.imageUrl"
+              className="flex items-center gap-3 rounded-xl border border-[#ffffff15] p-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Info tile background"
+              editMode="corner"
+            >
+              <Shield className="relative z-10 size-5 text-[#e31e24]" />
+              <div className="relative z-10">
+                <EditableText field="quickInfo.instructor.label" defaultValue="Багш инструктор" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
+                <EditableText field="quickInfo.instructor.value" defaultValue="МПБХ-ны багш" as="p" className="text-xs font-bold text-white block" />
               </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl border border-[#e31e24]/40 bg-[#181612] p-4">
-              <CreditCard className="size-5 text-[#e31e24]" />
-              <div>
-                <p className="text-[10px] uppercase text-[#a0a0a5]">Клубын гишүүн болох</p>
-                <p className="font-mono text-sm font-extrabold text-[#e31e24]">Эрх нээгдэнэ</p>
+            </EditableBackground>
+            <EditableBackground
+              field="quickInfo.membership.imageUrl"
+              className="flex items-center gap-3 rounded-xl border border-[#e31e24]/40 p-4"
+              fallbackClassName="bg-[#181612]"
+              placeholder="Info tile background"
+              editMode="corner"
+            >
+              <CreditCard className="relative z-10 size-5 text-[#e31e24]" />
+              <div className="relative z-10">
+                <EditableText field="quickInfo.membership.label" defaultValue="Клубын гишүүн болох" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
+                <EditableText field="quickInfo.membership.value" defaultValue="Эрх нээгдэнэ" as="p" className="font-mono text-sm font-extrabold text-[#e31e24] block" />
               </div>
-            </div>
+            </EditableBackground>
           </div>
         </div>
       </section>
@@ -156,14 +211,18 @@ export function Course2Page() {
       <div className="border-b border-[#ffffff10] bg-[#09090b] py-3">
         <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 text-xs text-[#a0a0a5] md:px-6">
           <Link href="/" className="hover:text-white flex items-center gap-1">
-            <Home className="size-3.5" /> Нүүр
+            <Home className="size-3.5" /> <EditableText field="breadcrumb.home" defaultValue="Нүүр" />
           </Link>
           <span>/</span>
           <Link href="/training" className="hover:text-white">
-            Сургалт
+            <EditableText field="breadcrumb.training" defaultValue="Сургалт" />
           </Link>
           <span>/</span>
-          <span className="font-semibold text-[#e31e24]">Гишүүнчлэлийн анхан дунд шатны сургалт [Course 2]</span>
+          <EditableText
+            field="breadcrumb.current"
+            defaultValue="Гишүүнчлэлийн анхан дунд шатны сургалт [Course 2]"
+            className="font-semibold text-[#e31e24]"
+          />
         </div>
       </div>
 
@@ -174,31 +233,46 @@ export function Course2Page() {
           <div className="space-y-10">
             {/* Overview & Video Thumbnail */}
             <div>
-              <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#e31e24]">
-                IPSC ACTION AIR
-              </span>
-              <h2 className="mt-1 font-heading text-2xl font-extrabold uppercase text-white">
-                COURSE 2: Гишүүнчлэлийн анхан дунд шатны сургалт
-              </h2>
-              <p className="mt-3 text-xs leading-relaxed text-[#a0a0a5]">
-                Энэхүү сургалт нь практик буудлагын спорт Action Air гар бууны төрлөөр анхан шатны мэдлэгээ баталгаажуулж, илүү нарийн техник, тактик, хөдөлгөөн, дасгалын гүйцэтгэлийг эзэмшихэд зориулагдсан дунд шатны сургалт юм.
-              </p>
+              <EditableText
+                field="overview.eyebrow"
+                defaultValue="IPSC ACTION AIR"
+                className="font-mono text-xs font-bold uppercase tracking-widest text-[#e31e24]"
+              />
+              <EditableText
+                field="overview.title"
+                defaultValue="COURSE 2: Гишүүнчлэлийн анхан дунд шатны сургалт"
+                as="h2"
+                className="mt-1 font-heading text-2xl font-extrabold uppercase text-white block"
+              />
+              <EditableText
+                field="overview.body"
+                defaultValue="Энэхүү сургалт нь практик буудлагын спорт Action Air гар бууны төрлөөр анхан шатны мэдлэгээ баталгаажуулж, илүү нарийн техник, тактик, хөдөлгөөн, дасгалын гүйцэтгэлийг эзэмшихэд зориулагдсан дунд шатны сургалт юм."
+                multiline
+                as="p"
+                className="mt-3 text-xs leading-relaxed text-[#a0a0a5] block"
+              />
 
               {/* Video Preview Box */}
               <div id="video" className="mt-6 overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#121215] shadow-xl">
-                <div className="relative flex h-52 items-center justify-center bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]">
+                <EditableBackground
+                  field="video.imageUrl"
+                  className="relative flex h-52 items-center justify-center"
+                  fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]"
+                  placeholder="Video thumbnail"
+                  editMode="corner"
+                >
                   <button
                     type="button"
                     onClick={() => toast.info("Видео тоглуулж байна...")}
-                    className="group flex flex-col items-center gap-2"
+                    className="group relative z-10 flex flex-col items-center gap-2"
                   >
                     <div className="flex size-14 items-center justify-center rounded-full bg-[#e31e24] text-white shadow-lg shadow-[#e31e24]/40 transition-transform group-hover:scale-110">
                       <Play className="size-6 fill-current ml-0.5" />
                     </div>
-                    <span className="text-xs font-bold text-white">Сургалтын танилцуулга видео</span>
-                    <span className="font-mono text-[10px] text-[#e31e24]">02:50</span>
+                    <EditableText field="video.title" defaultValue="Сургалтын танилцуулга видео" className="text-xs font-bold text-white" />
+                    <EditableText field="video.duration" defaultValue="02:50" className="font-mono text-[10px] text-[#e31e24]" />
                   </button>
-                </div>
+                </EditableBackground>
               </div>
 
               {/* 4 Highlight Badges */}
@@ -209,438 +283,647 @@ export function Course2Page() {
                   { icon: FileText, text: "Тактик" },
                   { icon: CheckCircle2, text: "Практик дадлага" },
                 ].map((b, i) => (
-                  <div
+                  <EditableBackground
                     key={i}
-                    className="flex flex-col items-center rounded-xl border border-[#ffffff15] bg-[#121215] p-3 text-center"
+                    field={`badges.${i}.imageUrl`}
+                    className="flex flex-col items-center rounded-xl border border-[#ffffff15] p-3 text-center"
+                    fallbackClassName="bg-[#121215]"
+                    placeholder="Badge background"
+                    editMode="corner"
                   >
-                    <b.icon className="mb-2 size-5 text-[#e31e24]" />
-                    <span className="text-xs font-bold text-white">{b.text}</span>
-                  </div>
+                    <b.icon className="relative z-10 mb-2 size-5 text-[#e31e24]" />
+                    <EditableText field={`badges.${i}.text`} defaultValue={b.text} className="relative z-10 text-xs font-bold text-white" />
+                  </EditableBackground>
                 ))}
               </div>
             </div>
 
             {/* СУРГАЛТЫН ЕРӨНХИЙ МЭДЭЭЛЭЛ */}
-            <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl space-y-4">
-              <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24]">
-                СУРГАЛТЫН ЕРӨНХИЙ МЭДЭЭЛЭЛ
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-2 text-xs text-[#a0a0a5]">
+            <EditableBackground
+              field="general.imageUrl"
+              className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl space-y-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Card background"
+              editMode="corner"
+            >
+              <EditableText
+                field="general.title"
+                defaultValue="СУРГАЛТЫН ЕРӨНХИЙ МЭДЭЭЛЭЛ"
+                as="h3"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24] block"
+              />
+              <div className="relative z-10 grid gap-3 sm:grid-cols-2 text-xs text-[#a0a0a5]">
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
-                  <span>Сургалтын төрөл</span>
-                  <strong className="text-white">IPSC Action Air Handgun</strong>
+                  <EditableText field="general.type.label" defaultValue="Сургалтын төрөл" />
+                  <EditableText field="general.type.value" defaultValue="IPSC Action Air Handgun" className="font-bold text-white" />
                 </div>
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
-                  <span>Хамрах хүрээ</span>
-                  <strong className="text-white">Course 1 төгссөн / Суурьтай</strong>
+                  <EditableText field="general.scope.label" defaultValue="Хамрах хүрээ" />
+                  <EditableText field="general.scope.value" defaultValue="Course 1 төгссөн / Суурьтай" className="font-bold text-white" />
                 </div>
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
-                  <span>Нийт хугацаа</span>
-                  <strong className="text-white">3 өдөр (9 цаг) / 2 өдөр (8 цаг)</strong>
+                  <EditableText field="general.duration.label" defaultValue="Нийт хугацаа" />
+                  <EditableText field="general.duration.value" defaultValue="3 өдөр (9 цаг) / 2 өдөр (8 цаг)" className="font-bold text-white" />
                 </div>
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
-                  <span>Анги дүүргэлт</span>
-                  <strong className="text-white">4-6 суралцагч</strong>
+                  <EditableText field="general.capacity.label" defaultValue="Анги дүүргэлт" />
+                  <EditableText field="general.capacity.value" defaultValue="4-6 суралцагч" className="font-bold text-white" />
                 </div>
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
-                  <span>Сургагч багш</span>
-                  <strong className="text-white">МПБХ-ны инструктор</strong>
+                  <EditableText field="general.instructor.label" defaultValue="Сургагч багш" />
+                  <EditableText field="general.instructor.value" defaultValue="МПБХ-ны инструктор" className="font-bold text-white" />
                 </div>
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
-                  <span>Сургалтын төлбөр</span>
-                  <strong className="font-mono font-bold text-[#e31e24]">370,000₮</strong>
+                  <EditableText field="general.price.label" defaultValue="Сургалтын төлбөр" />
+                  <EditableText field="general.price.value" defaultValue="370,000₮" className="font-mono font-bold text-[#e31e24]" />
                 </div>
               </div>
-            </div>
+            </EditableBackground>
 
             {/* ХИЧЭЭЛИЙН ХУВААРЬ */}
-            <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl space-y-4">
-              <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-white">
-                ХИЧЭЭЛИЙН ХУВААРЬ
-              </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-4 text-xs space-y-2">
-                  <h4 className="font-bold text-[#e31e24]">3 өдрийн анги (9 цаг)</h4>
-                  <p className="text-[#a0a0a5]">Нэг удаагийн оролт: <strong>3 цаг</strong></p>
-                  <p className="text-[#a0a0a5]">Сургалтын өдөр: <strong>3 өдөр</strong></p>
-                  <p className="text-[#a0a0a5]">Үндсэн өдрүүд: <strong>Даваа, Лхагва, Баасан</strong></p>
-                  <p className="text-[#a0a0a5]">Үндсэн цагууд: <strong>19:00 - 22:00</strong></p>
-                  <p className="text-[#a0a0a5]">Нийт цаг: <strong className="text-white">9 цаг</strong></p>
-                </div>
+            <EditableBackground
+              field="schedule.imageUrl"
+              className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl space-y-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Card background"
+              editMode="corner"
+            >
+              <EditableText
+                field="schedule.title"
+                defaultValue="ХИЧЭЭЛИЙН ХУВААРЬ"
+                as="h3"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-white block"
+              />
+              <div className="relative z-10 grid gap-4 sm:grid-cols-2">
+                <EditableBackground
+                  field="schedule.threeDay.imageUrl"
+                  className="rounded-xl border border-[#ffffff10] p-4 text-xs space-y-2"
+                  fallbackClassName="bg-[#0c0c0e]"
+                  placeholder="Schedule card background"
+                  editMode="corner"
+                >
+                  <EditableText field="schedule.threeDay.title" defaultValue="3 өдрийн анги (9 цаг)" as="h4" className="relative z-10 font-bold text-[#e31e24] block" />
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.threeDay.session.label" defaultValue="Нэг удаагийн оролт:" />{" "}
+                    <EditableText field="schedule.threeDay.session.value" defaultValue="3 цаг" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.threeDay.days.label" defaultValue="Сургалтын өдөр:" />{" "}
+                    <EditableText field="schedule.threeDay.days.value" defaultValue="3 өдөр" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.threeDay.weekdays.label" defaultValue="Үндсэн өдрүүд:" />{" "}
+                    <EditableText field="schedule.threeDay.weekdays.value" defaultValue="Даваа, Лхагва, Баасан" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.threeDay.hours.label" defaultValue="Үндсэн цагууд:" />{" "}
+                    <EditableText field="schedule.threeDay.hours.value" defaultValue="19:00 - 22:00" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.threeDay.total.label" defaultValue="Нийт цаг:" />{" "}
+                    <EditableText field="schedule.threeDay.total.value" defaultValue="9 цаг" className="font-bold text-white" />
+                  </p>
+                </EditableBackground>
 
-                <div className="rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-4 text-xs space-y-2">
-                  <h4 className="font-bold text-[#e31e24]">2 өдрийн анги (8 цаг)</h4>
-                  <p className="text-[#a0a0a5]">Нэг удаагийн оролт: <strong>4 цаг</strong></p>
-                  <p className="text-[#a0a0a5]">Сургалтын өдөр: <strong>2 өдөр</strong></p>
-                  <p className="text-[#a0a0a5]">Үндсэн өдрүүд: <strong>Бямба, Ням</strong></p>
-                  <p className="text-[#a0a0a5]">Үндсэн цагууд: <strong>18:00 - 22:00</strong></p>
-                  <p className="text-[#a0a0a5]">Нийт цаг: <strong className="text-white">8 цаг</strong></p>
-                </div>
+                <EditableBackground
+                  field="schedule.twoDay.imageUrl"
+                  className="rounded-xl border border-[#ffffff10] p-4 text-xs space-y-2"
+                  fallbackClassName="bg-[#0c0c0e]"
+                  placeholder="Schedule card background"
+                  editMode="corner"
+                >
+                  <EditableText field="schedule.twoDay.title" defaultValue="2 өдрийн анги (8 цаг)" as="h4" className="relative z-10 font-bold text-[#e31e24] block" />
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.twoDay.session.label" defaultValue="Нэг удаагийн оролт:" />{" "}
+                    <EditableText field="schedule.twoDay.session.value" defaultValue="4 цаг" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.twoDay.days.label" defaultValue="Сургалтын өдөр:" />{" "}
+                    <EditableText field="schedule.twoDay.days.value" defaultValue="2 өдөр" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.twoDay.weekdays.label" defaultValue="Үндсэн өдрүүд:" />{" "}
+                    <EditableText field="schedule.twoDay.weekdays.value" defaultValue="Бямба, Ням" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.twoDay.hours.label" defaultValue="Үндсэн цагууд:" />{" "}
+                    <EditableText field="schedule.twoDay.hours.value" defaultValue="18:00 - 22:00" className="font-bold" />
+                  </p>
+                  <p className="relative z-10 text-[#a0a0a5]">
+                    <EditableText field="schedule.twoDay.total.label" defaultValue="Нийт цаг:" />{" "}
+                    <EditableText field="schedule.twoDay.total.value" defaultValue="8 цаг" className="font-bold text-white" />
+                  </p>
+                </EditableBackground>
               </div>
-            </div>
+            </EditableBackground>
 
             {/* БҮРДҮҮЛЭХ МАТЕРИАЛ */}
-            <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl space-y-4">
-              <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24]">
-                БҮРДҮҮЛЭХ МАТЕРИАЛ
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-3">
+            <EditableBackground
+              field="materials.imageUrl"
+              className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl space-y-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Card background"
+              editMode="corner"
+            >
+              <EditableText
+                field="materials.title"
+                defaultValue="БҮРДҮҮЛЭХ МАТЕРИАЛ"
+                as="h3"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24] block"
+              />
+              <div className="relative z-10 grid gap-3 sm:grid-cols-3">
                 {[
                   "Гишүүнчлэлийн анкет (Сургалтын үед бөглөнө)",
                   "Цээж зураг тодорхойлолтын хамт",
                   "А-33 маягтын тодорхойлолт",
                 ].map((mat, i) => (
-                  <div key={i} className="flex items-start gap-2.5 rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-3 text-xs text-[#a0a0a5]">
-                    <FileCheck className="size-4 shrink-0 text-[#e31e24] mt-0.5" />
-                    <span>{mat}</span>
-                  </div>
+                  <EditableBackground
+                    key={i}
+                    field={`materials.items.${i}.imageUrl`}
+                    className="flex items-start gap-2.5 rounded-xl border border-[#ffffff10] p-3 text-xs text-[#a0a0a5]"
+                    fallbackClassName="bg-[#0c0c0e]"
+                    placeholder="Item background"
+                    editMode="corner"
+                  >
+                    <FileCheck className="relative z-10 size-4 shrink-0 text-[#e31e24] mt-0.5" />
+                    <EditableText field={`materials.items.${i}.text`} defaultValue={mat} multiline as="p" className="relative z-10 block" />
+                  </EditableBackground>
                 ))}
               </div>
-            </div>
+            </EditableBackground>
 
             {/* ТӨЛБӨРИЙН МЭДЭЭЛЭЛ */}
-            <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl space-y-4">
-              <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-white">
-                ТӨЛБӨРИЙН МЭДЭЭЛЭЛ
-              </h3>
-              <div className="grid gap-4 sm:grid-cols-2 text-xs">
-                <div className="rounded-xl border border-[#e31e24]/30 bg-[#161412] p-4 space-y-1 text-[#a0a0a5]">
-                  <p>Данс: <strong className="text-white">800065600</strong></p>
-                  <p>Дансны нэр: <strong className="text-white">Праим Буудлагын Академи</strong></p>
-                  <p>IBAN: <strong className="text-[#e31e24]">40000 4000 8000 96500</strong></p>
-                  <p>Гүйцэтгэх утга: <strong className="text-white">Утасны дугаар, course2</strong></p>
-                </div>
-                <div className="rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-4 space-y-2 text-[#a0a0a5]">
-                  <h4 className="font-bold text-[#e31e24]">Төлбөрийн буцаалт (торгууль)</h4>
-                  <p>• 24-48 цагийн өмнө мэдэгдсэн бол: <strong className="text-white">10%</strong></p>
-                  <p>• 24 цагийн дотор мэдэгдсэн бол: <strong className="text-white">20%</strong></p>
-                </div>
+            <EditableBackground
+              field="payment.imageUrl"
+              className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl space-y-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Card background"
+              editMode="corner"
+            >
+              <EditableText
+                field="payment.title"
+                defaultValue="ТӨЛБӨРИЙН МЭДЭЭЛЭЛ"
+                as="h3"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-white block"
+              />
+              <div className="relative z-10 grid gap-4 sm:grid-cols-2 text-xs">
+                <EditableBackground
+                  field="payment.bank.imageUrl"
+                  className="rounded-xl border border-[#e31e24]/30 p-4 space-y-1 text-[#a0a0a5]"
+                  fallbackClassName="bg-[#161412]"
+                  placeholder="Bank card background"
+                  editMode="corner"
+                >
+                  <p className="relative z-10">
+                    <EditableText field="payment.bank.account.label" defaultValue="Данс:" />{" "}
+                    <EditableText field="payment.bank.account.value" defaultValue="800065600" className="font-bold text-white" />
+                  </p>
+                  <p className="relative z-10">
+                    <EditableText field="payment.bank.name.label" defaultValue="Дансны нэр:" />{" "}
+                    <EditableText field="payment.bank.name.value" defaultValue="Праим Буудлагын Академи" className="font-bold text-white" />
+                  </p>
+                  <p className="relative z-10">
+                    <EditableText field="payment.bank.iban.label" defaultValue="IBAN:" />{" "}
+                    <EditableText field="payment.bank.iban.value" defaultValue="40000 4000 8000 96500" className="font-bold text-[#e31e24]" />
+                  </p>
+                  <p className="relative z-10">
+                    <EditableText field="payment.bank.reference.label" defaultValue="Гүйцэтгэх утга:" />{" "}
+                    <EditableText field="payment.bank.reference.value" defaultValue="Утасны дугаар, course2" className="font-bold text-white" />
+                  </p>
+                </EditableBackground>
+                <EditableBackground
+                  field="payment.refund.imageUrl"
+                  className="rounded-xl border border-[#ffffff10] p-4 space-y-2 text-[#a0a0a5]"
+                  fallbackClassName="bg-[#0c0c0e]"
+                  placeholder="Refund card background"
+                  editMode="corner"
+                >
+                  <EditableText field="payment.refund.title" defaultValue="Төлбөрийн буцаалт (торгууль)" as="h4" className="relative z-10 font-bold text-[#e31e24] block" />
+                  <p className="relative z-10">
+                    <EditableText field="payment.refund.early.label" defaultValue="• 24-48 цагийн өмнө мэдэгдсэн бол:" />{" "}
+                    <EditableText field="payment.refund.early.value" defaultValue="10%" className="font-bold text-white" />
+                  </p>
+                  <p className="relative z-10">
+                    <EditableText field="payment.refund.late.label" defaultValue="• 24 цагийн дотор мэдэгдсэн бол:" />{" "}
+                    <EditableText field="payment.refund.late.value" defaultValue="20%" className="font-bold text-white" />
+                  </p>
+                </EditableBackground>
               </div>
-            </div>
+            </EditableBackground>
 
             {/* СУРГАЛТЫГ ТӨГССӨНӨӨР */}
-            <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl space-y-4">
-              <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24]">
-                СУРГАЛТЫГ ТӨГССӨНӨӨР
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-2 text-xs text-white font-semibold">
-                <div className="flex items-center gap-2 rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-3">
-                  <CheckCircle2 className="size-4 text-[#e31e24]" />
-                  <span>Клубын суралцагч гишүүн болох</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-3">
-                  <CheckCircle2 className="size-4 text-[#e31e24]" />
-                  <span>Тэмцээнд хамрагдах өрсөлдөх эрх</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-3">
-                  <CheckCircle2 className="size-4 text-[#e31e24]" />
-                  <span>Бэлтгэл, дасгалд чөлөөтэй оролцох</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-xl border border-[#ffffff10] bg-[#0c0c0e] p-3">
-                  <CheckCircle2 className="size-4 text-[#e31e24]" />
-                  <span>Чадварын шинэ төвшинд хүрэх</span>
-                </div>
+            <EditableBackground
+              field="outcomes.imageUrl"
+              className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl space-y-4"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Card background"
+              editMode="corner"
+            >
+              <EditableText
+                field="outcomes.title"
+                defaultValue="СУРГАЛТЫГ ТӨГССӨНӨӨР"
+                as="h3"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24] block"
+              />
+              <div className="relative z-10 grid gap-3 sm:grid-cols-2 text-xs text-white font-semibold">
+                <EditableBackground
+                  field="outcomes.items.0.imageUrl"
+                  className="flex items-center gap-2 rounded-xl border border-[#ffffff10] p-3"
+                  fallbackClassName="bg-[#0c0c0e]"
+                  placeholder="Item background"
+                  editMode="corner"
+                >
+                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <EditableText field="outcomes.items.0.text" defaultValue="Клубын суралцагч гишүүн болох" className="relative z-10" />
+                </EditableBackground>
+                <EditableBackground
+                  field="outcomes.items.1.imageUrl"
+                  className="flex items-center gap-2 rounded-xl border border-[#ffffff10] p-3"
+                  fallbackClassName="bg-[#0c0c0e]"
+                  placeholder="Item background"
+                  editMode="corner"
+                >
+                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <EditableText field="outcomes.items.1.text" defaultValue="Тэмцээнд хамрагдах өрсөлдөх эрх" className="relative z-10" />
+                </EditableBackground>
+                <EditableBackground
+                  field="outcomes.items.2.imageUrl"
+                  className="flex items-center gap-2 rounded-xl border border-[#ffffff10] p-3"
+                  fallbackClassName="bg-[#0c0c0e]"
+                  placeholder="Item background"
+                  editMode="corner"
+                >
+                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <EditableText field="outcomes.items.2.text" defaultValue="Бэлтгэл, дасгалд чөлөөтэй оролцох" className="relative z-10" />
+                </EditableBackground>
+                <EditableBackground
+                  field="outcomes.items.3.imageUrl"
+                  className="flex items-center gap-2 rounded-xl border border-[#ffffff10] p-3"
+                  fallbackClassName="bg-[#0c0c0e]"
+                  placeholder="Item background"
+                  editMode="corner"
+                >
+                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <EditableText field="outcomes.items.3.text" defaultValue="Чадварын шинэ төвшинд хүрэх" className="relative z-10" />
+                </EditableBackground>
               </div>
-            </div>
+            </EditableBackground>
           </div>
 
           {/* RIGHT STICKY REGISTRATION FORM */}
-          <div id="register" className="sticky top-24 rounded-2xl border border-[#e31e24]/50 bg-[#121215] p-6 shadow-2xl">
-            <h3 className="font-heading text-base font-bold uppercase tracking-wider text-white">
-              СУРГАЛТЫН БҮРТГЭЛ (Course 2)
-            </h3>
+          <div id="register" className="sticky top-24">
+            <EditableBackground
+              field="form.imageUrl"
+              className="rounded-2xl border border-[#e31e24]/50 p-6 shadow-2xl"
+              fallbackClassName="bg-[#121215]"
+              placeholder="Form background"
+              editMode="corner"
+            >
+              <EditableText
+                field="form.title"
+                defaultValue="СУРГАЛТЫН БҮРТГЭЛ (Course 2)"
+                as="h3"
+                className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-white block"
+              />
 
-            {/* 3 Step Indicator Header */}
-            <div className="mt-4 flex items-center justify-between border-b border-[#ffffff15] pb-3 text-[11px] font-bold">
-              <span className="flex items-center gap-1.5 text-[#e31e24]">
-                <span className="flex size-5 items-center justify-center rounded-full bg-[#e31e24] text-[10px] text-white">1</span>
-                <span>Мэдээлэл</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-[#a0a0a5]">
-                <span className="flex size-5 items-center justify-center rounded-full bg-[#1b1b20] text-[10px]">2</span>
-                <span>Баталгаажуулалт</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-[#a0a0a5]">
-                <span className="flex size-5 items-center justify-center rounded-full bg-[#1b1b20] text-[10px]">3</span>
-                <span>Амжилттай</span>
-              </span>
-            </div>
-
-            <form onSubmit={handleSubmit} className="mt-5 space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-[#a0a0a5]">Овог, нэр *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Жишээ: Батборгил"
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
-                />
+              {/* 3 Step Indicator Header */}
+              <div className="relative z-10 mt-4 flex items-center justify-between border-b border-[#ffffff15] pb-3 text-[11px] font-bold">
+                <span className="flex items-center gap-1.5 text-[#e31e24]">
+                  <EditableText field="form.steps.0.number" defaultValue="1" className="flex size-5 items-center justify-center rounded-full bg-[#e31e24] text-[10px] text-white" />
+                  <EditableText field="form.steps.0.label" defaultValue="Мэдээлэл" />
+                </span>
+                <span className="flex items-center gap-1.5 text-[#a0a0a5]">
+                  <EditableText field="form.steps.1.number" defaultValue="2" className="flex size-5 items-center justify-center rounded-full bg-[#1b1b20] text-[10px]" />
+                  <EditableText field="form.steps.1.label" defaultValue="Баталгаажуулалт" />
+                </span>
+                <span className="flex items-center gap-1.5 text-[#a0a0a5]">
+                  <EditableText field="form.steps.2.number" defaultValue="3" className="flex size-5 items-center justify-center rounded-full bg-[#1b1b20] text-[10px]" />
+                  <EditableText field="form.steps.2.label" defaultValue="Амжилттай" />
+                </span>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <form onSubmit={handleSubmit} className="relative z-10 mt-5 space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">Бүртгүүлж буй анги *</label>
-                  <select
-                    value={formData.classType}
-                    onChange={(e) => setFormData({ ...formData, classType: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
-                  >
-                    <option value="Ээлжит 2-р шат">Ээлжит 2-р шат</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">Гэрчилгээний дугаар *</label>
+                  <EditableText field="form.name.label" defaultValue="Овог, нэр *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
                   <input
                     type="text"
                     required
-                    value={formData.certNo}
-                    onChange={(e) => setFormData({ ...formData, certNo: e.target.value })}
-                    placeholder="Course1 - C1-XXXX"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Жишээ: Батборгил"
                     className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
                   />
                 </div>
-              </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">Хүйс *</label>
-                  <div className="mt-1 flex gap-3 text-xs text-white">
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="c2gender"
-                        value="male"
-                        checked={formData.gender === "male"}
-                        onChange={() => setFormData({ ...formData, gender: "male" })}
-                        className="accent-[#e31e24]"
-                      />
-                      <span>Эр</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="c2gender"
-                        value="female"
-                        checked={formData.gender === "female"}
-                        onChange={() => setFormData({ ...formData, gender: "female" })}
-                        className="accent-[#e31e24]"
-                      />
-                      <span>Эм</span>
-                    </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <EditableText field="form.classType.label" defaultValue="Бүртгүүлж буй анги *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <select
+                      value={formData.classType}
+                      onChange={(e) => setFormData({ ...formData, classType: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
+                    >
+                      <option value="Ээлжит 2-р шат">Ээлжит 2-р шат</option>
+                    </select>
+                  </div>
+                  <div>
+                    <EditableText field="form.certNo.label" defaultValue="Гэрчилгээний дугаар *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <input
+                      type="text"
+                      required
+                      value={formData.certNo}
+                      onChange={(e) => setFormData({ ...formData, certNo: e.target.value })}
+                      placeholder="Course1 - C1-XXXX"
+                      className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <EditableText field="form.gender.label" defaultValue="Хүйс *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <div className="mt-1 flex gap-3 text-xs text-white">
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="c2gender"
+                          value="male"
+                          checked={formData.gender === "male"}
+                          onChange={() => setFormData({ ...formData, gender: "male" })}
+                          className="accent-[#e31e24]"
+                        />
+                        <EditableText field="form.gender.male" defaultValue="Эр" />
+                      </label>
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="c2gender"
+                          value="female"
+                          checked={formData.gender === "female"}
+                          onChange={() => setFormData({ ...formData, gender: "female" })}
+                          className="accent-[#e31e24]"
+                        />
+                        <EditableText field="form.gender.female" defaultValue="Эм" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <EditableText field="form.hand.label" defaultValue="Хүчтэй гарын байрлал *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <div className="mt-1 flex gap-3 text-xs text-white">
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="c2hand"
+                          value="right"
+                          checked={formData.hand === "right"}
+                          onChange={() => setFormData({ ...formData, hand: "right" })}
+                          className="accent-[#e31e24]"
+                        />
+                        <EditableText field="form.hand.right" defaultValue="Баруун" />
+                      </label>
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="c2hand"
+                          value="left"
+                          checked={formData.hand === "left"}
+                          onChange={() => setFormData({ ...formData, hand: "left" })}
+                          className="accent-[#e31e24]"
+                        />
+                        <EditableText field="form.hand.left" defaultValue="Солой" />
+                      </label>
+                    </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">Хүчтэй гарын байрлал *</label>
-                  <div className="mt-1 flex gap-3 text-xs text-white">
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="c2hand"
-                        value="right"
-                        checked={formData.hand === "right"}
-                        onChange={() => setFormData({ ...formData, hand: "right" })}
-                        className="accent-[#e31e24]"
-                      />
-                      <span>Баруун</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="c2hand"
-                        value="left"
-                        checked={formData.hand === "left"}
-                        onChange={() => setFormData({ ...formData, hand: "left" })}
-                        className="accent-[#e31e24]"
-                      />
-                      <span>Солой</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#a0a0a5]">Ямар нэгэн суурь өвчин, харшилтай эсэх</label>
-                <input
-                  type="text"
-                  value={formData.medical}
-                  onChange={(e) => setFormData({ ...formData, medical: e.target.value })}
-                  placeholder="Харшилгүй..."
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
-                />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">И-мэйл хаяг *</label>
+                  <EditableText
+                    field="form.medical.label"
+                    defaultValue="Ямар нэгэн суурь өвчин, харшилтай эсэх"
+                    as="label"
+                    className="block text-xs font-semibold text-[#a0a0a5]"
+                  />
                   <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="example@email.com"
+                    type="text"
+                    value={formData.medical}
+                    onChange={(e) => setFormData({ ...formData, medical: e.target.value })}
+                    placeholder="Харшилгүй..."
                     className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">Гар утасны дугаар *</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="9911-2233"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#a0a0a5]">Өөрийн эйрсофт хэрэгслийн марк, модель *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.gearModel}
-                  onChange={(e) => setFormData({ ...formData, gearModel: e.target.value })}
-                  placeholder="Жишээ: WE Glock 17 Gen 5"
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
-                />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">Нийт дойзны тоо *</label>
-                  <select
-                    value={formData.magsCount}
-                    onChange={(e) => setFormData({ ...formData, magsCount: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
-                  >
-                    <option value="1-2 дойз">1-2 дойз</option>
-                    <option value="3-4 дойз">3-4 дойз</option>
-                    <option value="5+ дойз">5+ дойз</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#a0a0a5]">Хувийн буутай эсэх *</label>
-                  <div className="mt-1 flex gap-3 text-xs text-white">
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="ownGun"
-                        value="yes"
-                        checked={formData.hasOwnGun === "yes"}
-                        onChange={() => setFormData({ ...formData, hasOwnGun: "yes" })}
-                        className="accent-[#e31e24]"
-                      />
-                      <span>Тийм</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="ownGun"
-                        value="no"
-                        checked={formData.hasOwnGun === "no"}
-                        onChange={() => setFormData({ ...formData, hasOwnGun: "no" })}
-                        className="accent-[#e31e24]"
-                      />
-                      <span>Үгүй</span>
-                    </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <EditableText field="form.email.label" defaultValue="И-мэйл хаяг *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="example@email.com"
+                      className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    />
+                  </div>
+                  <div>
+                    <EditableText field="form.phone.label" defaultValue="Гар утасны дугаар *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <input
+                      type="tel"
+                      required
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="9911-2233"
+                      className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#a0a0a5]">Сургалтад хамрагдах зорилго *</label>
-                <textarea
-                  rows={2}
-                  value={formData.purpose}
-                  onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                  placeholder="Бүртгэлийн зорилго..."
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                <div>
+                  <EditableText
+                    field="form.gearModel.label"
+                    defaultValue="Өөрийн эйрсофт хэрэгслийн марк, модель *"
+                    as="label"
+                    className="block text-xs font-semibold text-[#a0a0a5]"
+                  />
+                  <input
+                    type="text"
+                    required
+                    value={formData.gearModel}
+                    onChange={(e) => setFormData({ ...formData, gearModel: e.target.value })}
+                    placeholder="Жишээ: WE Glock 17 Gen 5"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                  />
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <EditableText field="form.magsCount.label" defaultValue="Нийт дойзны тоо *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <select
+                      value={formData.magsCount}
+                      onChange={(e) => setFormData({ ...formData, magsCount: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
+                    >
+                      <option value="1-2 дойз">1-2 дойз</option>
+                      <option value="3-4 дойз">3-4 дойз</option>
+                      <option value="5+ дойз">5+ дойз</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <EditableText field="form.ownGun.label" defaultValue="Хувийн буутай эсэх *" as="label" className="block text-xs font-semibold text-[#a0a0a5]" />
+                    <div className="mt-1 flex gap-3 text-xs text-white">
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="ownGun"
+                          value="yes"
+                          checked={formData.hasOwnGun === "yes"}
+                          onChange={() => setFormData({ ...formData, hasOwnGun: "yes" })}
+                          className="accent-[#e31e24]"
+                        />
+                        <EditableText field="form.ownGun.yes" defaultValue="Тийм" />
+                      </label>
+                      <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="ownGun"
+                          value="no"
+                          checked={formData.hasOwnGun === "no"}
+                          onChange={() => setFormData({ ...formData, hasOwnGun: "no" })}
+                          className="accent-[#e31e24]"
+                        />
+                        <EditableText field="form.ownGun.no" defaultValue="Үгүй" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <EditableText
+                    field="form.purpose.label"
+                    defaultValue="Сургалтад хамрагдах зорилго *"
+                    as="label"
+                    className="block text-xs font-semibold text-[#a0a0a5]"
+                  />
+                  <textarea
+                    rows={2}
+                    value={formData.purpose}
+                    onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                    placeholder="Бүртгэлийн зорилго..."
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#e31e24] text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-[#c91920]"
+                >
+                  <EditableText field="form.submit" defaultValue="БҮРТГҮҮЛЭХ" />
+                  <ArrowRight className="size-4" />
+                </button>
+
+                <EditableText
+                  field="form.privacyNote"
+                  defaultValue="🔒 Таны мэдээлэл хамгаалагдсан болно."
+                  as="p"
+                  className="mt-2 text-center text-[10px] text-[#a0a0a5] block"
                 />
-              </div>
-
-              <button
-                type="submit"
-                className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#e31e24] text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-[#c91920]"
-              >
-                <span>БҮРТГҮҮЛЭХ</span>
-                <ArrowRight className="size-4" />
-              </button>
-
-              <p className="mt-2 text-center text-[10px] text-[#a0a0a5]">
-                🔒 Таны мэдээлэл хамгаалагдсан болно.
-              </p>
-            </form>
+              </form>
+            </EditableBackground>
           </div>
         </div>
       </ContentSection>
 
       {/* SPECIAL OFFER BANNER */}
       <ContentSection id="offer" dark>
-        <div className="relative overflow-hidden rounded-3xl border border-[#e31e24]/50 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 md:p-10 shadow-2xl">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <EditableBackground
+          field="offer.imageUrl"
+          className="relative overflow-hidden rounded-3xl border border-[#e31e24]/50 p-8 md:p-10 shadow-2xl"
+          fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+          placeholder="Offer banner background"
+          editMode="corner"
+        >
+          <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
-                SPECIAL OFFER ——
-              </p>
+              <EditableText
+                field="offer.eyebrow"
+                defaultValue="SPECIAL OFFER ——"
+                as="p"
+                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+              />
               <h2 className="mt-1 font-heading text-2xl font-extrabold uppercase text-white md:text-3xl">
-                Course 1 + Course 2 хамт бүртгүүлбэл <span className="text-[#e31e24]">650,000₮</span>
+                <EditableText field="offer.title" defaultValue="Course 1 + Course 2 хамт бүртгүүлбэл" />{" "}
+                <EditableText field="offer.price" defaultValue="650,000₮" className="text-[#e31e24]" />
               </h2>
             </div>
             <RedButton href="#register">
-              ХАМТ БҮРТГҮҮЛЭХ →
+              <EditableText field="offer.cta" defaultValue="ХАМТ БҮРТГҮҮЛЭХ →" />
             </RedButton>
           </div>
-        </div>
+        </EditableBackground>
       </ContentSection>
 
       {/* FAQ SECTION */}
       <ContentSection id="faq">
         <SectionTag n="FAQ" label="ТҮГЭЭМЭЛ АСУУЛТ" />
-        <h2 className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl">
-          ТҮГЭЭМЭЛ АСУУЛТ
-        </h2>
+        <EditableText
+          field="faq.title"
+          defaultValue="ТҮГЭЭМЭЛ АСУУЛТ"
+          as="h2"
+          className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
+        />
 
         <div className="mt-8 space-y-3">
           {faqs.map((faq, idx) => {
             const isOpen = openFaq === idx;
             return (
-              <div
+              <EditableBackground
                 key={idx}
-                className="overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#121215] shadow-lg"
+                field={`faq.${idx}.imageUrl`}
+                className="overflow-hidden rounded-2xl border border-[#ffffff15] shadow-lg"
+                fallbackClassName="bg-[#121215]"
+                placeholder="FAQ background"
+                editMode="corner"
               >
                 <button
                   type="button"
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="flex w-full items-center justify-between p-5 text-left text-xs font-bold text-white transition hover:text-[#e31e24]"
+                  className="relative z-10 flex w-full items-center justify-between p-5 text-left text-xs font-bold text-white transition hover:text-[#e31e24]"
                 >
-                  <span>{faq.q}</span>
+                  <EditableText field={`faq.${idx}.q`} defaultValue={faq.q} />
                   <ChevronDown className={`size-4 text-[#e31e24] transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 {isOpen && (
-                  <div className="border-t border-[#ffffff10] p-5 text-xs leading-relaxed text-[#a0a0a5] bg-[#0c0c0e]">
-                    {faq.a}
+                  <div className="relative z-10 border-t border-[#ffffff10] p-5 text-xs leading-relaxed text-[#a0a0a5] bg-[#0c0c0e]">
+                    <EditableText field={`faq.${idx}.a`} defaultValue={faq.a} multiline as="p" className="block" />
                   </div>
                 )}
-              </div>
+              </EditableBackground>
             );
           })}
         </div>
 
         {/* Need Help Card */}
-        <div className="mt-10 rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 text-center space-y-3">
-          <Headphones className="mx-auto size-8 text-[#e31e24]" />
-          <h4 className="font-heading text-sm font-bold uppercase text-white">НЭМЭЛТ АСУУЛТ БАЙНА УУ?</h4>
-          <p className="text-xs text-[#a0a0a5]">Бидэнтэй холбогдон уу.</p>
-          <div className="flex flex-wrap justify-center gap-6 pt-2 text-xs font-mono font-bold text-white">
-            <span className="flex items-center gap-2"><Phone className="size-4 text-[#e31e24]" /> 9088-0200</span>
-            <span className="flex items-center gap-2"><Mail className="size-4 text-[#e31e24]" /> registration@prime.mn</span>
+        <EditableBackground
+          field="help.imageUrl"
+          className="mt-10 rounded-2xl border border-[#ffffff15] p-6 text-center space-y-3"
+          fallbackClassName="bg-[#121215]"
+          placeholder="Help card background"
+          editMode="corner"
+        >
+          <Headphones className="relative z-10 mx-auto size-8 text-[#e31e24]" />
+          <EditableText
+            field="help.title"
+            defaultValue="НЭМЭЛТ АСУУЛТ БАЙНА УУ?"
+            as="h4"
+            className="relative z-10 font-heading text-sm font-bold uppercase text-white block"
+          />
+          <EditableText field="help.body" defaultValue="Бидэнтэй холбогдон уу." as="p" className="relative z-10 text-xs text-[#a0a0a5] block" />
+          <div className="relative z-10 flex flex-wrap justify-center gap-6 pt-2 text-xs font-mono font-bold text-white">
+            <span className="flex items-center gap-2"><Phone className="size-4 text-[#e31e24]" /> <EditableText field="help.phone" defaultValue="9088-0200" /></span>
+            <span className="flex items-center gap-2"><Mail className="size-4 text-[#e31e24]" /> <EditableText field="help.email" defaultValue="registration@prime.mn" /></span>
           </div>
-        </div>
+        </EditableBackground>
       </ContentSection>
     </>
   );

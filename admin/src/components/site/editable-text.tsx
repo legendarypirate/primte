@@ -16,7 +16,7 @@ export function EditableText({
 }: {
   field: string;
   defaultValue: string;
-  as?: "span" | "p" | "h1" | "h2" | "h3";
+  as?: "span" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "li" | "blockquote" | "label" | "div";
   multiline?: boolean;
   className?: string;
   placeholder?: string;
@@ -53,6 +53,9 @@ export function EditableText({
       value={value}
       placeholder={placeholder}
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.preventDefault();
+      }}
       onChange={(e) => onChange(e.target.value)}
       className={cn(editChrome, "block w-full min-w-[3rem]", className)}
     />

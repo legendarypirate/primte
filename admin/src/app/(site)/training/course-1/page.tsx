@@ -1,4 +1,5 @@
 import { Course1Page } from "@/components/site/pages/course-1-page";
+import { SitePageWithContent } from "@/components/site/site-page-with-content";
 
 export const metadata = {
   title: "Course 1 - Гишүүнчлэлийн анхан шатны сургалт | PRIME IPSC Club",
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <Course1Page />;
+  return (
+    <SitePageWithContent slug="course-1">
+      <Course1Page />
+    </SitePageWithContent>
+  );
 }

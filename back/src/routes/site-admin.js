@@ -45,29 +45,24 @@ function validateBlocks(blocks) {
 }
 
 async function seedDefaultPages() {
-  const existing = await SitePage.count();
-  if (existing > 0) return SitePage.findAll({ order: [['sortOrder', 'ASC']] });
-
-  const rows = [];
+  const existing = new Set((await SitePage.findAll({ attributes: ['slug'] })).map((p) => p.slug));
   for (const page of DEFAULT_PAGES) {
-    rows.push(
-      await SitePage.create({
-        slug: page.slug,
-        title: page.title,
-        metaTitle: page.metaTitle,
-        metaDescription: page.metaDescription,
-        sortOrder: page.sortOrder,
-        published: true,
-        blocks: page.blocks,
-      })
-    );
+    if (existing.has(page.slug)) continue;
+    await SitePage.create({
+      slug: page.slug,
+      title: page.title,
+      metaTitle: page.metaTitle,
+      metaDescription: page.metaDescription,
+      sortOrder: page.sortOrder,
+      published: true,
+      blocks: page.blocks,
+    });
   }
-  return rows;
+  return SitePage.findAll({ order: [['sortOrder', 'ASC'], ['title', 'ASC']] });
 }
 
 router.get('/site-pages', requirePermission('site.view'), async (_req, res) => {
-  let pages = await SitePage.findAll({ order: [['sortOrder', 'ASC'], ['title', 'ASC']] });
-  if (!pages.length) pages = await seedDefaultPages();
+  const pages = await seedDefaultPages();
   res.json({ pages: pages.map(serializeAdminPage) });
 });
 

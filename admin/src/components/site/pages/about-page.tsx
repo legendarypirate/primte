@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { EditableBackground } from "@/components/site/editable-background";
+import { EditableText } from "@/components/site/editable-text";
 import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag } from "../primitives";
 
 const stats = [
@@ -85,34 +86,55 @@ export function AboutPage() {
             <div className="absolute top-4 right-4 text-[#e31e24]/15">
               <LionIcon className="size-36" />
             </div>
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
-              PRIME IPSC CLUB
-            </p>
-            <h3 className="mt-4 font-heading text-3xl font-extrabold uppercase leading-tight text-white">
-              MORE THAN A SPORT
-            </h3>
-            <p className="mt-3 text-xs leading-relaxed text-[#a0a0a5]">
-              Аюулгүй байдал, сахилга бат, техник ур чадварыг нэгтгэсэн олон улсын практик буудлагын соёл.
-            </p>
+            <EditableText
+              field="hero.aside.eyebrow"
+              defaultValue="PRIME IPSC CLUB"
+              as="p"
+              className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+            />
+            <EditableText
+              field="hero.aside.title"
+              defaultValue="MORE THAN A SPORT"
+              as="h3"
+              className="relative z-10 mt-4 font-heading text-3xl font-extrabold uppercase leading-tight text-white block"
+            />
+            <EditableText
+              field="hero.aside.body"
+              defaultValue="Аюулгүй байдал, сахилга бат, техник ур чадварыг нэгтгэсэн олон улсын практик буудлагын соёл."
+              multiline
+              as="p"
+              className="relative z-10 mt-3 text-xs leading-relaxed text-[#a0a0a5] block"
+            />
           </EditableBackground>
         }
       >
         <RedButton href="#history">
-          Бидний түүх
+          <EditableText field="hero.ctaPrimary" defaultValue="Бидний түүх" />
           <ArrowRight className="size-4" />
         </RedButton>
         <OutlineButton onClick={() => setShowVideo(true)}>
           <Play className="size-3.5 fill-current" />
-          <span>PRIME-ийн тухай видео үзэх</span>
+          <EditableText field="hero.ctaVideo" defaultValue="PRIME-ийн тухай видео үзэх" />
         </OutlineButton>
       </PageHero>
 
       {/* Video Modal */}
       {showVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-3xl rounded-2xl border border-[#e31e24]/40 bg-[#0c0c0e] p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-[#ffffff15]">
-              <h3 className="font-heading text-base font-bold text-white uppercase">PRIME-ийн тухай видео</h3>
+          <EditableBackground
+            field="video.modalImageUrl"
+            className="relative w-full max-w-3xl rounded-2xl border border-[#e31e24]/40 p-6 shadow-2xl"
+            fallbackClassName="bg-[#0c0c0e]"
+            placeholder="Video modal background"
+            editMode="corner"
+          >
+            <div className="relative z-10 flex items-center justify-between pb-4 border-b border-[#ffffff15]">
+              <EditableText
+                field="video.title"
+                defaultValue="PRIME-ийн тухай видео"
+                as="h3"
+                className="font-heading text-base font-bold text-white uppercase"
+              />
               <button
                 type="button"
                 onClick={() => setShowVideo(false)}
@@ -121,14 +143,30 @@ export function AboutPage() {
                 ✕
               </button>
             </div>
-            <div className="mt-4 flex h-72 items-center justify-center rounded-xl bg-[#141418] text-center">
-              <div>
+            <EditableBackground
+              field="video.placeholderImageUrl"
+              className="relative z-10 mt-4 flex h-72 items-center justify-center rounded-xl text-center"
+              fallbackClassName="bg-[#141418]"
+              placeholder="Video placeholder background"
+              editMode="corner"
+            >
+              <div className="relative z-10">
                 <Play className="mx-auto mb-2 size-12 text-[#e31e24]" />
-                <p className="text-sm font-bold text-white">PRIME Action Air Introduction Video</p>
-                <p className="mt-1 text-xs text-muted-foreground">Тун удахгүй видео контент тавигдана</p>
+                <EditableText
+                  field="video.placeholderTitle"
+                  defaultValue="PRIME Action Air Introduction Video"
+                  as="p"
+                  className="text-sm font-bold text-white block"
+                />
+                <EditableText
+                  field="video.placeholderNote"
+                  defaultValue="Тун удахгүй видео контент тавигдана"
+                  as="p"
+                  className="mt-1 text-xs text-muted-foreground block"
+                />
               </div>
-            </div>
-          </div>
+            </EditableBackground>
+          </EditableBackground>
         </div>
       )}
 
@@ -137,14 +175,24 @@ export function AboutPage() {
         <SectionTag n="02" label="КЛУБЫН ТАНИЛЦУУЛГА" />
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
-            <h2 className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl">
-              ДИСЦИПЛИН. ХӨГЖИЛ. ИЛҮҮ САЙН ӨНӨӨДӨР.
-            </h2>
-            <p className="mt-4 text-sm leading-relaxed text-[#a0a0a5]">
-              PRIME Practical Shooting Club нь 2019 онд байгуулагдсан IPSC Action Air төрлийн тамирчдын клуб юм. Бид практик буудлагын спортын соёлыг түгээж, тамирчдыг бэлтгэж, сургалт явуулах, тэмцээн зохион байгуулах, олон улсын тавцанд оролцох замаар Монгол дахь IPSC хөдөлгөөнийг хөгжүүлэхэд зорьж ажилладаг.
-            </p>
+            <EditableText
+              field="history.title"
+              defaultValue="ДИСЦИПЛИН. ХӨГЖИЛ. ИЛҮҮ САЙН ӨНӨӨДӨР."
+              multiline
+              as="h2"
+              className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
+            />
+            <EditableText
+              field="history.body"
+              defaultValue="PRIME Practical Shooting Club нь 2019 онд байгуулагдсан IPSC Action Air төрлийн тамирчдын клуб юм. Бид практик буудлагын спортын соёлыг түгээж, тамирчдыг бэлтгэж, сургалт явуулах, тэмцээн зохион байгуулах, олон улсын тавцанд оролцох замаар Монгол дахь IPSC хөдөлгөөнийг хөгжүүлэхэд зорьж ажилладаг."
+              multiline
+              as="p"
+              className="mt-4 text-sm leading-relaxed text-[#a0a0a5] block"
+            />
             <div className="mt-6">
-              <OutlineButton href="/training">Илүү дэлгэрэнгүй →</OutlineButton>
+              <OutlineButton href="/training">
+                <EditableText field="history.cta" defaultValue="Илүү дэлгэрэнгүй →" />
+              </OutlineButton>
             </div>
           </div>
 
@@ -155,13 +203,20 @@ export function AboutPage() {
             fallbackClassName="bg-[#121215]"
             editMode="corner"
           >
-            <LionIcon className="mx-auto size-16 text-[#e31e24]" />
-            <h3 className="mt-4 font-heading text-xl font-bold uppercase tracking-wider text-white">
-              PRIME PRACTICAL SHOOTING CLUB
-            </h3>
-            <blockquote className="mt-3 text-xs italic leading-relaxed text-[#e31e24]">
-              "Илүү аюулгүй, илүү чадварлаг ирээдүйг хамтдаа бүтээе."
-            </blockquote>
+            <LionIcon className="relative z-10 mx-auto size-16 text-[#e31e24]" />
+            <EditableText
+              field="history.emblemTitle"
+              defaultValue="PRIME PRACTICAL SHOOTING CLUB"
+              as="h3"
+              className="relative z-10 mt-4 font-heading text-xl font-bold uppercase tracking-wider text-white block"
+            />
+            <EditableText
+              field="history.emblemQuote"
+              defaultValue={'"Илүү аюулгүй, илүү чадварлаг ирээдүйг хамтдаа бүтээе."'}
+              multiline
+              as="blockquote"
+              className="relative z-10 mt-3 text-xs italic leading-relaxed text-[#e31e24] block"
+            />
           </EditableBackground>
         </div>
       </ContentSection>
@@ -170,17 +225,31 @@ export function AboutPage() {
       <ContentSection id="stats">
         <SectionTag n="03" label="ТООН ҮЗҮҮЛЭЛТ" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map(({ icon: Icon, value, label }) => (
-            <div
+          {stats.map(({ icon: Icon, value, label }, idx) => (
+            <EditableBackground
               key={label}
-              className="flex flex-col items-center justify-center rounded-2xl border border-[#ffffff15] bg-[#101014] p-6 text-center shadow-xl transition-all hover:border-[#e31e24]/50"
+              field={`stats.${idx}.imageUrl`}
+              className="flex flex-col items-center justify-center rounded-2xl border border-[#ffffff15] p-6 text-center shadow-xl transition-all hover:border-[#e31e24]/50"
+              fallbackClassName="bg-[#101014]"
+              placeholder="Stat card background"
+              editMode="corner"
             >
-              <div className="mb-3 flex size-12 items-center justify-center rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+              <div className="relative z-10 mb-3 flex size-12 items-center justify-center rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
                 <Icon className="size-6" />
               </div>
-              <p className="font-mono text-3xl font-extrabold text-white">{value}</p>
-              <p className="mt-1 text-xs text-[#a0a0a5]">{label}</p>
-            </div>
+              <EditableText
+                field={`stats.${idx}.value`}
+                defaultValue={value}
+                as="p"
+                className="relative z-10 font-mono text-3xl font-extrabold text-white block"
+              />
+              <EditableText
+                field={`stats.${idx}.label`}
+                defaultValue={label}
+                as="p"
+                className="relative z-10 mt-1 text-xs text-[#a0a0a5] block"
+              />
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>
@@ -188,71 +257,136 @@ export function AboutPage() {
       {/* 04 - БИДНИЙ ҮНЭТ ЗҮЙЛС */}
       <ContentSection id="values" dark>
         <SectionTag n="04" label="БИДНИЙ ҮНЭТ ЗҮЙЛС" />
-        <h2 className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl">
-          БИДНИЙ ЗОРИЛГО, АЛСЫН ХАРАА, ҮНЭТ ЗҮЙЛС
-        </h2>
+        <EditableText
+          field="values.title"
+          defaultValue="БИДНИЙ ЗОРИЛГО, АЛСЫН ХАРАА, ҮНЭТ ЗҮЙЛС"
+          multiline
+          as="h2"
+          className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
+        />
 
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {/* Card 1: Purpose */}
-          <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl transition-all hover:border-[#e31e24]/50">
-            <div className="mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+          <EditableBackground
+            field="values.purpose.imageUrl"
+            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/50"
+            fallbackClassName="bg-[#121215]"
+            placeholder="Card background"
+            editMode="corner"
+          >
+            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
               <Target className="size-5" />
             </div>
-            <h4 className="font-heading text-base font-bold uppercase tracking-wider text-[#e31e24]">
-              БИДНИЙ ЗОРИЛГО
-            </h4>
-            <p className="mt-3 text-xs leading-relaxed text-[#a0a0a5]">
-              Аюулгүй, хариуцлагатай практик буудлагын спортыг түгээж, тамирчдын ур чадварыг дээшлүүлэх.
-            </p>
-          </div>
+            <EditableText
+              field="values.purpose.title"
+              defaultValue="БИДНИЙ ЗОРИЛГО"
+              as="h4"
+              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#e31e24] block"
+            />
+            <EditableText
+              field="values.purpose.body"
+              defaultValue="Аюулгүй, хариуцлагатай практик буудлагын спортыг түгээж, тамирчдын ур чадварыг дээшлүүлэх."
+              multiline
+              as="p"
+              className="relative z-10 mt-3 text-xs leading-relaxed text-[#a0a0a5] block"
+            />
+          </EditableBackground>
 
           {/* Card 2: Vision */}
-          <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl transition-all hover:border-[#e31e24]/50">
-            <div className="mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+          <EditableBackground
+            field="values.vision.imageUrl"
+            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/50"
+            fallbackClassName="bg-[#121215]"
+            placeholder="Card background"
+            editMode="corner"
+          >
+            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
               <Flag className="size-5" />
             </div>
-            <h4 className="font-heading text-base font-bold uppercase tracking-wider text-[#e31e24]">
-              АЛСЫН ХАРАА
-            </h4>
-            <p className="mt-3 text-xs leading-relaxed text-[#a0a0a5]">
-              Монголд IPSC Action Air спортын тэргүүлэгч клуб байж, олон улсын тавцанд амжилттай тамирчдыг бэлтгэх.
-            </p>
-          </div>
+            <EditableText
+              field="values.vision.title"
+              defaultValue="АЛСЫН ХАРАА"
+              as="h4"
+              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#e31e24] block"
+            />
+            <EditableText
+              field="values.vision.body"
+              defaultValue="Монголд IPSC Action Air спортын тэргүүлэгч клуб байж, олон улсын тавцанд амжилттай тамирчдыг бэлтгэх."
+              multiline
+              as="p"
+              className="relative z-10 mt-3 text-xs leading-relaxed text-[#a0a0a5] block"
+            />
+          </EditableBackground>
 
           {/* Card 3: Values */}
-          <div className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 shadow-xl transition-all hover:border-[#e31e24]/50">
-            <div className="mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+          <EditableBackground
+            field="values.values.imageUrl"
+            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/50"
+            fallbackClassName="bg-[#121215]"
+            placeholder="Card background"
+            editMode="corner"
+          >
+            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
               <Users className="size-5" />
             </div>
-            <h4 className="font-heading text-base font-bold uppercase tracking-wider text-[#e31e24]">
-              ҮНЭТ ЗҮЙЛС
-            </h4>
-            <p className="mt-3 text-xs leading-relaxed text-[#a0a0a5]">
-              Аюулгүй байдал, сахилга бат, хариуцлага, тасралтгүй суралцах, хамтын нийгэмлэг, шударга өРСӨЛДӨӨН.
-            </p>
-          </div>
+            <EditableText
+              field="values.values.title"
+              defaultValue="ҮНЭТ ЗҮЙЛС"
+              as="h4"
+              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#e31e24] block"
+            />
+            <EditableText
+              field="values.values.body"
+              defaultValue="Аюулгүй байдал, сахилга бат, хариуцлага, тасралтгүй суралцах, хамтын нийгэмлэг, шударга өРСӨЛДӨӨН."
+              multiline
+              as="p"
+              className="relative z-10 mt-3 text-xs leading-relaxed text-[#a0a0a5] block"
+            />
+          </EditableBackground>
         </div>
       </ContentSection>
 
       {/* 05 - БИДНИЙ ЗАМНАЛ */}
       <ContentSection id="timeline">
         <SectionTag n="05" label="БИДНИЙ ЗАМНАЛ" />
-        <h2 className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl">
-          ӨСӨЛТ, ХӨГЖЛИЙН ТҮҮХ
-        </h2>
+        <EditableText
+          field="timeline.title"
+          defaultValue="ӨСӨЛТ, ХӨГЖЛИЙН ТҮҮХ"
+          as="h2"
+          className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
+        />
 
         <div className="relative mt-12 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {timeline.map((item, idx) => (
-            <div
+            <EditableBackground
               key={item.year}
-              className="relative flex flex-col justify-between rounded-xl border border-[#ffffff15] bg-[#101014] p-5 shadow-lg"
+              field={`timeline.${idx}.imageUrl`}
+              className="relative flex flex-col justify-between rounded-xl border border-[#ffffff15] p-5 shadow-lg"
+              fallbackClassName="bg-[#101014]"
+              placeholder="Timeline card background"
+              editMode="corner"
             >
-              <div>
-                <span className="font-mono text-xl font-extrabold text-[#e31e24]">{item.year}</span>
-                <h4 className="mt-2 font-heading text-xs font-bold text-white">{item.title}</h4>
-                <p className="mt-2 text-[11px] leading-relaxed text-[#a0a0a5]">{item.desc}</p>
+              <div className="relative z-10">
+                <EditableText
+                  field={`timeline.${idx}.year`}
+                  defaultValue={item.year}
+                  className="font-mono text-xl font-extrabold text-[#e31e24]"
+                />
+                <EditableText
+                  field={`timeline.${idx}.title`}
+                  defaultValue={item.title}
+                  as="h4"
+                  className="mt-2 font-heading text-xs font-bold text-white block"
+                />
+                <EditableText
+                  field={`timeline.${idx}.desc`}
+                  defaultValue={item.desc}
+                  multiline
+                  as="p"
+                  className="mt-2 text-[11px] leading-relaxed text-[#a0a0a5] block"
+                />
               </div>
-            </div>
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>
@@ -262,14 +396,23 @@ export function AboutPage() {
         <SectionTag n="06" label="КЛУБЫН АМЬДРАЛ" />
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl">
-              БИДНИЙ ӨДӨР ТУТМЫН АМЬДРАЛ
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Сургалт, тэмцээн, нөхөрлөл, хөгжил — PRIME-ийн амьдралын нэг хэсэг.
-            </p>
+            <EditableText
+              field="gallery.title"
+              defaultValue="БИДНИЙ ӨДӨР ТУТМЫН АМЬДРАЛ"
+              as="h2"
+              className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
+            />
+            <EditableText
+              field="gallery.subtitle"
+              defaultValue="Сургалт, тэмцээн, нөхөрлөл, хөгжил — PRIME-ийн амьдралын нэг хэсэг."
+              multiline
+              as="p"
+              className="mt-1 text-sm text-muted-foreground block"
+            />
           </div>
-          <OutlineButton href="/contact">ГАЛЕРЕЙ ҮЗЭХ →</OutlineButton>
+          <OutlineButton href="/contact">
+            <EditableText field="gallery.cta" defaultValue="ГАЛЕРЕЙ ҮЗЭХ →" />
+          </OutlineButton>
         </div>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -284,10 +427,17 @@ export function AboutPage() {
               editMode="cover"
             >
               <div className="relative z-10">
-                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#e31e24]">
-                  {g.tag}
-                </span>
-                <h4 className="font-heading text-base font-extrabold uppercase text-white">{g.title}</h4>
+                <EditableText
+                  field={`gallery.${idx}.tag`}
+                  defaultValue={g.tag}
+                  className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#e31e24]"
+                />
+                <EditableText
+                  field={`gallery.${idx}.title`}
+                  defaultValue={g.title}
+                  as="h4"
+                  className="font-heading text-base font-extrabold uppercase text-white block"
+                />
               </div>
             </EditableBackground>
           ))}
@@ -298,19 +448,30 @@ export function AboutPage() {
       <ContentSection id="team">
         <SectionTag n="07" label="БАГШ, ИНСТРУКТОР" />
         <div className="flex flex-col gap-2">
-          <h2 className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl">
-            МАНАЙ БАГ
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Туршлагатай, мэргэшсэн багш, инструкторууд таны хөгжлийн хөтөч болно.
-          </p>
+          <EditableText
+            field="team.title"
+            defaultValue="МАНАЙ БАГ"
+            as="h2"
+            className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
+          />
+          <EditableText
+            field="team.subtitle"
+            defaultValue="Туршлагатай, мэргэшсэн багш, инструкторууд таны хөгжлийн хөтөч болно."
+            multiline
+            as="p"
+            className="text-sm text-muted-foreground block"
+          />
         </div>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {team.map((person, idx) => (
-            <div
+            <EditableBackground
               key={person.name}
-              className="group overflow-hidden rounded-2xl border border-[#ffffff15] bg-[#101014] shadow-xl transition-all hover:border-[#e31e24]/60"
+              field={`team.${idx}.cardImageUrl`}
+              className="group overflow-hidden rounded-2xl border border-[#ffffff15] shadow-xl transition-all hover:border-[#e31e24]/60"
+              fallbackClassName="bg-[#101014]"
+              placeholder="Team card background"
+              editMode="corner"
             >
               <EditableBackground
                 field={`team.${idx}.imageUrl`}
@@ -320,12 +481,27 @@ export function AboutPage() {
               >
                 <LionIcon className="relative z-10 size-20 text-[#e31e24]/20 transition-transform group-hover:scale-110" />
               </EditableBackground>
-              <div className="p-5">
-                <h4 className="font-heading text-base font-bold text-white">{person.name}</h4>
-                <p className="mt-1 text-xs font-semibold text-[#e31e24]">{person.role}</p>
-                <p className="mt-0.5 text-[11px] text-[#a0a0a5]">{person.sub}</p>
+              <div className="relative z-10 p-5">
+                <EditableText
+                  field={`team.${idx}.name`}
+                  defaultValue={person.name}
+                  as="h4"
+                  className="font-heading text-base font-bold text-white block"
+                />
+                <EditableText
+                  field={`team.${idx}.role`}
+                  defaultValue={person.role}
+                  as="p"
+                  className="mt-1 text-xs font-semibold text-[#e31e24] block"
+                />
+                <EditableText
+                  field={`team.${idx}.sub`}
+                  defaultValue={person.sub}
+                  as="p"
+                  className="mt-0.5 text-[11px] text-[#a0a0a5] block"
+                />
               </div>
-            </div>
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>
@@ -338,21 +514,36 @@ export function AboutPage() {
           fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
           editMode="corner"
         >
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">
-                08 —— НИЙГЭМЛЭГТ НЭГД
-              </p>
-              <h2 className="mt-2 font-heading text-3xl font-extrabold uppercase text-white md:text-4xl">
-                ИЛҮҮ ИХ БОЛОМЖ ТАНЫГ ХҮЛЭЭЖ БАЙНА
-              </h2>
-              <p className="mt-2 max-w-xl text-xs text-[#a0a0a5]">
-                Сургалтад хамрагдаж, PRIME клубийн гишүүн болж, өөрийн боломжийг нээ.
-              </p>
+              <EditableText
+                field="cta.eyebrow"
+                defaultValue="08 —— НИЙГЭМЛЭГТ НЭГД"
+                as="p"
+                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+              />
+              <EditableText
+                field="cta.title"
+                defaultValue="ИЛҮҮ ИХ БОЛОМЖ ТАНЫГ ХҮЛЭЭЖ БАЙНА"
+                multiline
+                as="h2"
+                className="mt-2 font-heading text-3xl font-extrabold uppercase text-white md:text-4xl block"
+              />
+              <EditableText
+                field="cta.body"
+                defaultValue="Сургалтад хамрагдаж, PRIME клубийн гишүүн болж, өөрийн боломжийг нээ."
+                multiline
+                as="p"
+                className="mt-2 max-w-xl text-xs text-[#a0a0a5] block"
+              />
             </div>
             <div className="flex flex-wrap gap-3 shrink-0">
-              <RedButton href="/training">СУРГАЛТАД БҮРТГҮҮЛЭХ →</RedButton>
-              <OutlineButton href="/contact">ХОЛБОО БАРИХ →</OutlineButton>
+              <RedButton href="/training">
+                <EditableText field="cta.primary" defaultValue="СУРГАЛТАД БҮРТГҮҮЛЭХ →" />
+              </RedButton>
+              <OutlineButton href="/contact">
+                <EditableText field="cta.secondary" defaultValue="ХОЛБОО БАРИХ →" />
+              </OutlineButton>
             </div>
           </div>
         </EditableBackground>

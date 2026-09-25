@@ -16,6 +16,8 @@ import {
   Star,
   Trophy,
 } from "lucide-react";
+import { EditableBackground } from "@/components/site/editable-background";
+import { EditableText } from "@/components/site/editable-text";
 import { ContentSection, LionIcon, PageHero, RedButton, SectionTag } from "../primitives";
 
 const principles = [
@@ -80,26 +82,47 @@ const calculationSteps = [
   },
 ];
 
+const notes = [
+  "Чансаа нь зөвхөн PRIME клубын идэвхтэй гишүүдэд хамаарна.",
+  "Зөвхөн IPSC Action Air тэмцээний үр дүн тодорхойлогдоно.",
+  "Хамгийн өндөр 10 үр дүнгийн ономын нийлбээрээр чансаа тодорхойлогдоно.",
+  "Шинэ тэмцээний үр дүн баталгаажсанаас хойш 48 цагийн дотор чансаа шинэчлэгдэнэ.",
+];
+
 export function RankingRulesPage() {
   return (
     <>
       {/* ── Hero ── */}
       <PageHero
         eyebrow="PRIME PRACTICAL SHOOTING CLUB"
-        title={
-          <>
-            ЧАНСАА ТОДОРХОЙЛОХ
-            <br />
-            ЖУРАМ
-          </>
-        }
+        titleText={"ЧАНСАА ТОДОРХОЙЛОХ\nЖУРАМ"}
         description="PRIME клубын гишүүдийн чансаа нь IPSC Action Air тэмцээний гүйцэтгэлд үндэслэн тодорхойлогдоно."
         aside={
           <div className="hidden text-right lg:block">
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase">DISCIPLINE</p>
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase">SKILL</p>
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase">COMMUNITY</p>
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-muted-foreground uppercase">A HIGHER STANDARD.</p>
+            <EditableText
+              field="hero.aside.line1"
+              defaultValue="DISCIPLINE"
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase block"
+            />
+            <EditableText
+              field="hero.aside.line2"
+              defaultValue="SKILL"
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase block"
+            />
+            <EditableText
+              field="hero.aside.line3"
+              defaultValue="COMMUNITY"
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase block"
+            />
+            <EditableText
+              field="hero.aside.line4"
+              defaultValue="A HIGHER STANDARD."
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-muted-foreground uppercase block"
+            />
           </div>
         }
       />
@@ -108,22 +131,47 @@ export function RankingRulesPage() {
       <ContentSection>
         <div className="flex items-center gap-3 mb-8">
           <div className="h-6 w-1 rounded bg-[#e31e24]" />
-          <h2 className="font-heading text-xl font-bold">Үндсэн зарчим</h2>
+          <EditableText
+            field="principles.title"
+            defaultValue="Үндсэн зарчим"
+            as="h2"
+            className="font-heading text-xl font-bold block"
+          />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {principles.map((p) => (
-            <div key={p.n} className="rounded-xl border border-border bg-card p-6">
-              <div className="mb-4 flex items-center gap-3">
-                <span className="flex size-8 items-center justify-center rounded-full bg-[#e31e24] text-sm font-bold text-white">
-                  {p.n}
-                </span>
+          {principles.map((p, idx) => (
+            <EditableBackground
+              key={p.n}
+              field={`principles.${idx}.imageUrl`}
+              className="rounded-xl border border-border p-6"
+              fallbackClassName="bg-card"
+              placeholder="Principle card background"
+              editMode="corner"
+            >
+              <div className="relative z-10 mb-4 flex items-center gap-3">
+                <EditableText
+                  field={`principles.${idx}.n`}
+                  defaultValue={p.n}
+                  className="flex size-8 items-center justify-center rounded-full bg-[#e31e24] text-sm font-bold text-white"
+                />
               </div>
-              <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-[#ffffff08]">
+              <div className="relative z-10 mb-3 flex size-10 items-center justify-center rounded-lg bg-[#ffffff08]">
                 <p.icon className="size-5 text-muted-foreground" />
               </div>
-              <p className="font-semibold">{p.title}</p>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">{p.body}</p>
-            </div>
+              <EditableText
+                field={`principles.${idx}.title`}
+                defaultValue={p.title}
+                as="p"
+                className="relative z-10 font-semibold block"
+              />
+              <EditableText
+                field={`principles.${idx}.body`}
+                defaultValue={p.body}
+                multiline
+                as="p"
+                className="relative z-10 mt-2 text-xs leading-5 text-muted-foreground block"
+              />
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>
@@ -134,69 +182,155 @@ export function RankingRulesPage() {
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="h-6 w-1 rounded bg-[#e31e24]" />
-              <h2 className="font-heading text-xl font-bold">Чансааны тооцооллын томьёо</h2>
+              <EditableText
+                field="formula.title"
+                defaultValue="Чансааны тооцооллын томьёо"
+                as="h2"
+                className="font-heading text-xl font-bold block"
+              />
             </div>
-            <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-[#101012] p-8">
-              <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4">
-                <Percent className="size-5 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Гүйцэтгэлийн хувь</p>
-                  <p className="font-semibold">(Performance %)</p>
+            <EditableBackground
+              field="formula.panelImageUrl"
+              className="flex flex-wrap items-center gap-4 rounded-2xl border border-border p-8"
+              fallbackClassName="bg-[#101012]"
+              placeholder="Formula panel background"
+              editMode="corner"
+            >
+              <EditableBackground
+                field="formula.performance.imageUrl"
+                className="relative z-10 flex items-center gap-3 rounded-xl border border-border px-5 py-4"
+                fallbackClassName="bg-card"
+                placeholder="Formula tile background"
+                editMode="corner"
+              >
+                <Percent className="relative z-10 size-5 text-muted-foreground" />
+                <div className="relative z-10">
+                  <EditableText
+                    field="formula.performance.label"
+                    defaultValue="Гүйцэтгэлийн хувь"
+                    as="p"
+                    className="text-xs text-muted-foreground block"
+                  />
+                  <EditableText
+                    field="formula.performance.sub"
+                    defaultValue="(Performance %)"
+                    as="p"
+                    className="font-semibold block"
+                  />
                 </div>
-              </div>
-              <span className="text-2xl font-bold text-muted-foreground">×</span>
-              <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4">
-                <BarChart3 className="size-5 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Түвшний үржүүлэгч</p>
-                  <p className="font-semibold">(Level multiplier)</p>
+              </EditableBackground>
+              <EditableText
+                field="formula.times"
+                defaultValue="×"
+                className="relative z-10 text-2xl font-bold text-muted-foreground"
+              />
+              <EditableBackground
+                field="formula.multiplier.imageUrl"
+                className="relative z-10 flex items-center gap-3 rounded-xl border border-border px-5 py-4"
+                fallbackClassName="bg-card"
+                placeholder="Formula tile background"
+                editMode="corner"
+              >
+                <BarChart3 className="relative z-10 size-5 text-muted-foreground" />
+                <div className="relative z-10">
+                  <EditableText
+                    field="formula.multiplier.label"
+                    defaultValue="Түвшний үржүүлэгч"
+                    as="p"
+                    className="text-xs text-muted-foreground block"
+                  />
+                  <EditableText
+                    field="formula.multiplier.sub"
+                    defaultValue="(Level multiplier)"
+                    as="p"
+                    className="font-semibold block"
+                  />
                 </div>
-              </div>
-              <span className="text-2xl font-bold text-muted-foreground">=</span>
-              <div className="flex items-center gap-3 rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10 px-5 py-4">
-                <Star className="size-5 text-[#e31e24]" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Чансааны оноо</p>
-                  <p className="font-semibold text-[#e31e24]">(Ranking point)</p>
+              </EditableBackground>
+              <EditableText
+                field="formula.equals"
+                defaultValue="="
+                className="relative z-10 text-2xl font-bold text-muted-foreground"
+              />
+              <EditableBackground
+                field="formula.result.imageUrl"
+                className="relative z-10 flex items-center gap-3 rounded-xl border border-[#e31e24]/40 px-5 py-4"
+                fallbackClassName="bg-[#e31e24]/10"
+                placeholder="Formula tile background"
+                editMode="corner"
+              >
+                <Star className="relative z-10 size-5 text-[#e31e24]" />
+                <div className="relative z-10">
+                  <EditableText
+                    field="formula.result.label"
+                    defaultValue="Чансааны оноо"
+                    as="p"
+                    className="text-xs text-muted-foreground block"
+                  />
+                  <EditableText
+                    field="formula.result.sub"
+                    defaultValue="(Ranking point)"
+                    as="p"
+                    className="font-semibold text-[#e31e24] block"
+                  />
                 </div>
-              </div>
-            </div>
+              </EditableBackground>
+            </EditableBackground>
           </div>
 
           {/* Side notes */}
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="h-6 w-1 rounded bg-[#e31e24]" />
-              <h2 className="font-heading text-xl font-bold">Гол нөхцөл ба тэмдэглэл</h2>
+              <EditableText
+                field="notes.title"
+                defaultValue="Гол нөхцөл ба тэмдэглэл"
+                as="h2"
+                className="font-heading text-xl font-bold block"
+              />
             </div>
             <div className="space-y-4 text-sm">
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-muted-foreground">
-                  Чансаа нь зөвхөн PRIME клубын идэвхтэй гишүүдэд хамаарна.
-                </p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-muted-foreground">
-                  Зөвхөн IPSC Action Air тэмцээний үр дүн тодорхойлогдоно.
-                </p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-muted-foreground">
-                  Хамгийн өндөр 10 үр дүнгийн ономын нийлбээрээр чансаа тодорхойлогдоно.
-                </p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-muted-foreground">
-                  Шинэ тэмцээний үр дүн баталгаажсанаас хойш 48 цагийн дотор чансаа шинэчлэгдэнэ.
-                </p>
-              </div>
-              <div className="rounded-xl border border-[#e31e24]/30 bg-[#e31e24]/5 p-4">
-                <div className="flex items-center gap-2 text-[#e31e24]">
+              {notes.map((note, idx) => (
+                <EditableBackground
+                  key={idx}
+                  field={`notes.${idx}.imageUrl`}
+                  className="rounded-xl border border-border p-4"
+                  fallbackClassName="bg-card"
+                  placeholder="Note card background"
+                  editMode="corner"
+                >
+                  <EditableText
+                    field={`notes.${idx}.text`}
+                    defaultValue={note}
+                    multiline
+                    as="p"
+                    className="relative z-10 text-muted-foreground block"
+                  />
+                </EditableBackground>
+              ))}
+              <EditableBackground
+                field="notes.contactImageUrl"
+                className="rounded-xl border border-[#e31e24]/30 p-4"
+                fallbackClassName="bg-[#e31e24]/5"
+                placeholder="Contact box background"
+                editMode="corner"
+              >
+                <div className="relative z-10 flex items-center gap-2 text-[#e31e24]">
                   <Mail className="size-4" />
-                  <p className="text-xs font-semibold">Асуулт, нэмэлт мэдээлэл</p>
+                  <EditableText
+                    field="notes.contact.label"
+                    defaultValue="Асуулт, нэмэлт мэдээлэл"
+                    as="p"
+                    className="text-xs font-semibold block"
+                  />
                 </div>
-                <p className="mt-2 font-semibold">registration@prime.mn</p>
-              </div>
+                <EditableText
+                  field="notes.contact.email"
+                  defaultValue="registration@prime.mn"
+                  as="p"
+                  className="relative z-10 mt-2 font-semibold block"
+                />
+              </EditableBackground>
             </div>
           </div>
         </div>
@@ -206,53 +340,105 @@ export function RankingRulesPage() {
       <ContentSection>
         <div className="flex items-center gap-3 mb-8">
           <div className="h-6 w-1 rounded bg-[#e31e24]" />
-          <h2 className="font-heading text-xl font-bold">Тэмцээний түвшин ба үржүүлэгч</h2>
+          <EditableText
+            field="levels.title"
+            defaultValue="Тэмцээний түвшин ба үржүүлэгч"
+            as="h2"
+            className="font-heading text-xl font-bold block"
+          />
         </div>
-        <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full min-w-[600px] text-left text-sm">
+        <EditableBackground
+          field="levels.tableImageUrl"
+          className="overflow-x-auto rounded-xl border border-border"
+          fallbackClassName=""
+          placeholder="Table background"
+          editMode="corner"
+        >
+          <table className="relative z-10 w-full min-w-[600px] text-left text-sm">
             <thead className="border-b border-border bg-[#101012] text-xs text-muted-foreground">
               <tr>
-                <th className="p-4 font-medium">Түвшин</th>
-                <th className="p-4 font-medium">Нэр</th>
-                <th className="p-4 font-medium">Үржүүлэгч</th>
-                <th className="p-4 font-medium">Тайлбар</th>
+                <th className="p-4 font-medium">
+                  <EditableText field="levels.header.level" defaultValue="Түвшин" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="levels.header.name" defaultValue="Нэр" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="levels.header.multiplier" defaultValue="Үржүүлэгч" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="levels.header.note" defaultValue="Тайлбар" />
+                </th>
               </tr>
             </thead>
             <tbody>
-              {levelTable.map((row) => (
+              {levelTable.map((row, idx) => (
                 <tr key={row.level} className="border-t border-border">
-                  <td className="p-4 font-bold text-[#e31e24]">{row.level}</td>
-                  <td className="p-4 font-medium">{row.name}</td>
-                  <td className="p-4 font-bold">{row.multiplier}</td>
-                  <td className="p-4 text-muted-foreground">{row.note}</td>
+                  <td className="p-4 font-bold text-[#e31e24]">
+                    <EditableText field={`levels.rows.${idx}.level`} defaultValue={row.level} />
+                  </td>
+                  <td className="p-4 font-medium">
+                    <EditableText field={`levels.rows.${idx}.name`} defaultValue={row.name} />
+                  </td>
+                  <td className="p-4 font-bold">
+                    <EditableText field={`levels.rows.${idx}.multiplier`} defaultValue={row.multiplier} />
+                  </td>
+                  <td className="p-4 text-muted-foreground">
+                    <EditableText field={`levels.rows.${idx}.note`} defaultValue={row.note} />
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </EditableBackground>
       </ContentSection>
 
       {/* ── How Ranking Points Are Calculated ── */}
       <ContentSection dark>
         <div className="flex items-center gap-3 mb-8">
           <div className="h-6 w-1 rounded bg-[#e31e24]" />
-          <h2 className="font-heading text-xl font-bold">Тэмцээний үр дүн хэрхэн чансааны оноо болох вэ?</h2>
+          <EditableText
+            field="steps.title"
+            defaultValue="Тэмцээний үр дүн хэрхэн чансааны оноо болох вэ?"
+            as="h2"
+            className="font-heading text-xl font-bold block"
+          />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {calculationSteps.map((step) => (
-            <div key={step.n} className="rounded-xl border border-border bg-card p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-full bg-[#e31e24] text-sm font-bold text-white">
-                  {step.n}
-                </span>
+          {calculationSteps.map((step, idx) => (
+            <EditableBackground
+              key={step.n}
+              field={`steps.${idx}.imageUrl`}
+              className="rounded-xl border border-border p-6"
+              fallbackClassName="bg-card"
+              placeholder="Step card background"
+              editMode="corner"
+            >
+              <div className="relative z-10 mb-4 flex items-center gap-2">
+                <EditableText
+                  field={`steps.${idx}.n`}
+                  defaultValue={step.n}
+                  className="flex size-8 items-center justify-center rounded-full bg-[#e31e24] text-sm font-bold text-white"
+                />
                 <span className="h-px flex-1 bg-[#ffffff15]" />
               </div>
-              <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-[#ffffff08]">
+              <div className="relative z-10 mb-3 flex size-10 items-center justify-center rounded-lg bg-[#ffffff08]">
                 <step.icon className="size-5 text-muted-foreground" />
               </div>
-              <p className="font-semibold">{step.title}</p>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">{step.body}</p>
-            </div>
+              <EditableText
+                field={`steps.${idx}.title`}
+                defaultValue={step.title}
+                as="p"
+                className="relative z-10 font-semibold block"
+              />
+              <EditableText
+                field={`steps.${idx}.body`}
+                defaultValue={step.body}
+                multiline
+                as="p"
+                className="relative z-10 mt-2 text-xs leading-5 text-muted-foreground block"
+              />
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>
@@ -261,7 +447,12 @@ export function RankingRulesPage() {
       <ContentSection>
         <div className="flex items-center gap-3 mb-8">
           <div className="h-6 w-1 rounded bg-[#e31e24]" />
-          <h2 className="font-heading text-xl font-bold">Түгээмэл асуулт</h2>
+          <EditableText
+            field="faq.title"
+            defaultValue="Түгээмэл асуулт"
+            as="h2"
+            className="font-heading text-xl font-bold block"
+          />
         </div>
         <div className="space-y-3">
           {[
@@ -271,10 +462,27 @@ export function RankingRulesPage() {
             "Чансаа хэзээ шинэчлэгддэг вэ?",
             "Журамд өөрчлөлт оролгж хэрхэн мэдэгдэх вэ?",
           ].map((q, idx) => (
-            <div key={idx} className="flex items-start gap-3 rounded-xl border border-border bg-card p-5 transition-all hover:border-[#ffffff30]">
-              <span className="mt-0.5 text-sm font-bold text-[#e31e24]">{idx + 1}.</span>
-              <p className="text-sm">{q}</p>
-            </div>
+            <EditableBackground
+              key={idx}
+              field={`faq.${idx}.imageUrl`}
+              className="flex items-start gap-3 rounded-xl border border-border p-5 transition-all hover:border-[#ffffff30]"
+              fallbackClassName="bg-card"
+              placeholder="FAQ card background"
+              editMode="corner"
+            >
+              <EditableText
+                field={`faq.${idx}.number`}
+                defaultValue={`${idx + 1}.`}
+                className="relative z-10 mt-0.5 text-sm font-bold text-[#e31e24]"
+              />
+              <EditableText
+                field={`faq.${idx}.question`}
+                defaultValue={q}
+                multiline
+                as="p"
+                className="relative z-10 text-sm block"
+              />
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>

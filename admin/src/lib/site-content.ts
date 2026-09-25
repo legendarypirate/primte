@@ -26,6 +26,10 @@ export const PAGE_SLUGS: Record<string, { slug: string; path: string; label: str
   membership: { slug: "membership", path: "/membership", label: "Гишүүнчлэл" },
   ranking: { slug: "ranking", path: "/ranking", label: "Ranking" },
   contact: { slug: "contact", path: "/contact", label: "Холбоо барих" },
+  "course-1": { slug: "course-1", path: "/training/course-1", label: "Course 1" },
+  "course-2": { slug: "course-2", path: "/training/course-2", label: "Course 2" },
+  junior: { slug: "junior", path: "/training/junior", label: "Junior" },
+  "ranking-rules": { slug: "ranking-rules", path: "/ranking/rules", label: "Чансааны журам" },
 };
 
 /**
@@ -39,4 +43,8 @@ export const CUSTOM_TEMPLATE_SLUGS = new Set<string>([
   "membership",
   "ranking",
   "contact",
+  "course-1",
+  "course-2",
+  "junior",
+  "ranking-rules",
 ]);

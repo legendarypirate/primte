@@ -314,6 +314,10 @@ const DEFAULT_PAGES = [
       }),
     ],
   },
+  { slug: 'course-1', title: 'Course 1', metaTitle: 'Course 1 | PRIME', sortOrder: 7, blocks: [] },
+  { slug: 'course-2', title: 'Course 2', metaTitle: 'Course 2 | PRIME', sortOrder: 8, blocks: [] },
+  { slug: 'junior', title: 'Junior', metaTitle: 'Junior хөтөлбөр | PRIME', sortOrder: 9, blocks: [] },
+  { slug: 'ranking-rules', title: 'Чансааны журам', metaTitle: 'Чансааны журам | PRIME', sortOrder: 10, blocks: [] },
 ];
 
 module.exports = { DEFAULT_PAGES };

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { getPodiumOrder, getRankingSummaries } from "@/lib/athletes";
 import { EditableBackground } from "@/components/site/editable-background";
+import { EditableText } from "@/components/site/editable-text";
 import { ContentSection, LionIcon, PageHero, RedButton, SectionTag } from "../primitives";
 
 const podium = getPodiumOrder();
@@ -59,14 +60,36 @@ export function RankingPage() {
         description="Тэмцээн бүрийн гүйцэтгэл. Нэгтгэсэн чансаа. Бодит ахиц."
         aside={
           <div className="hidden text-right lg:block">
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase">DISCIPLINE</p>
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase">SKILL</p>
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase">COMMUNITY</p>
-            <p className="font-mono text-[10px] font-bold tracking-[0.25em] text-muted-foreground uppercase">A HIGHER STANDARD.</p>
+            <EditableText
+              field="hero.aside.line1"
+              defaultValue="DISCIPLINE"
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase"
+            />
+            <EditableText
+              field="hero.aside.line2"
+              defaultValue="SKILL"
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase"
+            />
+            <EditableText
+              field="hero.aside.line3"
+              defaultValue="COMMUNITY"
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase"
+            />
+            <EditableText
+              field="hero.aside.tagline"
+              defaultValue="A HIGHER STANDARD."
+              as="p"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-muted-foreground uppercase"
+            />
           </div>
         }
       >
-        <RedButton href="/login">Гишүүн нэвтрэх</RedButton>
+        <RedButton href="/login">
+          <EditableText field="hero.ctaPrimary" defaultValue="Гишүүн нэвтрэх" />
+        </RedButton>
       </PageHero>
 
       {/* ── Filters ── */}
@@ -77,15 +100,20 @@ export function RankingPage() {
             { icon: Layers, label: "Division", value: "Бүх Division" },
             { icon: Crown, label: "Category", value: "Бүх ангилал" },
             { icon: Trophy, label: "Тэмцээний түвшин", value: "Бүх түвшин" },
-          ].map((filter) => (
+          ].map((filter, idx) => (
             <button
               key={filter.label}
               className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left transition-all hover:border-[#ffffff30]"
             >
               <filter.icon className="size-4 text-muted-foreground" />
               <div className="flex-1">
-                <p className="text-[10px] text-muted-foreground">{filter.label}</p>
-                <p className="text-sm">{filter.value}</p>
+                <EditableText
+                  field={`filters.${idx}.label`}
+                  defaultValue={filter.label}
+                  as="p"
+                  className="text-[10px] text-muted-foreground"
+                />
+                <EditableText field={`filters.${idx}.value`} defaultValue={filter.value} as="p" className="text-sm" />
               </div>
               <ChevronDown className="size-4 text-muted-foreground" />
             </button>
@@ -94,26 +122,38 @@ export function RankingPage() {
 
         {/* Stats */}
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center gap-2 text-muted-foreground">
+          {stats.map((stat, idx) => (
+            <EditableBackground
+              key={stat.label}
+              field={`stats.${idx}.imageUrl`}
+              className="rounded-xl border border-border p-5"
+              fallbackClassName="bg-card"
+              placeholder="Stat card background"
+              editMode="corner"
+            >
+              <div className="relative z-10 flex items-center gap-2 text-muted-foreground">
                 <stat.icon className="size-4" />
-                <p className="text-xs">{stat.label}</p>
+                <EditableText field={`stats.${idx}.label`} defaultValue={stat.label} as="p" className="text-xs" />
               </div>
-              <p className="mt-2 text-3xl font-bold">
-                {stat.value}
+              <p className="relative z-10 mt-2 text-3xl font-bold">
+                <EditableText field={`stats.${idx}.value`} defaultValue={stat.value} />
                 {stat.change && (
-                  <span className={`ml-2 text-sm ${stat.up ? "text-green-500" : "text-red-500"}`}>
-                    {stat.change}
-                  </span>
+                  <EditableText
+                    field={`stats.${idx}.change`}
+                    defaultValue={stat.change}
+                    className={`ml-2 text-sm ${stat.up ? "text-green-500" : "text-red-500"}`}
+                  />
                 )}
               </p>
               {stat.sub && (
-                <p className={`mt-1 text-xs ${stat.highlight ? "text-[#e31e24]" : "text-muted-foreground"}`}>
-                  {stat.sub}
-                </p>
+                <EditableText
+                  field={`stats.${idx}.sub`}
+                  defaultValue={stat.sub}
+                  as="p"
+                  className={`relative z-10 mt-1 text-xs ${stat.highlight ? "text-[#e31e24]" : "text-muted-foreground"}`}
+                />
               )}
-            </div>
+            </EditableBackground>
           ))}
         </div>
       </ContentSection>
@@ -188,20 +228,42 @@ export function RankingPage() {
       <ContentSection>
         <div className="flex items-center gap-3">
           <div className="h-6 w-1 rounded bg-[#e31e24]" />
-          <h2 className="font-heading text-xl font-bold">Ерөнхий чансаа</h2>
+          <EditableText field="table.title" defaultValue="Ерөнхий чансаа" as="h2" className="font-heading text-xl font-bold" />
         </div>
-        <div className="mt-6 overflow-x-auto rounded-xl border border-border">
-          <table className="w-full min-w-[780px] text-left text-sm">
+        <EditableBackground
+          field="table.imageUrl"
+          className="mt-6 overflow-x-auto rounded-xl border border-border"
+          fallbackClassName=""
+          placeholder="Table background"
+          editMode="corner"
+        >
+          <table className="relative z-10 w-full min-w-[780px] text-left text-sm">
             <thead className="border-b border-border bg-[#101012] text-xs text-muted-foreground">
               <tr>
-                <th className="p-4 font-medium">Байр</th>
-                <th className="p-4 font-medium">Тамирчин</th>
-                <th className="p-4 font-medium">Division</th>
-                <th className="p-4 font-medium">Category</th>
-                <th className="p-4 font-medium">Тэмцээн</th>
-                <th className="p-4 font-medium">Best 10</th>
-                <th className="p-4 font-medium">Нийт оноо</th>
-                <th className="p-4 font-medium">Өөрчлөлт</th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.rank" defaultValue="Байр" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.athlete" defaultValue="Тамирчин" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.division" defaultValue="Division" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.category" defaultValue="Category" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.comps" defaultValue="Тэмцээн" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.best10" defaultValue="Best 10" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.total" defaultValue="Нийт оноо" />
+                </th>
+                <th className="p-4 font-medium">
+                  <EditableText field="table.col.change" defaultValue="Өөрчлөлт" />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -258,44 +320,73 @@ export function RankingPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </EditableBackground>
       </ContentSection>
 
       {/* ── Bottom 3-col: Updates, Top Movers, Chart ── */}
       <ContentSection dark>
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Recent Updates */}
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center justify-between">
+          <EditableBackground
+            field="updates.cardImageUrl"
+            className="rounded-xl border border-border p-5"
+            fallbackClassName="bg-card"
+            placeholder="Card background"
+            editMode="corner"
+          >
+            <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-5 w-1 rounded bg-[#e31e24]" />
-                <p className="font-semibold">Сүүлийн шинэчлэлт</p>
+                <EditableText field="updates.title" defaultValue="Сүүлийн шинэчлэлт" as="p" className="font-semibold" />
               </div>
-              <Link href="#" className="text-xs text-[#e31e24] hover:underline">Бүгдийг харах →</Link>
+              <Link href="#" className="text-xs text-[#e31e24] hover:underline">
+                <EditableText field="updates.link" defaultValue="Бүгдийг харах →" />
+              </Link>
             </div>
-            <div className="mt-4 space-y-4">
+            <div className="relative z-10 mt-4 space-y-4">
               {recentUpdates.map((update, idx) => (
                 <div key={idx} className="flex items-start gap-3 border-l-2 border-[#ffffff15] pl-4">
                   <div className={`mt-0.5 size-2 shrink-0 rounded-full ${idx === 0 ? "bg-[#e31e24]" : "bg-[#ffffff30]"}`} />
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      <span className={idx === 0 ? "text-[#e31e24]" : ""}>{update.date}</span> {update.time}
+                      <EditableText
+                        field={`updates.${idx}.date`}
+                        defaultValue={update.date}
+                        className={idx === 0 ? "text-[#e31e24]" : ""}
+                      />{" "}
+                      <EditableText field={`updates.${idx}.time`} defaultValue={update.time} />
                     </p>
-                    <p className="mt-0.5 text-sm">{update.text}</p>
+                    <EditableText
+                      field={`updates.${idx}.text`}
+                      defaultValue={update.text}
+                      as="p"
+                      className="mt-0.5 text-sm"
+                    />
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </EditableBackground>
 
           {/* Top Movers */}
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center gap-3">
+          <EditableBackground
+            field="movers.cardImageUrl"
+            className="rounded-xl border border-border p-5"
+            fallbackClassName="bg-card"
+            placeholder="Card background"
+            editMode="corner"
+          >
+            <div className="relative z-10 flex items-center gap-3">
               <div className="h-5 w-1 rounded bg-[#e31e24]" />
-              <p className="font-semibold">Top movers</p>
+              <EditableText field="movers.title" defaultValue="Top movers" as="p" className="font-semibold" />
             </div>
-            <p className="mb-4 mt-1 text-xs text-muted-foreground">Энэ сарын өсөлт</p>
-            <div className="space-y-3">
+            <EditableText
+              field="movers.subtitle"
+              defaultValue="Энэ сарын өсөлт"
+              as="p"
+              className="relative z-10 mb-4 mt-1 text-xs text-muted-foreground"
+            />
+            <div className="relative z-10 space-y-3">
               {topMovers.map((m) => (
                 <div key={m.name} className="flex items-center gap-3 text-sm">
                   <span className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
@@ -311,53 +402,67 @@ export function RankingPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </EditableBackground>
 
           {/* Chart */}
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center justify-between">
+          <EditableBackground
+            field="chart.cardImageUrl"
+            className="rounded-xl border border-border p-5"
+            fallbackClassName="bg-card"
+            placeholder="Card background"
+            editMode="corner"
+          >
+            <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-5 w-1 rounded bg-[#e31e24]" />
-                <p className="font-semibold">Өсөлтийн хандлага</p>
+                <EditableText field="chart.title" defaultValue="Өсөлтийн хандлага" as="p" className="font-semibold" />
               </div>
               <div className="flex items-center gap-2 rounded border border-border px-2 py-1 text-xs text-muted-foreground">
-                Шилдэг 5
+                <EditableText field="chart.filter" defaultValue="Шилдэг 5" />
                 <ChevronDown className="size-3" />
               </div>
             </div>
 
             {/* Simplified bar chart */}
-            <div className="mt-6 flex h-40 items-end gap-1.5">
+            <div className="relative z-10 mt-6 flex h-40 items-end gap-1.5">
               {[
                 { label: "12 сар", values: [60, 55, 52] },
                 { label: "1 сар", values: [65, 60, 58] },
                 { label: "2 сар", values: [72, 68, 62] },
                 { label: "3 сар", values: [78, 75, 70] },
                 { label: "4 сар", values: [85, 80, 76] },
-              ].map((month) => (
+              ].map((month, idx) => (
                 <div key={month.label} className="flex flex-1 flex-col items-center gap-1">
                   <div className="flex w-full items-end justify-center gap-0.5">
                     <div className="w-2 rounded-t bg-[#e31e24]/80" style={{ height: `${month.values[0]}%` }} />
                     <div className="w-2 rounded-t bg-[#e31e24]/60" style={{ height: `${month.values[1]}%` }} />
                     <div className="w-2 rounded-t bg-[#4ade80]/50" style={{ height: `${month.values[2]}%` }} />
                   </div>
-                  <p className="text-[9px] text-muted-foreground">{month.label}</p>
+                  <EditableText
+                    field={`chart.months.${idx}`}
+                    defaultValue={month.label}
+                    as="p"
+                    className="text-[9px] text-muted-foreground"
+                  />
                 </div>
               ))}
             </div>
             {/* Legend */}
-            <div className="mt-4 flex flex-wrap gap-4 text-[10px]">
+            <div className="relative z-10 mt-4 flex flex-wrap gap-4 text-[10px]">
               <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#e31e24]" /> О.Анхбаяр
+                <span className="size-2 rounded-full bg-[#e31e24]" />{" "}
+                <EditableText field="chart.legend.0" defaultValue="О.Анхбаяр" />
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#e31e24]" /> Б.Эрдэнэбат
+                <span className="size-2 rounded-full bg-[#e31e24]" />{" "}
+                <EditableText field="chart.legend.1" defaultValue="Б.Эрдэнэбат" />
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#4ade80]" /> С.Золбоо
+                <span className="size-2 rounded-full bg-[#4ade80]" />{" "}
+                <EditableText field="chart.legend.2" defaultValue="С.Золбоо" />
               </span>
             </div>
-          </div>
+          </EditableBackground>
         </div>
       </ContentSection>
     </>
