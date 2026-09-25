@@ -138,16 +138,55 @@ router.get('/dashboard', requirePermission('dashboard.view'), async (_req, res) 
 router.get('/settings', requirePermission('settings.manage'), async (_req, res) => {
   const rows = await Setting.findAll();
   const settings = Object.fromEntries(rows.map((row) => [row.key, row.value]));
+  const club = settings.club && typeof settings.club === 'object' ? settings.club : { open: true, todayCount: 0, capacity: 40 };
+  settings.club = {
+    ...club,
+    history: Array.isArray(settings.club_open_history) ? settings.club_open_history : [],
+  };
   res.json({ settings });
 });
 
 router.put('/settings', requirePermission('settings.manage'), async (req, res) => {
   const entries = Object.entries(req.body || {});
   for (const [key, value] of entries) {
+    if (key === 'club' && value && typeof value === 'object') {
+      const current = await Setting.findByPk('club');
+      const logRow = await Setting.findByPk('club_open_history');
+      const prev = current?.value || { open: true, todayCount: 0, capacity: 40 };
+      const history = Array.isArray(logRow?.value) ? logRow.value : [];
+      const next = {
+        open: value.open ?? prev.open,
+        todayCount: value.todayCount ?? prev.todayCount,
+        capacity: value.capacity ?? prev.capacity,
+      };
+      if (Boolean(prev.open) !== Boolean(next.open)) {
+        await Setting.upsert({
+          key: 'club_open_history',
+          value: [
+            {
+              id: require('crypto').randomUUID(),
+              open: Boolean(next.open),
+              adminId: req.admin.id,
+              adminName: req.admin.name,
+              at: new Date().toISOString(),
+            },
+            ...history,
+          ].slice(0, 100),
+        });
+      }
+      await Setting.upsert({ key: 'club', value: next });
+      continue;
+    }
     await Setting.upsert({ key, value });
   }
   const rows = await Setting.findAll();
-  res.json({ settings: Object.fromEntries(rows.map((row) => [row.key, row.value])) });
+  const settings = Object.fromEntries(rows.map((row) => [row.key, row.value]));
+  const club = settings.club && typeof settings.club === 'object' ? settings.club : { open: true, todayCount: 0, capacity: 40 };
+  settings.club = {
+    ...club,
+    history: Array.isArray(settings.club_open_history) ? settings.club_open_history : [],
+  };
+  res.json({ settings });
 });
 
 router.get('/members', requirePermission('members.view'), async (req, res) => {
