@@ -1,21 +1,56 @@
 const { Op } = require('sequelize');
-const { Match, Competitor, Score, Stage, MatchResult } = require('../models');
+const { Match, Competitor, Score, Stage, MatchResult, MatchDivision, MatchCategory } = require('../models');
 
 function athleteName(competitor) {
   if (!competitor) return '—';
   return `${competitor.firstName || ''} ${competitor.lastName || ''}`.trim() || '—';
 }
 
+function competitorInclude() {
+  return {
+    model: Competitor,
+    include: [{ model: MatchDivision }, { model: MatchCategory }],
+  };
+}
+
+function competitorMeta(competitor) {
+  return {
+    name: athleteName(competitor),
+    bibNumber: competitor?.bibNumber || '',
+    division: competitor?.MatchDivision?.code || competitor?.MatchDivision?.name || '',
+    category: competitor?.MatchCategory?.code || competitor?.MatchCategory?.name || '',
+    status: competitor?.status || 'ACTIVE',
+    dq: competitor?.status === 'DQ',
+  };
+}
+
+function serializeHits(score) {
+  return {
+    alphaHits: Number(score.alphaHits || 0),
+    charlieHits: Number(score.charlieHits || 0),
+    deltaHits: Number(score.deltaHits || 0),
+    missCount: Number(score.missCount || 0),
+    noShootCount: Number(score.noShootCount || 0),
+    proceduralCount: Number(score.proceduralCount || 0),
+    hitPoints: Number(score.hitPoints || 0),
+    penaltyPoints: Number(score.penaltyPoints || 0),
+    effectivePoints: Number(score.effectivePoints || 0),
+    hitFactor: Number(score.hitFactor || 0),
+    timeSeconds: Number(score.timeSeconds || 0),
+    status: score.status,
+  };
+}
+
 async function getLeaderboardForMatch(matchId, competitionId) {
   const [official, scores] = await Promise.all([
     MatchResult.findAll({
       where: { matchId },
-      include: [{ model: Competitor }],
+      include: [competitorInclude()],
       order: [['rank', 'ASC']],
     }),
     Score.findAll({
       where: { matchId, status: { [Op.in]: ['ENTERED', 'CONFIRMED', 'SIGNED'] } },
-      include: [{ model: Competitor }, { model: Stage }],
+      include: [competitorInclude(), { model: Stage }],
       order: [['updatedAt', 'DESC']],
     }),
   ]);
@@ -25,12 +60,9 @@ async function getLeaderboardForMatch(matchId, competitionId) {
     results = official.map((row) => ({
       rank: row.rank,
       competitorId: row.competitorId,
-      name: athleteName(row.Competitor),
-      bibNumber: row.Competitor?.bibNumber || '',
+      ...competitorMeta(row.Competitor),
       points: Number(row.matchPoints || 0),
       percentage: Number(row.matchPercentage || 0),
-      status: row.Competitor?.status || 'ACTIVE',
-      dq: row.Competitor?.status === 'DQ',
     }));
   } else {
     const totals = new Map();
@@ -39,12 +71,9 @@ async function getLeaderboardForMatch(matchId, competitionId) {
       if (!totals.has(id)) {
         totals.set(id, {
           competitorId: id,
-          name: athleteName(score.Competitor),
-          bibNumber: score.Competitor?.bibNumber || '',
+          ...competitorMeta(score.Competitor),
           points: 0,
           stages: 0,
-          status: score.Competitor?.status || 'ACTIVE',
-          dq: score.Competitor?.status === 'DQ',
         });
       }
       const row = totals.get(id);
@@ -64,10 +93,8 @@ async function getLeaderboardForMatch(matchId, competitionId) {
     competitorId: score.competitorId,
     name: athleteName(score.Competitor),
     stageName: score.Stage ? `${score.Stage.number || ''}. ${score.Stage.name || ''}`.trim() : 'Stage',
-    hitFactor: Number(score.hitFactor || 0),
-    timeSeconds: Number(score.timeSeconds || 0),
-    status: score.status,
     at: score.updatedAt,
+    ...serializeHits(score),
   }));
 
   const stagesByCompetitor = new Map();
@@ -76,15 +103,33 @@ async function getLeaderboardForMatch(matchId, competitionId) {
     if (!stagesByCompetitor.has(id)) stagesByCompetitor.set(id, []);
     stagesByCompetitor.get(id).push({
       stageName: score.Stage ? `${score.Stage.number || ''}. ${score.Stage.name || ''}`.trim() : 'Stage',
-      hitFactor: Number(score.hitFactor || 0),
-      timeSeconds: Number(score.timeSeconds || 0),
-      status: score.status,
+      ...serializeHits(score),
     });
   }
-  results = results.map((row) => ({
-    ...row,
-    stages: stagesByCompetitor.get(row.competitorId) || [],
-  }));
+  results = results.map((row) => {
+    const stages = stagesByCompetitor.get(row.competitorId) || [];
+    const totals = stages.reduce(
+      (acc, stage) => {
+        acc.alphaHits += stage.alphaHits;
+        acc.charlieHits += stage.charlieHits;
+        acc.deltaHits += stage.deltaHits;
+        acc.missCount += stage.missCount;
+        acc.noShootCount += stage.noShootCount;
+        acc.proceduralCount += stage.proceduralCount;
+        acc.hitPoints += stage.hitPoints;
+        acc.penaltyPoints += stage.penaltyPoints;
+        acc.timeSeconds += stage.timeSeconds;
+        return acc;
+      },
+      { alphaHits: 0, charlieHits: 0, deltaHits: 0, missCount: 0, noShootCount: 0, proceduralCount: 0, hitPoints: 0, penaltyPoints: 0, timeSeconds: 0 }
+    );
+    return {
+      ...row,
+      ...totals,
+      stageCount: stages.length,
+      stages,
+    };
+  });
 
   return {
     matchId,
