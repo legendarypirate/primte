@@ -6,6 +6,7 @@ const Parent = sequelize.define('Parent', {
   name: { type: DataTypes.STRING, allowNull: false },
   phone: { type: DataTypes.STRING, allowNull: false, unique: true },
   pinHash: { type: DataTypes.STRING, allowNull: false, field: 'pin_hash' },
+  passwordHash: { type: DataTypes.STRING, allowNull: true, field: 'password_hash' },
   email: { type: DataTypes.STRING },
   avatarUrl: { type: DataTypes.STRING, field: 'avatar_url' },
 });

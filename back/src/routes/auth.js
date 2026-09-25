@@ -66,23 +66,27 @@ router.get('/admin/me', requireAdmin, (req, res) => {
 });
 
 router.post('/parent/login', async (req, res) => {
-  const { phone, code } = req.body || {};
-  if (!phone || !code) {
-    return res.status(400).json({ message: 'Утас болон нэвтрэх кодоо оруулна уу.' });
+  const { phone, password, code } = req.body || {};
+  const secret = String(password || code || '').trim();
+  if (!phone || !secret) {
+    return res.status(400).json({ message: 'Утас болон нууц үгээ оруулна уу.' });
   }
   const normalized = String(phone).replace(/\s+/g, '');
+  const digits = normalized.replace(/^\+976/, '').replace(/^976/, '');
   const parent = await Parent.findOne({
     where: {
       phone: {
-        [require('sequelize').Op.or]: [normalized, normalized.replace(/^\+976/, ''), `+976${normalized.replace(/^\+976/, '')}`],
+        [Op.or]: [normalized, digits, `+976${digits}`, `976${digits}`],
       },
     },
   });
   if (!parent) {
     return res.status(401).json({ message: 'Эцэг эхийн бүртгэл олдсонгүй.' });
   }
-  const ok = await bcrypt.compare(String(code).trim(), parent.pinHash);
-  if (!ok) return res.status(401).json({ message: 'Нэвтрэх код буруу.' });
+  let ok = false;
+  if (parent.passwordHash) ok = await bcrypt.compare(secret, parent.passwordHash);
+  if (!ok && parent.pinHash) ok = await bcrypt.compare(secret, parent.pinHash);
+  if (!ok) return res.status(401).json({ message: 'Утас эсвэл нууц үг буруу.' });
   return res.json({
     token: signToken({ id: parent.id, role: 'parent' }),
     parent: serializeParent(parent),
