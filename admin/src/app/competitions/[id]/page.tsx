@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
-import { Button } from "@/components/ui/button";
+import { Trophy } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -267,7 +268,12 @@ export default function CompetitionDetailPage() {
           <h1 className="font-heading text-3xl text-primary">{form.title || "Тэмцээн"}</h1>
           <p className="text-base text-muted-foreground">{joined}/{form.capacity} оролцогч · {tugrik(form.fee)}</p>
         </div>
-        <Button className="h-10 px-5" onClick={save}>Хадгалах</Button>
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/competitions/${id}/scoring`} className={buttonVariants({ variant: "outline", className: "h-10 px-5" })}>
+            <Trophy className="size-4" /> Оноо & үр дүн
+          </Link>
+          <Button className="h-10 px-5" onClick={save}>Хадгалах</Button>
+        </div>
       </div>
 
       <Tabs defaultValue="basic" className="gap-4">

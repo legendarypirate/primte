@@ -19,6 +19,7 @@ app.use('/api/site', require('./routes/site'));
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', require('./routes/site-admin'));
 app.use('/api/admin', require('./routes/rbac'));
+app.use('/api/admin', require('./routes/admin-scoring'));
 app.use('/api/admin/parents', require('./routes/parents-admin'));
 app.use('/api/app', appRoutes);
 app.use('/api/app/parent', require('./routes/parent'));

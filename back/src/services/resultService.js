@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const {
   Score,
   StageResult,
@@ -10,6 +11,10 @@ const {
 const { recalculateStageDivisionResults, recalculateMatchDivisionResults } = require('../domain/scoring/result-engine');
 const { getScoringProfile, PROFILES } = require('../domain/scoring/scoring-profile');
 const { COMPETITOR_STATUS } = require('../domain/scoring/scoring-types');
+
+function excluding(ids) {
+  return ids.length ? { [Op.notIn]: ids } : { [Op.ne]: null };
+}
 
 async function loadProfile(match) {
   const row = await ScoringProfile.findByPk(match.scoringProfileId);
@@ -40,6 +45,17 @@ async function recalculateStageDivisionResultsForMatch(matchId, stageId, divisio
     : payload;
 
   const ranked = recalculateStageDivisionResults(filtered, stage.maximumPoints, divisionId || 'all');
+
+  if (divisionId) {
+    await StageResult.destroy({
+      where: {
+        matchId,
+        stageId,
+        divisionId,
+        competitorId: excluding(ranked.map((r) => r.competitorId)),
+      },
+    });
+  }
 
   for (const row of ranked) {
     await StageResult.upsert({
@@ -78,6 +94,16 @@ async function recalculateMatchDivisionResultsForMatch(matchId, divisionId) {
 
   const ranked = recalculateMatchDivisionResults(byCompetitor);
 
+  if (divisionId) {
+    await MatchResult.destroy({
+      where: {
+        matchId,
+        divisionId,
+        competitorId: excluding(ranked.map((r) => r.competitorId)),
+      },
+    });
+  }
+
   for (const row of ranked) {
     await MatchResult.upsert({
       matchId,
@@ -90,6 +116,22 @@ async function recalculateMatchDivisionResultsForMatch(matchId, divisionId) {
   }
 
   return ranked;
+}
+
+async function recalculateWholeMatch(matchId) {
+  const [stages, competitors] = await Promise.all([
+    Stage.findAll({ where: { matchId }, attributes: ['id'] }),
+    Competitor.findAll({ where: { matchId }, attributes: ['matchDivisionId', 'divisionId'] }),
+  ]);
+  const divisions = [...new Set(competitors.map((c) => c.matchDivisionId || c.divisionId).filter(Boolean))];
+  await StageResult.destroy({ where: { matchId, divisionId: excluding(divisions) } });
+  await MatchResult.destroy({ where: { matchId, divisionId: excluding(divisions) } });
+  for (const div of divisions) {
+    for (const stage of stages) {
+      await recalculateStageDivisionResultsForMatch(matchId, stage.id, div);
+    }
+    await recalculateMatchDivisionResultsForMatch(matchId, div);
+  }
 }
 
 async function recalculateAfterScore(matchId, stageId, divisionId) {
@@ -107,5 +149,6 @@ module.exports = {
   recalculateStageDivisionResultsForMatch,
   recalculateMatchDivisionResultsForMatch,
   recalculateAfterScore,
+  recalculateWholeMatch,
   loadProfile,
 };

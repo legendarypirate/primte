@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Trophy } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,6 +107,13 @@ export default function CompetitionsPage() {
                     <TableCell>{c.status}</TableCell>
                     <TableCell>
                       <ActionCell>
+                        <Link
+                          href={`/competitions/${c.id}/scoring`}
+                          title="Оноо & үр дүн"
+                          className={buttonVariants({ variant: "ghost", size: "icon" })}
+                        >
+                          <Trophy className="size-4 text-amber-500" />
+                        </Link>
                         <IconActionButton action="edit" onClick={() => router.push(`/competitions/${c.id}`)} />
                         <IconActionButton
                           action="delete"

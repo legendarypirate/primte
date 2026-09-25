@@ -192,7 +192,7 @@ async function invalidateScore(scoreId, actorId, reason, deviceId) {
     entityType: 'Score',
     entityId: score.id,
     before: old,
-    after: score.toJSON(),
+    after: { ...score.toJSON(), reason: reason || null },
     deviceId,
   });
   await recalculateAfterScore(
