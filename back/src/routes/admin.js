@@ -8,6 +8,7 @@ const {
   MemberType,
   DevelopmentActivity,
   Product,
+  ProductCategory,
   Competition,
   Training,
   Notice,
@@ -24,10 +25,12 @@ const { requireAdmin, requirePermission } = require('../middleware/auth');
 const {
   serializeMember,
   serializeProduct,
+  serializeProductCategory,
   serializeCompetition,
   serializeRegistration,
   serializeTraining,
 } = require('../utils/helpers');
+const { uniqueSlug } = require('../services/productCategoryService');
 
 const COMPETITION_FIELDS = [
   'title', 'subtitle', 'eventDate', 'eventEndDate', 'registrationOpenAt', 'registrationCloseAt',
@@ -300,27 +303,129 @@ router.post('/members/:id/topup', requirePermission('members.topup'), async (req
   res.json({ member: serializeMember(member, req) });
 });
 
+router.get('/product-categories', requirePermission('products.view'), async (_req, res) => {
+  const categories = await ProductCategory.findAll({ order: [['sortOrder', 'ASC'], ['createdAt', 'ASC']] });
+  const counts = await Product.findAll({
+    attributes: ['category', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+    group: ['category'],
+    raw: true,
+  });
+  const map = Object.fromEntries(counts.map((c) => [c.category, Number(c.count)]));
+  res.json({
+    categories: categories.map((c) => ({ ...serializeProductCategory(c), productCount: map[c.slug] || 0 })),
+  });
+});
+
+router.post('/product-categories', requirePermission('products.manage'), async (req, res) => {
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ message: 'Ангиллын нэр оруулна уу.' });
+  const last = await ProductCategory.max('sortOrder');
+  const category = await ProductCategory.create({
+    name,
+    slug: await uniqueSlug(req.body?.slug || name),
+    sortOrder: Number.isFinite(Number(req.body?.sortOrder)) && req.body?.sortOrder !== ''
+      ? Number(req.body.sortOrder)
+      : (last || 0) + 1,
+  });
+  res.status(201).json({ category: serializeProductCategory(category) });
+});
+
+router.put('/product-categories/:id', requirePermission('products.manage'), async (req, res) => {
+  const category = await ProductCategory.findByPk(req.params.id);
+  if (!category) return res.status(404).json({ message: 'Ангилал олдсонгүй.' });
+  const name = String(req.body?.name ?? category.name).trim();
+  if (!name) return res.status(400).json({ message: 'Ангиллын нэр оруулна уу.' });
+  const updates = { name };
+  if (req.body?.sortOrder !== undefined && req.body.sortOrder !== '') updates.sortOrder = Number(req.body.sortOrder) || 0;
+  await sequelize.transaction(async (t) => {
+    await category.update(updates, { transaction: t });
+    await Product.update({ categoryLabel: name }, { where: { category: category.slug }, transaction: t });
+  });
+  res.json({ category: serializeProductCategory(category) });
+});
+
+router.delete('/product-categories/:id', requirePermission('products.manage'), async (req, res) => {
+  const category = await ProductCategory.findByPk(req.params.id);
+  if (!category) return res.status(404).json({ message: 'Ангилал олдсонгүй.' });
+  const used = await Product.count({ where: { category: category.slug } });
+  if (used > 0) {
+    return res.status(400).json({ message: `Энэ ангилалд ${used} бараа байна. Эхлээд барааг өөр ангилал руу шилжүүлнэ үү.` });
+  }
+  await category.destroy();
+  res.json({ ok: true });
+});
+
+async function sanitizeProductInput(body, productId) {
+  const input = {};
+  for (const key of ['name', 'price', 'imageUrl', 'subtitle', 'description', 'features', 'inStock', 'sortOrder']) {
+    if (body[key] !== undefined) input[key] = body[key];
+  }
+  if (input.price !== undefined) input.price = Math.max(0, Math.round(Number(input.price) || 0));
+  if (input.sortOrder !== undefined) input.sortOrder = Number(input.sortOrder) || 0;
+  if (input.features !== undefined && !Array.isArray(input.features)) input.features = [];
+
+  if (body.category !== undefined) {
+    const category = await ProductCategory.findOne({ where: { slug: body.category } });
+    if (!category) {
+      const err = new Error('Ангилал олдсонгүй.');
+      err.status = 400;
+      throw err;
+    }
+    input.category = category.slug;
+    input.categoryLabel = category.name;
+  }
+
+  if (body.relatedIds !== undefined) {
+    const ids = [...new Set((Array.isArray(body.relatedIds) ? body.relatedIds : []).map(String))]
+      .filter((id) => id !== productId);
+    const existing = ids.length ? await Product.findAll({ where: { id: ids }, attributes: ['id'] }) : [];
+    const valid = new Set(existing.map((p) => p.id));
+    input.relatedIds = ids.filter((id) => valid.has(id));
+  }
+  return input;
+}
+
 router.get('/products', requirePermission('products.view'), async (req, res) => {
   const products = await Product.findAll({ order: [['sortOrder', 'ASC'], ['createdAt', 'DESC']] });
   res.json({ products: products.map((p) => serializeProduct(p, req)) });
 });
 
 router.post('/products', requirePermission('products.manage'), async (req, res) => {
-  const product = await Product.create(req.body || {});
-  res.status(201).json({ product: serializeProduct(product, req) });
+  try {
+    const input = await sanitizeProductInput(req.body || {});
+    if (!input.name) return res.status(400).json({ message: 'Барааны нэр оруулна уу.' });
+    if (!input.category) return res.status(400).json({ message: 'Ангилал сонгоно уу.' });
+    const product = await Product.create(input);
+    res.status(201).json({ product: serializeProduct(product, req) });
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message });
+  }
 });
 
 router.put('/products/:id', requirePermission('products.manage'), async (req, res) => {
   const product = await Product.findByPk(req.params.id);
   if (!product) return res.status(404).json({ message: 'Бүтээгдэхүүн олдсонгүй.' });
-  await product.update(req.body || {});
-  res.json({ product: serializeProduct(product, req) });
+  try {
+    await product.update(await sanitizeProductInput(req.body || {}, product.id));
+    res.json({ product: serializeProduct(product, req) });
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message });
+  }
 });
 
 router.delete('/products/:id', requirePermission('products.manage'), async (req, res) => {
   const product = await Product.findByPk(req.params.id);
   if (!product) return res.status(404).json({ message: 'Бүтээгдэхүүн олдсонгүй.' });
-  await product.destroy();
+  await sequelize.transaction(async (t) => {
+    await product.destroy({ transaction: t });
+    const referencing = await Product.findAll({
+      where: { relatedIds: { [Op.contains]: [product.id] } },
+      transaction: t,
+    });
+    for (const p of referencing) {
+      await p.update({ relatedIds: (p.relatedIds || []).filter((id) => id !== product.id) }, { transaction: t });
+    }
+  });
   res.json({ ok: true });
 });
 

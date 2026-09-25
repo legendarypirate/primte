@@ -35,6 +35,7 @@ const port = Number(process.env.PORT || 3151);
 sequelize
   .authenticate()
   .then(() => sequelize.sync({ alter: true }))
+  .then(() => require('./services/productCategoryService').ensureProductCategories())
   .then(() => {
     app.listen(port, () => {
       console.log(`PRIME API running on http://localhost:${port}`);

@@ -9,6 +9,7 @@ const MatchType = require('./matchType');
 const Division = require('./division');
 
 const Product = require('./product');
+const ProductCategory = require('./productCategory');
 const Competition = require('./competition');
 const Training = require('./training');
 const Notice = require('./notice');
@@ -132,6 +133,7 @@ module.exports = {
   MatchType,
   Division,
   Product,
+  ProductCategory,
   Competition,
   Training,
   Notice,

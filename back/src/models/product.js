@@ -11,6 +11,7 @@ const Product = sequelize.define('Product', {
   subtitle: { type: DataTypes.STRING },
   description: { type: DataTypes.TEXT },
   features: { type: DataTypes.JSONB, defaultValue: [] },
+  relatedIds: { type: DataTypes.JSONB, defaultValue: [], field: 'related_ids' },
   inStock: { type: DataTypes.BOOLEAN, defaultValue: true, field: 'in_stock' },
   sortOrder: { type: DataTypes.INTEGER, defaultValue: 0, field: 'sort_order' },
 });

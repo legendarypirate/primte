@@ -217,6 +217,8 @@ async function run() {
     },
   ]);
 
+  await require('./services/productCategoryService').ensureProductCategories();
+
   await Competition.bulkCreate([
     {
       title: 'PRIME CUP 2026',

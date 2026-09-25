@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const {
   sequelize,
   Product,
+  ProductCategory,
   Competition,
   Training,
   Notice,
@@ -18,6 +19,7 @@ const { requireMember } = require('../middleware/auth');
 const {
   serializeMember,
   serializeProduct,
+  serializeProductCategory,
   serializeCompetition,
   serializeRegistration,
   serializeTraining,
@@ -107,8 +109,14 @@ router.get('/home', async (req, res) => {
 });
 
 router.get('/products', async (req, res) => {
-  const products = await Product.findAll({ order: [['sortOrder', 'ASC']] });
-  res.json({ products: products.map((p) => serializeProduct(p, req)) });
+  const [products, categories] = await Promise.all([
+    Product.findAll({ order: [['sortOrder', 'ASC'], ['createdAt', 'DESC']] }),
+    ProductCategory.findAll({ order: [['sortOrder', 'ASC'], ['createdAt', 'ASC']] }),
+  ]);
+  res.json({
+    products: products.map((p) => serializeProduct(p, req)),
+    categories: categories.map(serializeProductCategory),
+  });
 });
 
 router.get('/competitions', async (req, res) => {

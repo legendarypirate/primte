@@ -32,6 +32,17 @@ function serializeProduct(product, req) {
     description: product.description,
     features: product.features || [],
     inStock: product.inStock,
+    relatedIds: product.relatedIds || [],
+    sortOrder: product.sortOrder,
+  };
+}
+
+function serializeProductCategory(category) {
+  return {
+    id: category.id,
+    name: category.name,
+    slug: category.slug,
+    sortOrder: category.sortOrder,
   };
 }
 
@@ -323,6 +334,7 @@ module.exports = {
   formatDateTime,
   dateRangeLabel,
   serializeProduct,
+  serializeProductCategory,
   serializeCompetition,
   serializeRegistration,
   serializeTraining,
