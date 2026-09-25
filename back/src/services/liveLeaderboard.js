@@ -55,39 +55,44 @@ async function getLeaderboardForMatch(matchId, competitionId) {
     }),
   ]);
 
-  let results;
-  if (official.length) {
-    results = official.map((row) => ({
-      rank: row.rank,
-      competitorId: row.competitorId,
-      ...competitorMeta(row.Competitor),
-      points: Number(row.matchPoints || 0),
-      percentage: Number(row.matchPercentage || 0),
-    }));
-  } else {
-    const totals = new Map();
-    for (const score of scores) {
-      const id = score.competitorId;
-      if (!totals.has(id)) {
-        totals.set(id, {
-          competitorId: id,
-          ...competitorMeta(score.Competitor),
-          points: 0,
-          stages: 0,
-        });
-      }
-      const row = totals.get(id);
-      row.points += Number(score.hitFactor || 0);
-      row.stages += 1;
-    }
-    results = [...totals.values()]
-      .sort((a, b) => b.points - a.points)
-      .map((row, index) => ({
-        ...row,
-        rank: index + 1,
+  const byId = new Map();
+  for (const score of scores) {
+    const id = score.competitorId;
+    if (!byId.has(id)) {
+      byId.set(id, {
+        competitorId: id,
+        ...competitorMeta(score.Competitor),
+        points: 0,
         percentage: 0,
-      }));
+        stages: 0,
+      });
+    }
+    const row = byId.get(id);
+    row.points += Number(score.hitFactor || 0);
+    row.stages += 1;
   }
+  for (const row of official) {
+    const id = row.competitorId;
+    if (!byId.has(id)) {
+      byId.set(id, {
+        competitorId: id,
+        ...competitorMeta(row.Competitor),
+        points: Number(row.matchPoints || 0),
+        percentage: Number(row.matchPercentage || 0),
+        stages: 0,
+      });
+      continue;
+    }
+    const existing = byId.get(id);
+    existing.points = Number(row.matchPoints || existing.points || 0);
+    existing.percentage = Number(row.matchPercentage || 0);
+  }
+  const results = [...byId.values()]
+    .sort((a, b) => (b.percentage || b.points) - (a.percentage || a.points))
+    .map((row, index) => ({
+      ...row,
+      rank: index + 1,
+    }));
 
   const latest = scores.slice(0, 20).map((score) => ({
     competitorId: score.competitorId,
