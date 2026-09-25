@@ -65,20 +65,22 @@ router.get('/admin/me', requireAdmin, (req, res) => {
   res.json({ admin: serializeAdmin(req.admin) });
 });
 
+function parentPhoneCandidates(phone) {
+  const raw = String(phone || '').trim();
+  const digits = raw.replace(/\D/g, '');
+  const local = digits.replace(/^976/, '');
+  const last8 = local.length >= 8 ? local.slice(-8) : local;
+  return [...new Set([raw, digits, local, last8, `+976${local}`, `976${local}`, `+976${last8}`, `976${last8}`].filter(Boolean))];
+}
+
 router.post('/parent/login', async (req, res) => {
   const { phone, password, code } = req.body || {};
   const secret = String(password || code || '').trim();
   if (!phone || !secret) {
     return res.status(400).json({ message: 'Утас болон нууц үгээ оруулна уу.' });
   }
-  const normalized = String(phone).replace(/\s+/g, '');
-  const digits = normalized.replace(/^\+976/, '').replace(/^976/, '');
   const parent = await Parent.findOne({
-    where: {
-      phone: {
-        [Op.or]: [normalized, digits, `+976${digits}`, `976${digits}`],
-      },
-    },
+    where: { phone: { [Op.in]: parentPhoneCandidates(phone) } },
   });
   if (!parent) {
     return res.status(401).json({ message: 'Эцэг эхийн бүртгэл олдсонгүй.' });

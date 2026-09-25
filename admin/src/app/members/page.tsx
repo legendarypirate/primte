@@ -28,6 +28,10 @@ type Member = {
   memberCode: string;
   hasPassword?: boolean;
   phone?: string;
+  email?: string | null;
+  birthday?: string | null;
+  gender?: string | null;
+  classification?: string | null;
   level: number;
   rank: number;
   status: string;
@@ -48,6 +52,10 @@ type MemberForm = {
   username: string;
   memberCode: string;
   phone: string;
+  email: string;
+  birthday: string;
+  gender: string;
+  classification: string;
   password: string;
   level: number | "";
   rank: number | "";
@@ -66,6 +74,10 @@ const empty: MemberForm = {
   username: "",
   memberCode: "",
   phone: "",
+  email: "",
+  birthday: "",
+  gender: "",
+  classification: "",
   password: "",
   level: 1,
   rank: 0,
@@ -89,7 +101,7 @@ function num(value: number | "") {
 }
 
 const PAGE_SIZE = 50;
-type SortKey = "name" | "code" | "type" | "parent" | "program" | "wallet" | "status";
+type SortKey = "name" | "code" | "email" | "birthday" | "gender" | "classification" | "type" | "parent" | "program" | "wallet" | "status";
 
 function sortValue(member: Member, key: SortKey) {
   switch (key) {
@@ -97,6 +109,14 @@ function sortValue(member: Member, key: SortKey) {
       return member.name || "";
     case "code":
       return member.memberCode || "";
+    case "email":
+      return member.email || "";
+    case "birthday":
+      return member.birthday || "";
+    case "gender":
+      return member.gender || "";
+    case "classification":
+      return member.classification || "";
     case "type":
       return member.memberType?.name || "";
     case "parent":
@@ -158,7 +178,7 @@ export default function MembersPage() {
   const filtered = useMemo(() => {
     const rows = members.filter((m) => {
       if (!q) return true;
-      return [m.name, m.memberCode].some((v) => String(v || "").toLowerCase().includes(q));
+      return [m.name, m.memberCode, m.email].some((v) => String(v || "").toLowerCase().includes(q));
     });
     const next = [...rows].sort((a, b) => {
       const av = sortValue(a, sortKey);
@@ -230,6 +250,10 @@ export default function MembersPage() {
               <TableRow>
                 <SortHead label="Нэр" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
                 <SortHead label="Код" active={sortKey === "code"} dir={sortDir} onClick={() => toggleSort("code")} />
+                <SortHead label="Имэйл" active={sortKey === "email"} dir={sortDir} onClick={() => toggleSort("email")} />
+                <SortHead label="Төрсөн" active={sortKey === "birthday"} dir={sortDir} onClick={() => toggleSort("birthday")} />
+                <SortHead label="Хүйс" active={sortKey === "gender"} dir={sortDir} onClick={() => toggleSort("gender")} />
+                <SortHead label="Ангилал" active={sortKey === "classification"} dir={sortDir} onClick={() => toggleSort("classification")} />
                 <SortHead label="Төрөл" active={sortKey === "type"} dir={sortDir} onClick={() => toggleSort("type")} />
                 <SortHead label="Эцэг/эх" active={sortKey === "parent"} dir={sortDir} onClick={() => toggleSort("parent")} />
                 <SortHead label="Хөтөлбөр" active={sortKey === "program"} dir={sortDir} onClick={() => toggleSort("program")} />
@@ -250,6 +274,10 @@ export default function MembersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{m.memberCode}</TableCell>
+                  <TableCell>{m.email || "—"}</TableCell>
+                  <TableCell>{m.birthday ? String(m.birthday).slice(0, 10) : "—"}</TableCell>
+                  <TableCell>{m.gender || "—"}</TableCell>
+                  <TableCell>{m.classification || "—"}</TableCell>
                   <TableCell>{m.memberType?.name || "—"}</TableCell>
                   <TableCell>{m.parentName || "—"}</TableCell>
                   <TableCell>{m.developmentActivity?.name || "—"}</TableCell>
@@ -288,7 +316,7 @@ export default function MembersPage() {
               ))}
               {visible.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
                     Гишүүн алга.
                   </TableCell>
                 </TableRow>
@@ -392,6 +420,10 @@ function MemberDrawer({
           username: member.username || "",
           memberCode: member.memberCode,
           phone: member.phone || "",
+          email: member.email || "",
+          birthday: dateValue(member.birthday),
+          gender: member.gender || "",
+          classification: member.classification || "",
           level: member.level,
           rank: member.rank,
           walletBalance: member.walletBalance,
@@ -469,6 +501,22 @@ function MemberDrawer({
           </Field>
           <Field label="Утас">
             <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
+          </Field>
+          <Field label="Имэйл">
+            <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
+          </Field>
+          <Field label="Төрсөн өдөр">
+            <Input type="date" value={form.birthday} onChange={(e) => set("birthday", e.target.value)} />
+          </Field>
+          <Field label="Хүйс">
+            <FieldSelect value={form.gender} onChange={(gender) => set("gender", gender)}>
+              <option value="">Сонгох</option>
+              <option value="эр">эр</option>
+              <option value="эм">эм</option>
+            </FieldSelect>
+          </Field>
+          <Field label="Ангилал">
+            <Input value={form.classification} placeholder="Unclassified" onChange={(e) => set("classification", e.target.value)} />
           </Field>
           <Field label="Гишүүний төрөл" required>
             <FieldSelect value={form.memberTypeId} onChange={(memberTypeId) => set("memberTypeId", memberTypeId)}>

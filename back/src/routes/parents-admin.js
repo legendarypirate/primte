@@ -7,7 +7,9 @@ const { requireAdmin, requirePermission, serializeParent } = require('../middlew
 const router = express.Router();
 
 function normalizePhone(phone) {
-  return String(phone || '').replace(/\s+/g, '').trim();
+  const digits = String(phone || '').replace(/\D/g, '');
+  const local = digits.replace(/^976/, '');
+  return local.length >= 8 ? local.slice(-8) : (local || String(phone || '').trim());
 }
 
 async function hashSecret(value) {
@@ -17,10 +19,11 @@ async function hashSecret(value) {
 async function findParentByPhone(phone, excludeId) {
   const normalized = normalizePhone(phone);
   if (!normalized) return null;
-  const digits = normalized.replace(/^\+976/, '').replace(/^976/, '');
+  const digits = normalized.replace(/\D/g, '').replace(/^976/, '');
+  const last8 = digits.length >= 8 ? digits.slice(-8) : digits;
   return Parent.findOne({
     where: {
-      phone: { [Op.or]: [normalized, digits, `+976${digits}`, `976${digits}`] },
+      phone: { [Op.in]: [normalized, digits, last8, `+976${digits}`, `976${digits}`, `+976${last8}`, `976${last8}`].filter(Boolean) },
       ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
     },
   });
