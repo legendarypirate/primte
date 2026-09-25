@@ -9,6 +9,10 @@ const {
   Member,
   Division,
   Stage,
+  Score,
+  ScoreRevision,
+  StageResult,
+  MatchResult,
 } = require('../models');
 const { PROFILES } = require('../domain/scoring/scoring-profile');
 const AuditLog = require('../models/auditLog');
@@ -179,6 +183,26 @@ async function getNextCompetitor(squadId, stageId, currentCompetitorId) {
   return idx >= 0 ? queue[idx + 1] || null : queue[0] || null;
 }
 
+async function removeCompetitorByRegistrationId(registrationId, { transaction } = {}) {
+  const competitor = await Competitor.findOne({ where: { registrationId }, transaction });
+  if (!competitor) return null;
+
+  const scores = await Score.findAll({
+    where: { competitorId: competitor.id },
+    attributes: ['id'],
+    transaction,
+  });
+  const scoreIds = scores.map((s) => s.id);
+  if (scoreIds.length) {
+    await ScoreRevision.destroy({ where: { scoreId: scoreIds }, transaction });
+    await Score.destroy({ where: { competitorId: competitor.id }, transaction });
+  }
+  await StageResult.destroy({ where: { competitorId: competitor.id }, transaction });
+  await MatchResult.destroy({ where: { competitorId: competitor.id }, transaction });
+  await competitor.destroy({ transaction });
+  return competitor.matchId;
+}
+
 module.exports = {
   ensureCompetitorFromRegistration,
   ensureMatchForCompetition,
@@ -187,4 +211,5 @@ module.exports = {
   getCurrentCompetitor,
   getNextCompetitor,
   findOrCreateSquad,
+  removeCompetitorByRegistrationId,
 };

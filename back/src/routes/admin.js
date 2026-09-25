@@ -552,7 +552,21 @@ router.delete('/competitions/:id/registrations/:registrationId', requirePermissi
     where: { id: req.params.registrationId, competitionId: req.params.id },
   });
   if (!registration) return res.status(404).json({ message: 'Бүртгэл олдсонгүй.' });
-  await registration.destroy();
+
+  const { removeCompetitorByRegistrationId } = require('../services/competitorService');
+  let matchId = null;
+  await sequelize.transaction(async (t) => {
+    matchId = await removeCompetitorByRegistrationId(registration.id, { transaction: t });
+    await registration.destroy({ transaction: t });
+  });
+  if (matchId) {
+    try {
+      const { recalculateWholeMatch } = require('../services/resultService');
+      await recalculateWholeMatch(matchId);
+    } catch (err) {
+      console.error('Match recalc after registration delete failed', err);
+    }
+  }
   res.json({ ok: true });
 });
 
