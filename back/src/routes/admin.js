@@ -189,6 +189,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     parentPhone,
     parentEmail,
     avatarUrl,
+    password,
   } = req.body || {};
   if (!name || !memberCode) return res.status(400).json({ message: 'Нэр болон код шаардлагатай.' });
   const exists = await Member.findOne({ where: { memberCode } });
@@ -201,6 +202,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     name,
     memberCode,
     pinHash: await bcrypt.hash(memberCode, 10),
+    passwordHash: password ? await bcrypt.hash(String(password), 10) : null,
     phone,
     motto,
     level: level ?? 1,
@@ -271,8 +273,10 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     }
   }
   if (data.memberCode && data.memberCode !== member.memberCode) {
-    member.pinHash = await bcrypt.hash(data.memberCode, 10);
+    data.pinHash = await bcrypt.hash(data.memberCode, 10);
   }
+  const password = String(req.body?.password || '').trim();
+  if (password) data.passwordHash = await bcrypt.hash(password, 10);
   await member.update(data);
   const updated = await Member.findByPk(member.id, {
     include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }],

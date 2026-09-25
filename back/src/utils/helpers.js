@@ -295,6 +295,7 @@ function serializeMember(member, req) {
     id: member.id,
     name: member.name,
     memberCode: member.memberCode,
+    hasPassword: Boolean(member.passwordHash),
     phone: member.phone,
     avatarUrl: publicUrl(req, member.avatarUrl),
     motto: member.motto,

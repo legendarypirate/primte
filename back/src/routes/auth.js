@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const { Op } = require('sequelize');
 const { Admin, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
 const { signToken, requireAdmin, requireParent, serializeAdmin, serializeParent } = require('../middleware/auth');
 const { serializeMember } = require('../utils/helpers');
@@ -30,19 +31,37 @@ router.post('/member/login', async (req, res) => {
   if (!name || !code) {
     return res.status(400).json({ message: 'Нэр болон нэвтрэх кодоо оруулна уу.' });
   }
-  const member = await Member.findOne({
-    where: { memberCode: String(code).trim() },
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }],
-  });
-  if (!member || member.name.trim().toLowerCase() !== String(name).trim().toLowerCase()) {
-    return res.status(401).json({ message: 'Гишүүн олдсонгүй эсвэл идэвхгүй.' });
+  const typedName = String(name).trim().toLowerCase();
+  const secret = String(code).trim();
+  const include = [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }];
+  const sameName = (member) => member.name.trim().toLowerCase() === typedName;
+
+  let member = await Member.findOne({ where: { memberCode: secret }, include });
+  let ok = false;
+  if (member && sameName(member)) {
+    ok = Boolean(member.pinHash) && (await bcrypt.compare(secret, member.pinHash));
+    if (!ok && member.passwordHash) ok = await bcrypt.compare(secret, member.passwordHash);
+  } else {
+    member = null;
   }
+
+  if (!ok) {
+    const candidates = await Member.findAll({ where: { name: { [Op.iLike]: String(name).trim() } }, include });
+    for (const candidate of candidates) {
+      if (!sameName(candidate) || !candidate.passwordHash) continue;
+      if (await bcrypt.compare(secret, candidate.passwordHash)) {
+        member = candidate;
+        ok = true;
+        break;
+      }
+    }
+  }
+
+  if (!member || !ok) return res.status(401).json({ message: 'Гишүүн олдсонгүй эсвэл нэвтрэх код буруу.' });
   const type = member.MemberType;
   if (member.status !== 'active' || (type && type.hasAppAccess === false)) {
     return res.status(401).json({ message: 'Гишүүн идэвхгүй байна.' });
   }
-  const ok = await bcrypt.compare(String(code).trim(), member.pinHash);
-  if (!ok) return res.status(401).json({ message: 'Нэвтрэх код буруу.' });
   return res.json({
     token: signToken({ id: member.id, role: 'member' }),
     member: serializeMember(member, req),

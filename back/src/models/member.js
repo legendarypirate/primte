@@ -6,6 +6,7 @@ const Member = sequelize.define('Member', {
   name: { type: DataTypes.STRING, allowNull: false },
   memberCode: { type: DataTypes.STRING, allowNull: false, unique: true, field: 'member_code' },
   pinHash: { type: DataTypes.STRING, allowNull: false, field: 'pin_hash' },
+  passwordHash: { type: DataTypes.STRING, allowNull: true, field: 'password_hash' },
   phone: { type: DataTypes.STRING },
   avatarUrl: { type: DataTypes.STRING, field: 'avatar_url' },
   motto: { type: DataTypes.STRING, defaultValue: 'Багтай бай. Илүү хол явна.' },
