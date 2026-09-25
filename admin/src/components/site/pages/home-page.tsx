@@ -14,7 +14,6 @@ import {
   PackageCheck,
   Shield,
   ShieldAlert,
-  ShoppingCart,
   Target,
   Trophy,
   User,
@@ -101,29 +100,6 @@ const courses = [
   },
 ];
 
-const products = [
-  {
-    name: "Cytac Universal Holster",
-    sub: "Холстер (Universal)",
-    price: "120,000₮",
-  },
-  {
-    name: "Double Alpha Shooting Belt",
-    sub: "Тактикийн бүс",
-    price: "180,000₮",
-  },
-  {
-    name: "DAA Magazine Pouch",
-    sub: "Сумны цүнх",
-    price: "95,000₮",
-  },
-  {
-    name: "ESS Crossbow (Clear)",
-    sub: "Хамгаалалтын шил",
-    price: "160,000₮",
-  },
-];
-
 const newsItems = [
   {
     date: "2024.10.20",
@@ -154,7 +130,6 @@ const ratingItems = ["Эрэмбэ чансаа", "Ангилал тус бүр�
 const competitionRuleItems = ["IPSC дүрмийн дагуу", "Аюулгүй ажиллагааны хяналт", "Ил тод үнэлгээ"];
 
 export function HomePage() {
-  const [cart, setCart] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -163,11 +138,6 @@ export function HomePage() {
     time: "19:00 - 22:00",
     notes: "",
   });
-
-  const handleAddToCart = (productName: string) => {
-    setCart((prev) => [...prev, productName]);
-    toast.success(`${productName} сагсанд нэмэгдлээ!`);
-  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -672,86 +642,9 @@ export function HomePage() {
         </div>
       </ContentSection>
 
-      {/* 04 - ДЭЛГҮҮР */}
-      <ContentSection id="shop" dark>
-        <SectionTag n="04" label="ДЭЛГҮҮР" />
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <EditableText
-              field="shop.title"
-              defaultValue="МЭРГЭЖЛИЙН ТОНОГ ТӨХӨӨРӨМЖ"
-              as="h2"
-              className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
-            />
-            <EditableText
-              field="shop.subtitle"
-              defaultValue="Илүү сайн үр дүнд хүрэхэд зэвсэг тоног төхөөрөмж чухал."
-              multiline
-              as="p"
-              className="mt-1 text-sm text-muted-foreground block"
-            />
-          </div>
-          <OutlineButton href="/contact">
-            <EditableText field="shop.cta" defaultValue="Бүх бүтээгдэхүүн →" />
-          </OutlineButton>
-        </div>
-
-        {/* 4 Shop Cards */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((p, idx) => (
-            <EditableBackground
-              key={p.name}
-              field={`shop.products.${idx}.cardImageUrl`}
-              className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] p-5 shadow-xl transition-all hover:border-[#e31e24]/50"
-              fallbackClassName="bg-[#121215] hover:bg-[#18181d]"
-              editMode="corner"
-            >
-              <div className="relative z-10">
-                <EditableBackground
-                  field={`shop.products.${idx}.imageUrl`}
-                  className="mb-4 flex h-36 items-center justify-center rounded-xl border border-[#ffffff10] p-4 transition-transform group-hover:scale-105"
-                  fallbackClassName="bg-[#0a0a0c]"
-                  editMode="cover"
-                >
-                  <ShoppingCart className="relative z-10 size-10 text-[#e31e24]/60" />
-                </EditableBackground>
-                <EditableText
-                  field={`shop.products.${idx}.name`}
-                  defaultValue={p.name}
-                  as="h4"
-                  className="font-heading text-sm font-bold text-white block"
-                />
-                <EditableText
-                  field={`shop.products.${idx}.sub`}
-                  defaultValue={p.sub}
-                  as="p"
-                  className="mt-1 text-xs text-[#a0a0a5] block"
-                />
-              </div>
-
-              <div className="relative z-10 mt-4 border-t border-[#ffffff10] pt-4 flex items-center justify-between">
-                <EditableText
-                  field={`shop.products.${idx}.price`}
-                  defaultValue={p.price}
-                  className="font-mono text-base font-extrabold text-[#e31e24]"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleAddToCart(p.name)}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#ffffff20] bg-[#1b1b20] px-3 py-1.5 text-xs font-semibold text-white transition hover:border-[#e31e24] hover:bg-[#e31e24]"
-                >
-                  <ShoppingCart className="size-3.5" />
-                  <EditableText field={`shop.products.${idx}.cta`} defaultValue="Сагсанд нэмэх" />
-                </button>
-              </div>
-            </EditableBackground>
-          ))}
-        </div>
-      </ContentSection>
-
       {/* 05 - ГИШҮҮНЧЛЭЛ */}
       <ContentSection id="membership">
-        <SectionTag n="05" label="ГИШҮҮНЧЛЭЛ" />
+        <SectionTag n="04" label="ГИШҮҮНЧЛЭЛ" fieldPrefix="section.05" />
         <div className="flex flex-col gap-2">
           <EditableText
             field="membership.title"
@@ -886,7 +779,7 @@ export function HomePage() {
 
       {/* 06 - ЧАНСАА / ЖУРАМ */}
       <ContentSection id="ranking" dark>
-        <SectionTag n="06" label="ЧАНСАА / ЖУРАМ" />
+        <SectionTag n="05" label="ЧАНСАА / ЖУРАМ" fieldPrefix="section.06" />
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <EditableText
@@ -1000,7 +893,7 @@ export function HomePage() {
 
       {/* 07 - МЭДЭЭ / СҮҮЛД БОЛСОН ҮЙЛ АЖИЛЛАГАА */}
       <ContentSection id="news">
-        <SectionTag n="07" label="МЭДЭЭ / СҮҮЛД БОЛСОН ҮЙЛ АЖИЛЛАГАА" />
+        <SectionTag n="06" label="МЭДЭЭ / СҮҮЛД БОЛСОН ҮЙЛ АЖИЛЛАГАА" fieldPrefix="section.07" />
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <EditableText
