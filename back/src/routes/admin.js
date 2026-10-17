@@ -35,7 +35,9 @@ const { uniqueSlug } = require('../services/productCategoryService');
 const {
   nextStudentCode,
   applyMemberProgression,
+  grantMembersExperience,
 } = require('../services/memberProgression');
+const { toDelta } = require('../domain/membership');
 
 const COMPETITION_FIELDS = [
   'title', 'subtitle', 'eventDate', 'eventEndDate', 'registrationOpenAt', 'registrationCloseAt',
@@ -313,6 +315,28 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
   });
   res.status(201).json({ member: serializeMember(created, req) });
+});
+
+router.post('/members/add-xp', requirePermission('members.update'), async (req, res) => {
+  const ids = Array.isArray(req.body?.memberIds) ? req.body.memberIds : [];
+  const uniqueIds = [...new Set(ids.map(String).filter(Boolean))];
+  const xp = toDelta(req.body?.xp);
+  const rp = toDelta(req.body?.rp);
+  if (!uniqueIds.length) return res.status(400).json({ message: 'Гишүүн сонгоно уу.' });
+  if (uniqueIds.length > 500) return res.status(400).json({ message: 'Хамгийн ихдээ 500 гишүүн сонгоно уу.' });
+  if (xp === 0 && rp === 0) return res.status(400).json({ message: 'XP эсвэл RP оруулна уу.' });
+
+  const updated = await sequelize.transaction(async (t) => {
+    const members = await grantMembersExperience(uniqueIds, { xp, rp }, { transaction: t });
+    if (!members.length) return [];
+    return Member.findAll({
+      where: { id: members.map((m) => m.id) },
+      include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
+      transaction: t,
+    });
+  });
+  if (!updated.length) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
+  res.json({ members: updated.map((m) => serializeMember(m, req)) });
 });
 
 router.get('/members/:id', requirePermission('members.view'), async (req, res) => {

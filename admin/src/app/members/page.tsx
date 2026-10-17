@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ChevronsUpDown, Plus, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, FilterX, Plus, Search } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
@@ -109,7 +117,16 @@ function num(value: number | "") {
 }
 
 const PAGE_SIZE = 50;
-type SortKey = "name" | "code" | "email" | "birthday" | "gender" | "classification" | "type" | "level" | "xp" | "rp" | "parent" | "program" | "wallet" | "status";
+const emptyFilters = {
+  status: "",
+  memberTypeId: "",
+  level: "",
+  gender: "",
+  programId: "",
+  classification: "",
+};
+type MemberFilters = typeof emptyFilters;
+type SortKey = "name" | "code" | "email" | "birthday" | "gender" | "classification" | "level" | "xp" | "rp" | "parent" | "program" | "wallet" | "status";
 
 function sortValue(member: Member, key: SortKey) {
   switch (key) {
@@ -125,8 +142,6 @@ function sortValue(member: Member, key: SortKey) {
       return member.gender || "";
     case "classification":
       return member.classification || "";
-    case "type":
-      return member.memberType?.name || "";
     case "level":
       return member.membershipLabel || membershipLabel(membershipLevel(member.xp || 0, member.rp || 0));
     case "xp":
@@ -151,9 +166,15 @@ export default function MembersPage() {
   const [activities, setActivities] = useState<Named[]>([]);
   const [nextMemberCode, setNextMemberCode] = useState("S0001");
   const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<MemberFilters>(emptyFilters);
   const [page, setPage] = useState(1);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [xpOpen, setXpOpen] = useState(false);
+  const [xpAmount, setXpAmount] = useState<number | "">("");
+  const [rpAmount, setRpAmount] = useState<number | "">("");
+  const [xpSaving, setXpSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
 
@@ -168,6 +189,8 @@ export default function MembersPage() {
     setActivities(lookups.activities);
     setParents(parentData.parents);
     if (lookups.nextMemberCode) setNextMemberCode(lookups.nextMemberCode);
+    const ids = new Set(memberData.members.map((m) => m.id));
+    setSelectedIds((current) => current.filter((id) => ids.has(id)));
   }
 
   useEffect(() => {
@@ -192,10 +215,25 @@ export default function MembersPage() {
   }, []);
 
   const q = query.trim().toLowerCase();
+  const classifications = useMemo(() => {
+    const values = new Set(members.map((m) => m.classification).filter(Boolean) as string[]);
+    return [...values].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+  }, [members]);
+  const hasFilters = Boolean(q || Object.values(filters).some(Boolean));
   const filtered = useMemo(() => {
     const rows = members.filter((m) => {
+      if (filters.status && m.status !== filters.status) return false;
+      if (filters.memberTypeId && m.memberTypeId !== filters.memberTypeId) return false;
+      if (filters.level !== "") {
+        const level = membershipLevel(m.xp || 0, m.rp || 0);
+        if (String(level) !== filters.level) return false;
+      }
+      if (filters.gender && (m.gender || "") !== filters.gender) return false;
+      if (filters.programId && m.developmentActivityId !== filters.programId) return false;
+      if (filters.classification && (m.classification || "") !== filters.classification) return false;
       if (!q) return true;
-      return [m.name, m.memberCode, m.email].some((v) => String(v || "").toLowerCase().includes(q));
+      return [m.name, m.username, m.memberCode, m.email, m.phone, m.parentName]
+        .some((v) => String(v || "").toLowerCase().includes(q));
     });
     const next = [...rows].sort((a, b) => {
       const av = sortValue(a, sortKey);
@@ -207,11 +245,75 @@ export default function MembersPage() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return next;
-  }, [members, q, sortKey, sortDir]);
+  }, [members, q, filters, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const visibleIds = visible.map((m) => m.id);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedSet.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selectedSet.has(id));
+  const allFilteredSelected = filtered.length > 0 && filtered.every((m) => selectedSet.has(m.id));
+  const selectedCount = selectedIds.length;
+  const canAddXp = can("members.update");
+
+  function setFilter<K extends keyof MemberFilters>(key: K, value: MemberFilters[K]) {
+    setFilters((current) => ({ ...current, [key]: value }));
+    setPage(1);
+  }
+
+  function clearFilters() {
+    setQuery("");
+    setFilters(emptyFilters);
+    setPage(1);
+  }
+
+  function toggleOne(id: string) {
+    setSelectedIds((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]));
+  }
+
+  function toggleVisible() {
+    setSelectedIds((current) => {
+      if (allVisibleSelected) return current.filter((id) => !visibleIds.includes(id));
+      const next = new Set(current);
+      visibleIds.forEach((id) => next.add(id));
+      return [...next];
+    });
+  }
+
+  function selectFiltered() {
+    setSelectedIds(filtered.map((m) => m.id));
+  }
+
+  async function addXp() {
+    const xp = num(xpAmount);
+    const rp = num(rpAmount);
+    if (!selectedIds.length) {
+      toast.error("Гишүүн сонгоно уу");
+      return;
+    }
+    if (!xp && !rp) {
+      toast.error("XP эсвэл RP оруулна уу");
+      return;
+    }
+    setXpSaving(true);
+    try {
+      await api("/api/admin/members/add-xp", {
+        method: "POST",
+        body: JSON.stringify({ memberIds: selectedIds, xp, rp }),
+      });
+      toast.success(`${selectedIds.length} гишүүнд XP нэмлээ`);
+      setXpOpen(false);
+      setXpAmount("");
+      setRpAmount("");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Алдаа");
+    } finally {
+      setXpSaving(false);
+    }
+  }
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -236,21 +338,28 @@ export default function MembersPage() {
     <Shell>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-3xl text-primary">Гишүүд</h1>
-        {can("members.create") && (
-          <Button onClick={openCreate}>
-            <Plus className="size-4" /> Гишүүн нэмэх
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {canAddXp && (
+            <Button variant="outline" disabled={!selectedCount} onClick={() => setXpOpen(true)}>
+              XP нэмэх{selectedCount ? ` (${selectedCount})` : ""}
+            </Button>
+          )}
+          {can("members.create") && (
+            <Button onClick={openCreate}>
+              <Plus className="size-4" /> Гишүүн нэмэх
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
         <CardContent className="space-y-4 pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="relative max-w-sm flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-50 max-w-sm flex-1">
               <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="pl-8"
-                placeholder="Нэр эсвэл кодаар хайх..."
+                placeholder="Нэр, код, имэйл, утас..."
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -258,20 +367,100 @@ export default function MembersPage() {
                 }}
               />
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="w-36 shrink-0">
+              <FieldSelect value={filters.status} onChange={(status) => setFilter("status", status)}>
+                <option value="">Бүх төлөв</option>
+                <option value="active">Идэвхтэй</option>
+                <option value="inactive">Идэвхгүй</option>
+                <option value="expired">Хугацаа дууссан</option>
+              </FieldSelect>
+            </div>
+            <div className="w-44 shrink-0">
+              <FieldSelect value={filters.memberTypeId} onChange={(memberTypeId) => setFilter("memberTypeId", memberTypeId)}>
+                <option value="">Бүх төрөл</option>
+                {memberTypes.map((type) => (
+                  <option key={type.id} value={type.id}>{type.name}</option>
+                ))}
+              </FieldSelect>
+            </div>
+            <div className="w-40 shrink-0">
+              <FieldSelect value={filters.level} onChange={(level) => setFilter("level", level)}>
+                <option value="">Бүх түвшин</option>
+                <option value="0">Student member</option>
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+              </FieldSelect>
+            </div>
+            <div className="w-32 shrink-0">
+              <FieldSelect value={filters.gender} onChange={(gender) => setFilter("gender", gender)}>
+                <option value="">Хүйс</option>
+                <option value="эр">эр</option>
+                <option value="эм">эм</option>
+              </FieldSelect>
+            </div>
+            <div className="w-44 shrink-0">
+              <FieldSelect value={filters.programId} onChange={(programId) => setFilter("programId", programId)}>
+                <option value="">Бүх хөтөлбөр</option>
+                {activities.map((activity) => (
+                  <option key={activity.id} value={activity.id}>{activity.name}</option>
+                ))}
+              </FieldSelect>
+            </div>
+            {classifications.length > 0 && (
+              <div className="w-40 shrink-0">
+                <FieldSelect value={filters.classification} onChange={(classification) => setFilter("classification", classification)}>
+                  <option value="">Ангилал</option>
+                  {classifications.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </FieldSelect>
+              </div>
+            )}
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <FilterX className="size-4" /> Цэвэрлэх
+              </Button>
+            )}
+            <div className="ml-auto text-sm text-muted-foreground">
               {filtered.length} гишүүн · хуудас {currentPage}/{pageCount}
             </div>
           </div>
+          {selectedCount > 0 && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+              <span className="text-sm font-medium">{selectedCount} сонгосон</span>
+              {!allFilteredSelected && filtered.length > selectedCount && (
+                <Button variant="ghost" size="sm" onClick={selectFiltered}>
+                  Шүүлт дэх бүгдийг сонгох ({filtered.length})
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+                Болих
+              </Button>
+              {canAddXp && (
+                <Button size="sm" className="ml-auto" onClick={() => setXpOpen(true)}>
+                  XP нэмэх
+                </Button>
+              )}
+            </div>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <SelectCheckbox
+                    checked={allVisibleSelected}
+                    indeterminate={someVisibleSelected && !allVisibleSelected}
+                    onChange={toggleVisible}
+                    label="Хуудасны бүгдийг сонгох"
+                  />
+                </TableHead>
                 <SortHead label="Нэр" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
                 <SortHead label="Код" active={sortKey === "code"} dir={sortDir} onClick={() => toggleSort("code")} />
                 <SortHead label="Имэйл" active={sortKey === "email"} dir={sortDir} onClick={() => toggleSort("email")} />
                 <SortHead label="Төрсөн" active={sortKey === "birthday"} dir={sortDir} onClick={() => toggleSort("birthday")} />
                 <SortHead label="Хүйс" active={sortKey === "gender"} dir={sortDir} onClick={() => toggleSort("gender")} />
                 <SortHead label="Ангилал" active={sortKey === "classification"} dir={sortDir} onClick={() => toggleSort("classification")} />
-                <SortHead label="Төрөл" active={sortKey === "type"} dir={sortDir} onClick={() => toggleSort("type")} />
                 <SortHead label="Түвшин" active={sortKey === "level"} dir={sortDir} onClick={() => toggleSort("level")} />
                 <SortHead label="XP" active={sortKey === "xp"} dir={sortDir} onClick={() => toggleSort("xp")} />
                 <SortHead label="RP" active={sortKey === "rp"} dir={sortDir} onClick={() => toggleSort("rp")} />
@@ -284,7 +473,14 @@ export default function MembersPage() {
             </TableHeader>
             <TableBody>
               {visible.map((m) => (
-                <TableRow key={m.id}>
+                <TableRow key={m.id} data-state={selectedSet.has(m.id) ? "selected" : undefined}>
+                  <TableCell>
+                    <SelectCheckbox
+                      checked={selectedSet.has(m.id)}
+                      onChange={() => toggleOne(m.id)}
+                      label={`${m.name} сонгох`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="font-medium">{m.name}</div>
                     <div className="text-xs text-muted-foreground">
@@ -298,7 +494,6 @@ export default function MembersPage() {
                   <TableCell>{m.birthday ? String(m.birthday).slice(0, 10) : "—"}</TableCell>
                   <TableCell>{m.gender || "—"}</TableCell>
                   <TableCell>{m.classification || "—"}</TableCell>
-                  <TableCell>{m.memberType?.name || "—"}</TableCell>
                   <TableCell>{m.membershipLabel || membershipLabel(membershipLevel(m.xp || 0, m.rp || 0))}</TableCell>
                   <TableCell>{m.xp ?? 0}</TableCell>
                   <TableCell>{m.rp ?? 0}</TableCell>
@@ -364,6 +559,39 @@ export default function MembersPage() {
         </CardContent>
       </Card>
 
+      <Dialog open={xpOpen} onOpenChange={setXpOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>XP нэмэх</DialogTitle>
+            <DialogDescription>
+              Сонгосон {selectedCount} гишүүнд XP/RP нэмнэ. Түвшин автоматаар шинэчлэгдэнэ.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="XP">
+              <Input
+                type="number"
+                min={0}
+                value={xpAmount}
+                onChange={(e) => setXpAmount(e.target.value === "" ? "" : Number(e.target.value))}
+              />
+            </Field>
+            <Field label="RP">
+              <Input
+                type="number"
+                min={0}
+                value={rpAmount}
+                onChange={(e) => setRpAmount(e.target.value === "" ? "" : Number(e.target.value))}
+              />
+            </Field>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setXpOpen(false)}>Болих</Button>
+            <Button onClick={addXp} disabled={xpSaving}>{xpSaving ? "Нэмэж байна..." : "Нэмэх"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-full gap-0 sm:max-w-3xl!">
           {open && (
@@ -384,6 +612,34 @@ export default function MembersPage() {
         </SheetContent>
       </Sheet>
     </Shell>
+  );
+}
+
+function SelectCheckbox({
+  checked,
+  indeterminate = false,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onChange: () => void;
+  label: string;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = indeterminate;
+  }, [indeterminate]);
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      onClick={(e) => e.stopPropagation()}
+      aria-label={label}
+      className="size-4 accent-primary"
+    />
   );
 }
 

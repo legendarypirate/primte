@@ -24,9 +24,22 @@ function membershipLabel(level) {
   return `Level ${level} member`;
 }
 
+function toDelta(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.round(n) : 0;
+}
+
+function addExperience(current = {}, delta = {}) {
+  const xp = Math.max(0, toInt(current.xp) + toDelta(delta.xp));
+  const rp = Math.max(0, toInt(current.rp) + toDelta(delta.rp));
+  return { xp, rp, level: computeMembershipLevel(xp, rp) };
+}
+
 module.exports = {
   THRESHOLDS,
   toInt,
+  toDelta,
   computeMembershipLevel,
   membershipLabel,
+  addExperience,
 };
