@@ -18,8 +18,9 @@ import { api, tugrik } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { cn } from "@/lib/utils";
+import { membershipLabel, membershipLevel } from "@/lib/membership";
 
-type Named = { id: string; name: string; requiresParent?: boolean };
+type Named = { id: string; name: string; slug?: string; requiresParent?: boolean };
 type ParentRow = { id: string; name: string; phone?: string; email?: string };
 type Member = {
   id: string;
@@ -32,7 +33,10 @@ type Member = {
   birthday?: string | null;
   gender?: string | null;
   classification?: string | null;
+  xp?: number;
+  rp?: number;
   level: number;
+  membershipLabel?: string;
   rank: number;
   status: string;
   walletBalance: number;
@@ -57,6 +61,8 @@ type MemberForm = {
   gender: string;
   classification: string;
   password: string;
+  xp: number | "";
+  rp: number | "";
   level: number | "";
   rank: number | "";
   walletBalance: number;
@@ -79,7 +85,9 @@ const empty: MemberForm = {
   gender: "",
   classification: "",
   password: "",
-  level: 1,
+  xp: 0,
+  rp: 0,
+  level: 0,
   rank: 0,
   walletBalance: 0,
   validFrom: "",
@@ -101,7 +109,7 @@ function num(value: number | "") {
 }
 
 const PAGE_SIZE = 50;
-type SortKey = "name" | "code" | "email" | "birthday" | "gender" | "classification" | "type" | "parent" | "program" | "wallet" | "status";
+type SortKey = "name" | "code" | "email" | "birthday" | "gender" | "classification" | "type" | "level" | "xp" | "rp" | "parent" | "program" | "wallet" | "status";
 
 function sortValue(member: Member, key: SortKey) {
   switch (key) {
@@ -119,6 +127,12 @@ function sortValue(member: Member, key: SortKey) {
       return member.classification || "";
     case "type":
       return member.memberType?.name || "";
+    case "level":
+      return member.membershipLabel || membershipLabel(membershipLevel(member.xp || 0, member.rp || 0));
+    case "xp":
+      return member.xp ?? 0;
+    case "rp":
+      return member.rp ?? 0;
     case "parent":
       return member.parentName || "";
     case "program":
@@ -135,6 +149,7 @@ export default function MembersPage() {
   const [parents, setParents] = useState<ParentRow[]>([]);
   const [memberTypes, setMemberTypes] = useState<Named[]>([]);
   const [activities, setActivities] = useState<Named[]>([]);
+  const [nextMemberCode, setNextMemberCode] = useState("S0001");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -145,20 +160,21 @@ export default function MembersPage() {
   async function load() {
     const [memberData, lookups, parentData] = await Promise.all([
       api<{ members: Member[] }>("/api/admin/members"),
-      api<{ memberTypes: Named[]; activities: Named[] }>("/api/admin/lookups"),
+      api<{ memberTypes: Named[]; activities: Named[]; nextMemberCode?: string }>("/api/admin/lookups"),
       api<{ parents: ParentRow[] }>("/api/admin/parents"),
     ]);
     setMembers(memberData.members);
     setMemberTypes(lookups.memberTypes);
     setActivities(lookups.activities);
     setParents(parentData.parents);
+    if (lookups.nextMemberCode) setNextMemberCode(lookups.nextMemberCode);
   }
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
       api<{ members: Member[] }>("/api/admin/members"),
-      api<{ memberTypes: Named[]; activities: Named[] }>("/api/admin/lookups"),
+      api<{ memberTypes: Named[]; activities: Named[]; nextMemberCode?: string }>("/api/admin/lookups"),
       api<{ parents: ParentRow[] }>("/api/admin/parents"),
     ])
       .then(([memberData, lookups, parentData]) => {
@@ -167,6 +183,7 @@ export default function MembersPage() {
         setMemberTypes(lookups.memberTypes);
         setActivities(lookups.activities);
         setParents(parentData.parents);
+        if (lookups.nextMemberCode) setNextMemberCode(lookups.nextMemberCode);
       })
       .catch((e) => toast.error(e.message));
     return () => {
@@ -255,6 +272,9 @@ export default function MembersPage() {
                 <SortHead label="Хүйс" active={sortKey === "gender"} dir={sortDir} onClick={() => toggleSort("gender")} />
                 <SortHead label="Ангилал" active={sortKey === "classification"} dir={sortDir} onClick={() => toggleSort("classification")} />
                 <SortHead label="Төрөл" active={sortKey === "type"} dir={sortDir} onClick={() => toggleSort("type")} />
+                <SortHead label="Түвшин" active={sortKey === "level"} dir={sortDir} onClick={() => toggleSort("level")} />
+                <SortHead label="XP" active={sortKey === "xp"} dir={sortDir} onClick={() => toggleSort("xp")} />
+                <SortHead label="RP" active={sortKey === "rp"} dir={sortDir} onClick={() => toggleSort("rp")} />
                 <SortHead label="Эцэг/эх" active={sortKey === "parent"} dir={sortDir} onClick={() => toggleSort("parent")} />
                 <SortHead label="Хөтөлбөр" active={sortKey === "program"} dir={sortDir} onClick={() => toggleSort("program")} />
                 <SortHead label="Wallet" active={sortKey === "wallet"} dir={sortDir} onClick={() => toggleSort("wallet")} />
@@ -279,6 +299,9 @@ export default function MembersPage() {
                   <TableCell>{m.gender || "—"}</TableCell>
                   <TableCell>{m.classification || "—"}</TableCell>
                   <TableCell>{m.memberType?.name || "—"}</TableCell>
+                  <TableCell>{m.membershipLabel || membershipLabel(membershipLevel(m.xp || 0, m.rp || 0))}</TableCell>
+                  <TableCell>{m.xp ?? 0}</TableCell>
+                  <TableCell>{m.rp ?? 0}</TableCell>
                   <TableCell>{m.parentName || "—"}</TableCell>
                   <TableCell>{m.developmentActivity?.name || "—"}</TableCell>
                   <TableCell>{tugrik(m.walletBalance)}</TableCell>
@@ -316,7 +339,7 @@ export default function MembersPage() {
               ))}
               {visible.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={15} className="py-10 text-center text-muted-foreground">
                     Гишүүн алга.
                   </TableCell>
                 </TableRow>
@@ -350,6 +373,7 @@ export default function MembersPage() {
               parents={parents}
               memberTypes={memberTypes}
               activities={activities}
+              nextMemberCode={nextMemberCode}
               onSaved={async () => {
                 setOpen(false);
                 await load();
@@ -402,6 +426,7 @@ function MemberDrawer({
   parents,
   memberTypes,
   activities,
+  nextMemberCode,
   onSaved,
   onCancel,
 }: {
@@ -409,9 +434,11 @@ function MemberDrawer({
   parents: ParentRow[];
   memberTypes: Named[];
   activities: Named[];
+  nextMemberCode: string;
   onSaved: () => Promise<void>;
   onCancel: () => void;
 }) {
+  const studentTypeId = memberTypes.find((t) => t.slug === "student-member")?.id || "";
   const [form, setForm] = useState<MemberForm>(
     member
       ? {
@@ -424,6 +451,8 @@ function MemberDrawer({
           birthday: dateValue(member.birthday),
           gender: member.gender || "",
           classification: member.classification || "",
+          xp: member.xp ?? 0,
+          rp: member.rp ?? 0,
           level: member.level,
           rank: member.rank,
           walletBalance: member.walletBalance,
@@ -435,7 +464,7 @@ function MemberDrawer({
           parentAccountId: member.parentAccountId || "",
           avatarUrl: member.avatarUrl || "",
         }
-      : empty
+      : { ...empty, memberCode: nextMemberCode, memberTypeId: studentTypeId }
   );
   const [saving, setSaving] = useState(false);
 
@@ -461,7 +490,9 @@ function MemberDrawer({
     try {
       const body = {
         ...form,
-        level: num(form.level),
+        xp: num(form.xp),
+        rp: num(form.rp),
+        level: membershipLevel(num(form.xp), num(form.rp)),
         rank: num(form.rank),
         memberTypeId: form.memberTypeId || null,
         developmentActivityId: form.developmentActivityId || null,
@@ -488,7 +519,8 @@ function MemberDrawer({
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Код" required>
-            <Input value={form.memberCode} placeholder="001..." onChange={(e) => set("memberCode", e.target.value)} />
+            <Input value={form.memberCode} placeholder="S0001" onChange={(e) => set("memberCode", e.target.value)} />
+            {!member && <p className="text-xs text-muted-foreground">Шинэ гишүүний код S-ээр эхэлнэ.</p>}
           </Field>
           <Field label="Эхлэх огноо">
             <Input type="date" value={form.validFrom} onChange={(e) => set("validFrom", e.target.value)} />
@@ -562,8 +594,19 @@ function MemberDrawer({
           <Field label="Дуусах огноо">
             <Input type="date" value={form.validTo} onChange={(e) => set("validTo", e.target.value)} />
           </Field>
-          <Field label="Түвшин">
-            <Input type="number" value={form.level} onChange={(e) => set("level", e.target.value === "" ? "" : Number(e.target.value))} />
+          <Field label="XP">
+            <Input type="number" min={0} value={form.xp} onChange={(e) => set("xp", e.target.value === "" ? "" : Number(e.target.value))} />
+          </Field>
+          <Field label="RP">
+            <Input type="number" min={0} value={form.rp} onChange={(e) => set("rp", e.target.value === "" ? "" : Number(e.target.value))} />
+          </Field>
+          <Field label="Гишүүнчлэлийн түвшин">
+            <div className="rounded-lg border border-border px-3 py-2">
+              <div className="text-sm font-medium">{membershipLabel(membershipLevel(num(form.xp), num(form.rp)))}</div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                XP &gt; 50 → Level 1 · XP &gt; 50 ба RP &gt; 150 → Level 2 · XP &gt; 200 ба RP &gt; 600 → Level 3
+              </p>
+            </div>
           </Field>
           <Field label="Ранк">
             <Input type="number" value={form.rank} onChange={(e) => set("rank", e.target.value === "" ? "" : Number(e.target.value))} />

@@ -1,3 +1,5 @@
+const { computeMembershipLevel, membershipLabel } = require('../domain/membership');
+
 function publicUrl(req, path) {
   if (!path) return null;
   if (path.startsWith('http')) return path;
@@ -214,16 +216,20 @@ function serializeRegistration(registration) {
 
 function serializeChildSummary(member, req, extra = {}) {
   const type = member.MemberType;
+  const level = computeMembershipLevel(member.xp, member.rp);
   return {
     id: member.id,
     name: member.name,
     memberCode: member.memberCode,
     avatarUrl: publicUrl(req, member.avatarUrl),
-    level: member.level,
+    xp: member.xp || 0,
+    rp: member.rp || 0,
+    level,
+    membershipLabel: membershipLabel(level),
     rank: member.rank,
     status: member.status,
     walletBalance: member.walletBalance,
-    memberTypeName: type?.name || 'Junior Athlete',
+    memberTypeName: type?.name || membershipLabel(level),
     category: type?.category || 'junior',
     validFromLabel: formatDate(member.validFrom),
     validToLabel: formatDate(member.validTo),
@@ -292,6 +298,7 @@ function serializeMember(member, req) {
   const activity = member.DevelopmentActivity;
   const parent = member.parent;
   const parentAccount = member.parentAccount;
+  const level = computeMembershipLevel(member.xp, member.rp);
   return {
     id: member.id,
     name: member.name,
@@ -305,7 +312,10 @@ function serializeMember(member, req) {
     classification: member.classification || null,
     avatarUrl: publicUrl(req, member.avatarUrl),
     motto: member.motto,
-    level: member.level,
+    xp: member.xp || 0,
+    rp: member.rp || 0,
+    level,
+    membershipLabel: membershipLabel(level),
     rank: member.rank,
     competitionCount: member.competitionCount,
     validFrom: member.validFrom,

@@ -32,6 +32,10 @@ const {
   serializeTraining,
 } = require('../utils/helpers');
 const { uniqueSlug } = require('../services/productCategoryService');
+const {
+  nextStudentCode,
+  applyMemberProgression,
+} = require('../services/memberProgression');
 
 const COMPETITION_FIELDS = [
   'title', 'subtitle', 'eventDate', 'eventEndDate', 'registrationOpenAt', 'registrationCloseAt',
@@ -75,7 +79,14 @@ router.get('/lookups', async (_req, res) => {
     Division.findAll({ order: [['abbreviation', 'ASC']] }),
     MatchType.findAll({ order: [['name', 'ASC']] }),
   ]);
-  res.json({ roles, memberTypes, activities, divisions, matchTypes });
+  res.json({
+    roles,
+    memberTypes,
+    activities,
+    divisions,
+    matchTypes,
+    nextMemberCode: await nextStudentCode(),
+  });
 });
 
 function pick(body, keys) {
@@ -225,6 +236,8 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     gender,
     classification,
     motto,
+    xp,
+    rp,
     level,
     rank,
     competitionCount,
@@ -242,24 +255,35 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     avatarUrl,
     password,
   } = req.body || {};
-  if (!name || !memberCode) return res.status(400).json({ message: 'Нэр болон код шаардлагатай.' });
+  if (!name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
   const loginName = String(username || '').trim().toLowerCase();
   if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
-  const exists = await Member.findOne({ where: { memberCode } });
+  const code = String(memberCode || '').trim() || await nextStudentCode();
+  const exists = await Member.findOne({ where: { memberCode: code } });
   if (exists) return res.status(400).json({ message: 'Энэ гишүүний код бүртгэлтэй.' });
   const usernameTaken = await Member.findOne({ where: { username: loginName } });
   if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
-  const type = memberTypeId ? await MemberType.findByPk(memberTypeId) : null;
+  const studentType = await MemberType.findOne({ where: { slug: 'student-member' } });
+  const resolvedTypeId = memberTypeId || studentType?.id || null;
+  const type = resolvedTypeId ? await MemberType.findByPk(resolvedTypeId) : null;
   if (type?.requiresParent && !parentAccountId && !parentId && !parentName) {
     return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх сонгоно уу.' });
   }
   const parentAccount = parentAccountId ? await Parent.findByPk(parentAccountId) : null;
   if (parentAccountId && !parentAccount) return res.status(400).json({ message: 'Эцэг/эх олдсонгүй.' });
+  const progression = await applyMemberProgression({
+    xp,
+    rp,
+    level,
+    memberTypeId: resolvedTypeId,
+    parentAccountId: parentAccount?.id || parentAccountId || null,
+    parentId: parentId || null,
+  }, { syncType: true });
   const member = await Member.create({
     name,
     username: loginName,
-    memberCode,
-    pinHash: await bcrypt.hash(memberCode, 10),
+    memberCode: code,
+    pinHash: await bcrypt.hash(code, 10),
     passwordHash: password ? await bcrypt.hash(String(password), 10) : null,
     phone,
     email: email || null,
@@ -267,14 +291,16 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     gender: gender || null,
     classification: classification || null,
     motto,
-    level: level ?? 1,
+    xp: progression.xp,
+    rp: progression.rp,
+    level: progression.level,
     rank: rank ?? 0,
     competitionCount: competitionCount ?? 0,
     validFrom,
     validTo,
     status: type?.isInactive ? 'inactive' : status || 'active',
     walletBalance: walletBalance ?? 0,
-    memberTypeId,
+    memberTypeId: progression.memberTypeId,
     developmentActivityId,
     parentId: null,
     parentAccountId: parentAccount?.id || null,
@@ -316,6 +342,8 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     'gender',
     'classification',
     'motto',
+    'xp',
+    'rp',
     'level',
     'rank',
     'competitionCount',
@@ -365,6 +393,18 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   }
   const password = String(req.body?.password || '').trim();
   if (password) data.passwordHash = await bcrypt.hash(password, 10);
+  const current = await Member.findByPk(member.id, { include: [MemberType] });
+  await applyMemberProgression(data, {
+    current,
+    syncType: req.body?.xp !== undefined || req.body?.rp !== undefined,
+  });
+  if (data.memberTypeId) {
+    const nextType = await MemberType.findByPk(data.memberTypeId);
+    if (nextType?.isInactive) data.status = 'inactive';
+    if (nextType?.requiresParent && !data.parentAccountId && !data.parentId && !data.parentName && !member.parentAccountId) {
+      return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх сонгоно уу.' });
+    }
+  }
   await member.update(data);
   const updated = await Member.findByPk(member.id, {
     include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],

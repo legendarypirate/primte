@@ -40,6 +40,7 @@ sequelize
   .then(() => sequelize.sync({ alter: true }))
   .then(() => require('./services/productCategoryService').ensureProductCategories())
   .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
+  .then(() => require('./services/memberProgression').ensureStudentDefaults())
   .then(() => {
     const server = http.createServer(app);
     attachRealtime(server);
