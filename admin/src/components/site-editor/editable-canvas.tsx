@@ -45,7 +45,7 @@ export function EditableCanvas({
           <p className="text-[#a0a0a5]">Энэ хуудас хоосон байна</p>
           <Button
             type="button"
-            className="bg-[#e31e24] hover:bg-[#c91920]"
+            className=""
             onClick={() => onAddBlockAt(0)}
           >
             <Plus className="size-4" />
@@ -65,7 +65,7 @@ export function EditableCanvas({
               <button
                 type="button"
                 onClick={() => onAddBlockAt(index)}
-                className="absolute left-1/2 top-0 z-20 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-dashed border-[#e31e24]/40 bg-[#0e0e10] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#e31e24] opacity-0 transition-opacity hover:border-[#e31e24] group-hover/block:opacity-100"
+                className="absolute left-1/2 top-0 z-20 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-dashed border-white/40 bg-black/80 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white opacity-0 transition-opacity hover:border-white group-hover/block:opacity-100"
               >
                 <Plus className="size-3" />
                 Блок
@@ -80,8 +80,8 @@ export function EditableCanvas({
               className={cn(
                 "relative transition-all",
                 selected
-                  ? "ring-2 ring-inset ring-[#e31e24] shadow-[0_0_0_1px_#e31e24]"
-                  : "hover:ring-2 hover:ring-inset hover:ring-[#e31e24]/40"
+                  ? "ring-2 ring-inset ring-white shadow-[0_0_0_1px_#fff]"
+                  : "hover:ring-2 hover:ring-inset hover:ring-white/40"
               )}
             >
               {/* Block toolbar */}
@@ -92,7 +92,7 @@ export function EditableCanvas({
                 )}
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="flex items-center gap-1 px-2 text-[10px] font-bold uppercase tracking-wider text-[#e31e24]">
+                <span className="flex items-center gap-1 px-2 text-[10px] font-bold uppercase tracking-wider text-white">
                   <GripVertical className="size-3" />
                   {schema?.label || block.type}
                 </span>
@@ -108,7 +108,7 @@ export function EditableCanvas({
                 <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onDuplicateBlock(block)}>
                   <Copy className="size-3.5" />
                 </Button>
-                <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-[#e31e24]" onClick={() => onRemoveBlock(block.id)}>
+                <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-white" onClick={() => onRemoveBlock(block.id)}>
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>
@@ -129,7 +129,7 @@ export function EditableCanvas({
           <Button
             type="button"
             variant="outline"
-            className="border-[#e31e24]/40 text-[#e31e24] hover:bg-[#e31e24]/10"
+            className=""
             onClick={() => onAddBlockAt(blocks.length)}
           >
             <Plus className="size-4" />

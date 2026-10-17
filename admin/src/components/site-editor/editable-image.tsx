@@ -71,11 +71,11 @@ export function EditableImage({
       ) : (
         <div
           className={cn(
-            "flex size-full min-h-[80px] items-center justify-center border-2 border-dashed border-[#e31e24]/50 bg-[#e31e24]/5",
+            "flex size-full min-h-[80px] items-center justify-center border-2 border-dashed border-white/40 bg-white/5",
             imgClassName
           )}
         >
-          <ImagePlus className="size-6 text-[#e31e24]/60" />
+          <ImagePlus className="size-6 text-white/60" />
         </div>
       )}
       <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity group-hover/img:opacity-100">
@@ -83,7 +83,7 @@ export function EditableImage({
           type="button"
           disabled={busy}
           onClick={() => inputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#e31e24] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-black"
         >
           <ImagePlus className="size-3.5" />
           {busy ? "Хуулж байна..." : placeholder}

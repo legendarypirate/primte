@@ -26,15 +26,15 @@ export function LayoutInspector({
   const isHeader = section === "header";
 
   return (
-    <div className="fixed inset-y-0 right-0 z-[110] flex w-full max-w-md flex-col border-l border-[#ffffff15] bg-[#0e0e10] shadow-2xl">
-      <div className="flex items-center justify-between border-b border-[#ffffff10] px-4 py-3">
+    <div className="fixed inset-y-0 right-0 z-[110] flex w-full max-w-md flex-col border-l border-border bg-background shadow-2xl">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#e31e24]">
+          <p className="text-xs font-bold uppercase tracking-widest text-foreground">
             {isHeader ? "Header / Navbar" : "Footer"}
           </p>
-          <p className="text-[11px] text-[#a0a0a5]">Бүх хуудсанд харагдана</p>
+          <p className="text-[11px] text-muted-foreground">Бүх хуудсанд харагдана</p>
         </div>
-        <Button type="button" size="icon" variant="ghost" className="size-8 text-[#a0a0a5]" onClick={onClose}>
+        <Button type="button" size="icon" variant="ghost" className="size-8 text-muted-foreground" onClick={onClose}>
           <X className="size-4" />
         </Button>
       </div>

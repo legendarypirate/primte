@@ -20,11 +20,11 @@ export function BlockInspector({
   const hasImages = schemaHasImages(schema);
 
   return (
-    <aside className="fixed bottom-0 right-0 top-14 z-[90] flex w-full max-w-md flex-col border-l border-[#ffffff15] bg-[#0e0e10]/98 shadow-2xl backdrop-blur-md sm:top-[57px]">
-      <div className="flex items-center justify-between border-b border-[#ffffff15] px-4 py-3">
+    <aside className="fixed bottom-0 right-0 top-14 z-[90] flex w-full max-w-md flex-col border-l border-border bg-background/98 shadow-2xl backdrop-blur-md sm:top-[57px]">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div>
-          <p className="text-sm font-semibold text-white">{schema?.label || block.type}</p>
-          <p className="text-xs text-[#a0a0a5]">Дэлгэрэнгүй тохиргоо</p>
+          <p className="text-sm font-semibold text-foreground">{schema?.label || block.type}</p>
+          <p className="text-xs text-muted-foreground">Дэлгэрэнгүй тохиргоо</p>
         </div>
         <Button type="button" size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onClose}>
           <X className="size-4" />
@@ -34,8 +34,8 @@ export function BlockInspector({
         {schema ? (
           <>
             {hasImages ? (
-              <div className="rounded-lg border border-[#e31e24]/30 bg-[#e31e24]/5 p-4">
-                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#e31e24]">
+              <div className="rounded-lg border border-border bg-muted/40 p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <ImageIcon className="size-4" />
                   Зураг
                 </div>

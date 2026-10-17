@@ -19,5 +19,5 @@ export default function SiteEditorLayout({ children }: { children: React.ReactNo
       .catch(() => router.replace("/login"));
   }, [router]);
 
-  return <div className="min-h-screen bg-[#070707]">{children}</div>;
+  return <div className="min-h-screen bg-background">{children}</div>;
 }

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="mn" className={`dark ${geist.variable} ${cinzel.variable} h-full antialiased`}>
+    <html lang="mn" className={`${geist.variable} ${cinzel.variable} h-full antialiased`}>
       <body className="min-h-full bg-background font-sans text-foreground">
         {children}
         <Toaster />

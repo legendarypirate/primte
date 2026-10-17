@@ -26,7 +26,7 @@ export function InlineEdit({
         rows={Math.max(2, value.split("\n").length)}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "w-full resize-none bg-[#e31e24]/10 outline-none ring-2 ring-transparent focus:ring-[#e31e24]/50 rounded-md px-2 py-1",
+          "w-full resize-none bg-white/10 outline-none ring-2 ring-transparent focus:ring-white/50 rounded-md px-2 py-1",
           className
         )}
       />
@@ -41,7 +41,7 @@ export function InlineEdit({
       onClick={(e) => e.stopPropagation()}
       onBlur={(e) => onChange(e.currentTarget.textContent?.trim() || "")}
       className={cn(
-        "outline-none focus:ring-2 focus:ring-[#e31e24]/50 rounded px-1 -mx-1 cursor-text empty:before:text-[#ffffff35]",
+        "outline-none focus:ring-2 focus:ring-white/50 rounded px-1 -mx-1 cursor-text empty:before:text-[#ffffff35]",
         !value && "before:content-[attr(data-placeholder)]",
         className
       )}

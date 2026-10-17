@@ -36,11 +36,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#e31e2422,transparent_45%),#070707] p-6">
-      <form onSubmit={submit} className="w-full max-w-md space-y-5 rounded-2xl border border-border bg-card p-8">
+    <div className="flex min-h-screen items-center justify-center bg-background p-6">
+      <form onSubmit={submit} className="w-full max-w-md space-y-5 rounded-xl border border-border bg-card p-8 shadow-sm">
         <div>
-          <p className="text-xs tracking-[0.3em] text-primary">PRACTICAL SHOOTING CLUB</p>
-          <h1 className="mt-1 font-heading text-3xl tracking-[0.18em] text-primary">PRIME</h1>
+          <p className="text-xs tracking-[0.3em] text-muted-foreground">PRACTICAL SHOOTING CLUB</p>
+          <h1 className="mt-1 font-heading text-3xl tracking-[0.18em] text-foreground">PRIME</h1>
           <p className="mt-2 text-sm text-muted-foreground">Админ нэвтрэх</p>
         </div>
         <div className="space-y-2">

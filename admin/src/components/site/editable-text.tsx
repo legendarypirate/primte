@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { usePageContent } from "./page-content-context";
 
 const editChrome =
-  "rounded-md border border-dashed border-[#e31e24]/50 bg-[#e31e24]/8 px-2 py-1 outline-none transition-colors hover:border-[#e31e24] focus:border-[#e31e24] focus:bg-[#e31e24]/12 focus:ring-2 focus:ring-[#e31e24]/30";
+  "rounded-md border border-dashed border-white/40 bg-white/8 px-2 py-1 outline-none transition-colors hover:border-white focus:border-white focus:bg-white/12 focus:ring-2 focus:ring-white/30";
 
 export function EditableText({
   field,

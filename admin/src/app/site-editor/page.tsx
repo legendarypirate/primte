@@ -164,7 +164,7 @@ export default function SiteEditorPage() {
   };
 
   if (loading && !pages.length && !layoutDraft) {
-    return <div className="flex min-h-screen items-center justify-center text-[#a0a0a5]">Уншиж байна...</div>;
+    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Уншиж байна...</div>;
   }
 
   const layoutEdit = layoutDraft
@@ -189,31 +189,31 @@ export default function SiteEditorPage() {
 
   return (
     <>
-      <header className="sticky top-0 z-[100] border-b border-[#ffffff15] bg-[#0e0e10]/95 backdrop-blur-md">
-        <div className="flex items-center gap-3 border-b border-[#ffffff10] px-4 py-2">
+      <header className="sticky top-0 z-[100] border-b border-border bg-background/95 backdrop-blur-md">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-2">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs text-[#a0a0a5] transition-colors hover:text-white"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-3.5" />
             Admin
           </Link>
-          <span className="text-[#ffffff20]">|</span>
-          <Globe className="size-4 text-[#e31e24]" />
-          <span className="font-heading text-sm font-semibold tracking-wider text-white">PRIME SITE EDITOR</span>
+          <span className="text-border">|</span>
+          <Globe className="size-4 text-foreground" />
+          <span className="font-heading text-sm font-semibold tracking-wider text-foreground">PRIME SITE EDITOR</span>
           {isDirty ? (
-            <Badge variant="outline" className="border-[#e31e24]/50 text-[#e31e24] text-[10px]">
+            <Badge variant="outline" className="text-[10px]">
               Хадгалаагүй
             </Badge>
           ) : (
-            <Badge className="bg-green-600/20 text-green-400 text-[10px]">Нийтэлсэн</Badge>
+            <Badge variant="secondary" className="text-[10px]">Нийтэлсэн</Badge>
           )}
           <div className="ml-auto flex items-center gap-2">
             <Button
               type="button"
               size="sm"
               variant="ghost"
-              className="h-8 text-[#a0a0a5] hover:text-white"
+              className="h-8"
               onClick={resetLayout}
             >
               <RefreshCw className="size-3.5" />
@@ -222,7 +222,7 @@ export default function SiteEditorPage() {
             <Link
               href={viewMode === "layout" ? "/" : pageMeta?.path || "/"}
               target="_blank"
-              className="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs text-[#a0a0a5] hover:bg-[#ffffff10] hover:text-white"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <ExternalLink className="size-3.5" />
               Live
@@ -230,7 +230,7 @@ export default function SiteEditorPage() {
             <Button
               type="button"
               size="sm"
-              className="h-8 bg-[#e31e24] px-4 hover:bg-[#c91920]"
+              className="h-8 px-4"
               disabled={publishing || !isDirty}
               onClick={publish}
             >
@@ -241,7 +241,7 @@ export default function SiteEditorPage() {
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto px-4 py-2.5">
-          <span className="flex shrink-0 items-center gap-1.5 pr-2 text-[10px] font-bold uppercase tracking-widest text-[#a0a0a5]">
+          <span className="flex shrink-0 items-center gap-1.5 pr-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             <Layers className="size-3.5" />
             Засвар
           </span>
@@ -251,15 +251,15 @@ export default function SiteEditorPage() {
             className={cn(
               "flex shrink-0 flex-col rounded-lg border px-4 py-2 text-left transition-all",
               viewMode === "layout"
-                ? "border-[#e31e24] bg-[#e31e24] text-white shadow-lg shadow-[#e31e24]/20"
-                : "border-[#ffffff15] bg-[#141416] text-white hover:border-[#e31e24]/40"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card text-foreground hover:bg-muted"
             )}
           >
             <span className="flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap">
               <LayoutTemplate className="size-3.5" />
               Header & Footer
             </span>
-            <span className={cn("text-[10px] whitespace-nowrap", viewMode === "layout" ? "text-white/75" : "text-[#a0a0a5]")}>
+            <span className={cn("text-[10px] whitespace-nowrap", viewMode === "layout" ? "text-primary-foreground/75" : "text-muted-foreground")}>
               Navbar · Footer · Logo
             </span>
           </button>
@@ -274,12 +274,12 @@ export default function SiteEditorPage() {
                 className={cn(
                   "flex shrink-0 flex-col rounded-lg border px-4 py-2 text-left transition-all",
                   active
-                    ? "border-[#e31e24] bg-[#e31e24] text-white shadow-lg shadow-[#e31e24]/20"
-                    : "border-[#ffffff15] bg-[#141416] text-white hover:border-[#e31e24]/40"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground hover:bg-muted"
                 )}
               >
                 <span className="text-sm font-semibold whitespace-nowrap">{page.title}</span>
-                <span className={cn("text-[10px] whitespace-nowrap", active ? "text-white/75" : "text-[#a0a0a5]")}>
+                <span className={cn("text-[10px] whitespace-nowrap", active ? "text-primary-foreground/75" : "text-muted-foreground")}>
                   {meta?.path || `/${page.slug}`} · Засварлах
                 </span>
               </button>
@@ -288,15 +288,15 @@ export default function SiteEditorPage() {
         </div>
       </header>
 
-      <div className="border-b border-[#ffffff08] bg-[#0a0a0c] px-4 py-2 text-center text-[11px] text-[#a0a0a5]">
+      <div className="border-b border-border bg-muted/40 px-4 py-2 text-center text-[11px] text-muted-foreground">
         {viewMode === "layout" ? (
           <>
-            Header/Footer текст дээр дарж засна · <span className="text-[#e31e24]">Тохиргоо</span> дээр nav link, social засна
+            Header/Footer текст дээр дарж засна · <span className="font-medium text-foreground">Тохиргоо</span> дээр nav link, social засна
           </>
         ) : (
           <>
-            Улаан хүрээтэй текст дээр дарж засна · Header/Footer мөн засагдана ·{" "}
-            <span className="text-[#e31e24]">Нийтэх</span> дарахад хадгалагдана
+            Хүрээтэй текст дээр дарж засна · Header/Footer мөн засагдана ·{" "}
+            <span className="font-medium text-foreground">Нийтэх</span> дарахад хадгалагдана
           </>
         )}
       </div>
@@ -306,10 +306,10 @@ export default function SiteEditorPage() {
           <SiteShell layout={layoutDraft} edit={layoutEdit}>
             {viewMode === "layout" ? (
               <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4 py-16 text-center">
-                <LayoutTemplate className="size-10 text-[#e31e24]/50" />
-                <p className="max-w-md text-sm text-[#a0a0a5]">
+                <LayoutTemplate className="size-10 text-muted-foreground" />
+                <p className="max-w-md text-sm text-muted-foreground">
                   Header болон footer дээр шууд засвар хийнэ. Nav link, social хаяг, logo-г{" "}
-                  <span className="text-[#e31e24]">Тохиргоо</span> товчоор нээнэ.
+                  <span className="font-medium text-foreground">Тохиргоо</span> товчоор нээнэ.
                 </p>
               </div>
             ) : (
