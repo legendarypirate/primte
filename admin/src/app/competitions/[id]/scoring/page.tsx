@@ -119,7 +119,7 @@ export default function CompetitionScoringPage() {
 
       {overview && match && (
         <Tabs value={tab} onValueChange={(v) => setTab(String(v))} className="gap-4">
-          <TabsList variant="line" className="mb-4 h-auto w-full flex-wrap items-center justify-start gap-2 border-b border-border pb-3">
+          <TabsList variant="line" className="mb-6 flex w-full flex-wrap items-center justify-start gap-1 border-b border-border">
             <TabsTrigger value="overview" className={TRIGGER}>Хяналт</TabsTrigger>
             <TabsTrigger value="scores" className={TRIGGER}>
               Баталгаажсан оноо

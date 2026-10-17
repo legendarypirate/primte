@@ -5,7 +5,16 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
-import { Trophy } from "lucide-react";
+import {
+  CalendarDays,
+  CreditCard,
+  FileText,
+  Layers,
+  Search,
+  SlidersHorizontal,
+  Trophy,
+  Users,
+} from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { cn } from "@/lib/utils";
 
 type Division = { id: string; abbreviation: string; name: string };
 type MatchType = { id: string; name: string };
@@ -115,13 +125,13 @@ function toDateInput(value?: string | null) {
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    confirmed: "bg-green-600",
-    paid: "bg-green-600",
-    waitlist: "bg-amber-600",
-    pending: "bg-amber-600",
+    confirmed: "bg-emerald-600/90 text-white hover:bg-emerald-600",
+    paid: "bg-emerald-600/90 text-white hover:bg-emerald-600",
+    waitlist: "bg-amber-600/90 text-white hover:bg-amber-600",
+    pending: "bg-amber-600/90 text-white hover:bg-amber-600",
     cancelled: "bg-muted text-muted-foreground",
   };
-  return <Badge className={map[status] || "bg-secondary"}>{status}</Badge>;
+  return <Badge className={cn("text-[11px] px-2 py-0.5 font-normal tracking-wide", map[status] || "bg-secondary")}>{status}</Badge>;
 }
 
 export default function CompetitionDetailPage() {
@@ -134,6 +144,8 @@ export default function CompetitionDetailPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [joined, setJoined] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [regSearch, setRegSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const load = useCallback(async () => {
     const [compRes, lookupRes, regRes] = await Promise.all([
@@ -260,6 +272,24 @@ export default function CompetitionDetailPage() {
     );
   }
 
+  const filteredRegistrations = registrations.filter((r) => {
+    if (statusFilter === "confirmed" && r.status !== "confirmed" && r.status !== "paid") return false;
+    if (statusFilter === "waitlist" && r.status !== "waitlist" && r.status !== "pending") return false;
+    if (statusFilter === "cancelled" && r.status !== "cancelled") return false;
+    if (!regSearch.trim()) return true;
+    const q = regSearch.toLowerCase();
+    const name = r.member?.name?.toLowerCase() || "";
+    const code = r.member?.memberCode?.toLowerCase() || "";
+    const squad = r.squadLabel?.toLowerCase() || "";
+    const phone = r.member?.phone?.toLowerCase() || "";
+    const division = r.division?.abbreviation?.toLowerCase() || "";
+    return name.includes(q) || code.includes(q) || squad.includes(q) || phone.includes(q) || division.includes(q);
+  });
+
+  const totalPaid = registrations
+    .filter((r) => r.status === "confirmed" || r.status === "paid")
+    .reduce((sum, r) => sum + (r.feePaid || 0), 0);
+
   return (
     <Shell>
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -276,18 +306,37 @@ export default function CompetitionDetailPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="basic" className="gap-4">
+      <Tabs defaultValue="basic" className="gap-6">
         <TabsList
           variant="line"
-          className="mb-6 h-auto w-full flex-wrap items-center justify-start gap-2 border-b border-border pb-3"
+          className="mb-6 flex w-full flex-wrap items-center justify-start gap-1 border-b border-border"
         >
-          <TabsTrigger value="basic" className="h-10 flex-none px-4 text-sm sm:text-base">Үндсэн</TabsTrigger>
-          <TabsTrigger value="divisions" className="h-10 flex-none px-4 text-sm sm:text-base">Ангилал</TabsTrigger>
-          <TabsTrigger value="squads" className="h-10 flex-none px-4 text-sm sm:text-base">Скуад & хуваарь</TabsTrigger>
-          <TabsTrigger value="content" className="h-10 flex-none px-4 text-sm sm:text-base">Агуулга</TabsTrigger>
-          <TabsTrigger value="registration" className="h-10 flex-none px-4 text-sm sm:text-base">Бүртгэл & хураамж</TabsTrigger>
-          <TabsTrigger value="competitors" className="h-10 flex-none px-4 text-sm sm:text-base">
-            Оролцогчид ({registrations.length})
+          <TabsTrigger value="basic">
+            <SlidersHorizontal className="size-4" />
+            Үндсэн
+          </TabsTrigger>
+          <TabsTrigger value="divisions">
+            <Layers className="size-4" />
+            Ангилал
+          </TabsTrigger>
+          <TabsTrigger value="squads">
+            <CalendarDays className="size-4" />
+            Скуад & хуваарь
+          </TabsTrigger>
+          <TabsTrigger value="content">
+            <FileText className="size-4" />
+            Агуулга
+          </TabsTrigger>
+          <TabsTrigger value="registration">
+            <CreditCard className="size-4" />
+            Бүртгэл & хураамж
+          </TabsTrigger>
+          <TabsTrigger value="competitors">
+            <Users className="size-4" />
+            Оролцогчид
+            <span className="ml-1 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+              {registrations.length}
+            </span>
           </TabsTrigger>
         </TabsList>
 
@@ -403,23 +452,209 @@ export default function CompetitionDetailPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="content" className="mt-2">
+        <TabsContent value="content" className="mt-2 space-y-4">
           <Card>
-            <CardContent className="grid gap-4 pt-6">
+            <CardHeader><CardTitle>Тэмцээний дэлгэрэнгүй агуулга</CardTitle></CardHeader>
+            <CardContent className="grid gap-4">
               <div className="space-y-1"><Label>Тэмцээний тухай</Label><Textarea rows={4} value={form.about} onChange={(e) => setForm({ ...form, about: e.target.value })} /></div>
               <div className="space-y-1"><Label>Шагналт байрууд</Label><Textarea rows={4} value={form.prizes} onChange={(e) => setForm({ ...form, prizes: e.target.value })} /></div>
               <div className="space-y-1"><Label>Дүрэм</Label><Textarea rows={4} value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} /></div>
-              <div className="space-y-1"><Label>Анхаарах шаардлага (мөр бүрт нэг)</Label><Textarea rows={4} value={form.requirements.join("\n")} onChange={(e) => listField("requirements", e.target.value)} /></div>
-              <div className="space-y-1"><Label>Буцаалтын нөхцөл (мөр бүрт нэг)</Label><Textarea rows={3} value={form.refundPolicy.join("\n")} onChange={(e) => listField("refundPolicy", e.target.value)} /></div>
               <div className="space-y-1"><Label>Нэмэлт мэдээлэл</Label><Textarea rows={3} value={form.extraInfo} onChange={(e) => setForm({ ...form, extraInfo: e.target.value })} /></div>
-              <div className="space-y-1"><Label>Хоцорсон бүртгэлийн тайлбар</Label><Textarea rows={3} value={form.lateRegistrationNote} onChange={(e) => setForm({ ...form, lateRegistrationNote: e.target.value })} /></div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Онцлох баримтууд (Facts)</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">Вэбсайтын тэмцээний хуудсанд харагдах товч мэдээллийн картууд</p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setForm({ ...form, facts: [...form.facts, defaultFact()] })}
+              >
+                + Баримт нэмэх
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {form.facts.map((fact, idx) => (
+                <div key={idx} className="grid gap-2 rounded-lg border p-3 md:grid-cols-3">
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                    value={fact.icon}
+                    onChange={(e) => {
+                      const facts = [...form.facts];
+                      facts[idx] = { ...fact, icon: e.target.value };
+                      setForm({ ...form, facts });
+                    }}
+                  >
+                    {FACT_ICONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  <Input
+                    placeholder="Гарчиг"
+                    value={fact.title}
+                    onChange={(e) => {
+                      const facts = [...form.facts];
+                      facts[idx] = { ...fact, title: e.target.value };
+                      setForm({ ...form, facts });
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Тайлбар"
+                      value={fact.body}
+                      onChange={(e) => {
+                        const facts = [...form.facts];
+                        facts[idx] = { ...fact, body: e.target.value };
+                        setForm({ ...form, facts });
+                      }}
+                    />
+                    <IconActionButton
+                      action="delete"
+                      onClick={() => setForm({ ...form, facts: form.facts.filter((_, j) => j !== idx) })}
+                    />
+                  </div>
+                </div>
+              ))}
+              {!form.facts.length && (
+                <p className="text-center py-4 text-xs text-muted-foreground">Баримт бүртгэгдээгүй байна</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="registration" className="mt-2 space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-xs text-muted-foreground">Бүртгэлийн хураамж</div>
+                <div className="mt-1 font-heading text-2xl text-primary">{tugrik(form.fee)}</div>
+                <div className="text-xs text-muted-foreground">Нэг тамирчны төлбөр</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-xs text-muted-foreground">Оролцогчдын багтаамж</div>
+                <div className="mt-1 font-heading text-2xl">{joined} / {form.capacity}</div>
+                <div className="text-xs text-muted-foreground">
+                  {form.capacity > joined ? `${form.capacity - joined} сул суудалтай` : "Дүүрсэн"}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-xs text-muted-foreground">Төлбөр төлөгдсөн дүн</div>
+                <div className="mt-1 font-heading text-2xl text-emerald-400">{tugrik(totalPaid)}</div>
+                <div className="text-xs text-muted-foreground">
+                  {registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length} баталгаажсан бүртгэлээс
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Бүртгэл ба хураамжийн тохиргоо</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Хураамж (₮)</Label>
+                <Input
+                  type="number"
+                  value={form.fee}
+                  onChange={(e) => setForm({ ...form, fee: Number(e.target.value) })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Хүчин чадал (Тамирчдын тоо)</Label>
+                <Input
+                  type="number"
+                  value={form.capacity}
+                  onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Бүртгэл нээгдэх огноо & цаг</Label>
+                <Input
+                  type="datetime-local"
+                  value={form.registrationOpenAt}
+                  onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Бүртгэл хаагдах огноо & цаг</Label>
+                <Input
+                  type="datetime-local"
+                  value={form.registrationCloseAt}
+                  onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <Label>Хоцорсон бүртгэлийн тайлбар / журам</Label>
+                <Textarea
+                  rows={2}
+                  value={form.lateRegistrationNote}
+                  onChange={(e) => setForm({ ...form, lateRegistrationNote: e.target.value })}
+                  placeholder="Бүртгэлийн хугацаа дууссаны дараах нөхцөл..."
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Анхаарах шаардлага (мөр бүрт нэг)</Label>
+                <Textarea
+                  rows={4}
+                  value={form.requirements.join("\n")}
+                  onChange={(e) => listField("requirements", e.target.value)}
+                  placeholder="Буудлагын үнэмлэхтэй байх&#10;Хамгаалалтын шил зүүх"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Буцаалтын нөхцөл (мөр бүрт нэг)</Label>
+                <Textarea
+                  rows={4}
+                  value={form.refundPolicy.join("\n")}
+                  onChange={(e) => listField("refundPolicy", e.target.value)}
+                  placeholder="Тэмцээнээс 48 цагийн өмнө 100% буцаана"
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="competitors" className="mt-2">
           <Card>
-            <CardHeader><CardTitle>Оролцогчдын жагсаалт</CardTitle></CardHeader>
+            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Оролцогчдын жагсаалт</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Нийт {registrations.length} бүртгэл · {registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length} баталгаажсан
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative w-48 sm:w-64">
+                  <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Хайх (нэр, код, скуад)..."
+                    value={regSearch}
+                    onChange={(e) => setRegSearch(e.target.value)}
+                    className="h-8 pl-8 text-xs"
+                  />
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="h-8 rounded-md border border-input bg-transparent px-2.5 text-xs text-foreground"
+                >
+                  <option value="all">Бүгд ({registrations.length})</option>
+                  <option value="confirmed">Баталгаажсан ({registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length})</option>
+                  <option value="waitlist">Хүлээгдэж буй ({registrations.filter((r) => r.status === "waitlist" || r.status === "pending").length})</option>
+                  <option value="cancelled">Цуцлагдсан ({registrations.filter((r) => r.status === "cancelled").length})</option>
+                </select>
+              </div>
+            </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
@@ -434,17 +669,17 @@ export default function CompetitionDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {registrations.map((r) => (
+                  {filteredRegistrations.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell>
-                        <div className="font-medium">{r.member?.name}</div>
-                        <div className="text-xs text-muted-foreground">{r.member?.memberCode}</div>
+                        <div className="font-medium leading-tight">{r.member?.name || "—"}</div>
+                        <div className="text-[11px] text-muted-foreground font-mono leading-tight">{r.member?.memberCode || ""}</div>
                       </TableCell>
                       <TableCell>{r.division ? `${r.division.abbreviation} (${r.division.name})` : "—"}</TableCell>
                       <TableCell>{r.category || "—"}</TableCell>
                       <TableCell>{r.squadLabel || "—"}</TableCell>
                       <TableCell>{statusBadge(r.status)}</TableCell>
-                      <TableCell>{r.feePaid ? tugrik(r.feePaid) : "—"}</TableCell>
+                      <TableCell className="tabular-nums">{r.feePaid ? tugrik(r.feePaid) : "—"}</TableCell>
                       <TableCell>
                         <ActionCell>
                           {r.status === "waitlist" && (
@@ -461,8 +696,8 @@ export default function CompetitionDetailPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {!registrations.length && (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Оролцогч байхгүй</TableCell></TableRow>
+                  {!filteredRegistrations.length && (
+                    <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Оролцогч олдсонгүй</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
