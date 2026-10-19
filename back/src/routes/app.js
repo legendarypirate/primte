@@ -16,6 +16,7 @@ const {
   MatchType,
 } = require('../models');
 const { requireMember } = require('../middleware/auth');
+const { awardCompetitionXp, listPointHistory } = require('../services/pointLedger');
 const {
   serializeMember,
   serializeProduct,
@@ -160,7 +161,9 @@ router.get('/competitions/:id', async (req, res) => {
 });
 
 router.post('/competitions/:id/register', async (req, res) => {
-  const competition = await Competition.findByPk(req.params.id);
+  const competition = await Competition.findByPk(req.params.id, {
+    include: [{ model: MatchType, required: false }],
+  });
   if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
   if (competition.status === 'upcoming') {
     return res.status(400).json({ message: 'Бүртгэл хараахан нээгдээгүй.' });
@@ -231,6 +234,7 @@ router.post('/competitions/:id/register', async (req, res) => {
     }
     if (shouldPayNow) {
       await req.member.increment('competitionCount', { by: 1, transaction: t });
+      await awardCompetitionXp(req.member, competition, { transaction: t });
     }
     registration = await Registration.create(
       {
@@ -265,7 +269,9 @@ router.post('/competitions/:id/register', async (req, res) => {
 });
 
 router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
-  const competition = await Competition.findByPk(req.params.id);
+  const competition = await Competition.findByPk(req.params.id, {
+    include: [{ model: MatchType, required: false }],
+  });
   if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
 
   const { divisionId, divisionAbbreviation, category, squadLabel } = req.body || {};
@@ -339,6 +345,7 @@ router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
       },
       { transaction: t }
     );
+    await awardCompetitionXp(req.member, competition, { transaction: t });
   });
 
   await req.member.reload();
@@ -367,7 +374,9 @@ router.post('/competitions/:id/register/pay', async (req, res) => {
   });
   if (!registration) return res.status(404).json({ message: 'Хүлээлгийн бүртгэл олдсонгүй.' });
 
-  const competition = await Competition.findByPk(req.params.id);
+  const competition = await Competition.findByPk(req.params.id, {
+    include: [{ model: MatchType, required: false }],
+  });
   if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
   if (req.member.walletBalance < competition.fee) {
     return res.status(400).json({ message: 'Wallet үлдэгдэл хүрэлцэхгүй байна.' });
@@ -389,6 +398,7 @@ router.post('/competitions/:id/register/pay', async (req, res) => {
       },
       { transaction: t }
     );
+    await awardCompetitionXp(req.member, competition, { transaction: t });
   });
 
   await req.member.reload();
@@ -499,6 +509,10 @@ router.get('/notices', async (_req, res) => {
 
 router.get('/profile', async (req, res) => {
   res.json({ member: serializeMember(req.member, req) });
+});
+
+router.get('/points', async (req, res) => {
+  res.json(await listPointHistory(req.member, { kind: req.query.kind }));
 });
 
 router.get('/qr', async (req, res) => {

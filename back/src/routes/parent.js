@@ -16,6 +16,7 @@ const {
   sequelize,
 } = require('../models');
 const { requireParent } = require('../middleware/auth');
+const { listPointHistory } = require('../services/pointLedger');
 const {
   serializeMember,
   serializeChildSummary,
@@ -146,6 +147,12 @@ router.get('/children/:id/attendance', async (req, res) => {
     })),
     logs: records.map((r) => serializeAttendance(r)),
   });
+});
+
+router.get('/children/:id/points', async (req, res) => {
+  const child = await getChildForParent(req.parent.id, req.params.id);
+  if (!child) return res.status(404).json({ message: 'Хүүхэд олдсонгүй.' });
+  res.json(await listPointHistory(child, { kind: req.query.kind }));
 });
 
 router.get('/children/:id/progress', async (req, res) => {

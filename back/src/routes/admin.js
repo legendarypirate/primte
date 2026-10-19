@@ -35,9 +35,13 @@ const { uniqueSlug } = require('../services/productCategoryService');
 const {
   nextStudentCode,
   applyMemberProgression,
-  grantMembersExperience,
 } = require('../services/memberProgression');
 const { toDelta } = require('../domain/membership');
+const {
+  grantMembersExperience: grantPoints,
+  recordAbsoluteChange,
+  listPointHistory,
+} = require('../services/pointLedger');
 
 const COMPETITION_FIELDS = [
   'title', 'subtitle', 'eventDate', 'eventEndDate', 'registrationOpenAt', 'registrationCloseAt',
@@ -314,6 +318,12 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
   const created = await Member.findByPk(member.id, {
     include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
   });
+  await recordAbsoluteChange(created, {
+    prevXp: 0,
+    prevRp: 0,
+    source: 'opening',
+    title: 'Эхний үлдэгдэл',
+  });
   res.status(201).json({ member: serializeMember(created, req) });
 });
 
@@ -324,10 +334,16 @@ router.post('/members/add-xp', requirePermission('members.update'), async (req, 
   const rp = toDelta(req.body?.rp);
   if (!uniqueIds.length) return res.status(400).json({ message: 'Гишүүн сонгоно уу.' });
   if (uniqueIds.length > 500) return res.status(400).json({ message: 'Хамгийн ихдээ 500 гишүүн сонгоно уу.' });
+  if (xp < 0) return res.status(400).json({ message: 'XP зөвхөн нэмэгдэнэ.' });
   if (xp === 0 && rp === 0) return res.status(400).json({ message: 'XP эсвэл RP оруулна уу.' });
 
   const updated = await sequelize.transaction(async (t) => {
-    const members = await grantMembersExperience(uniqueIds, { xp, rp }, { transaction: t });
+    const members = await grantPoints(uniqueIds, { xp, rp }, {
+      transaction: t,
+      source: xp && !rp ? 'admin' : rp && !xp ? 'rating' : 'admin',
+      title: req.body?.title,
+      note: req.body?.note,
+    });
     if (!members.length) return [];
     return Member.findAll({
       where: { id: members.map((m) => m.id) },
@@ -344,13 +360,20 @@ router.get('/members/:id', requirePermission('members.view'), async (req, res) =
     include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
   });
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
-  const [transactions, orders, registrations, attendance] = await Promise.all([
+  const [transactions, orders, registrations, attendance, points] = await Promise.all([
     Transaction.findAll({ where: { memberId: member.id }, order: [['createdAt', 'DESC']] }),
     Order.findAll({ where: { memberId: member.id }, include: [{ model: OrderItem, as: 'items' }] }),
     Registration.findAll({ where: { memberId: member.id }, include: [Competition] }),
     Attendance.findAll({ where: { memberId: member.id }, order: [['createdAt', 'DESC']], limit: 20 }),
+    listPointHistory(member),
   ]);
-  res.json({ member: serializeMember(member, req), transactions, orders, registrations, attendance });
+  res.json({ member: serializeMember(member, req), transactions, orders, registrations, attendance, points });
+});
+
+router.get('/members/:id/points', requirePermission('members.view'), async (req, res) => {
+  const member = await Member.findByPk(req.params.id);
+  if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
+  res.json(await listPointHistory(member, { kind: req.query.kind }));
 });
 
 router.put('/members/:id', requirePermission('members.update'), async (req, res) => {
@@ -418,6 +441,8 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   const password = String(req.body?.password || '').trim();
   if (password) data.passwordHash = await bcrypt.hash(password, 10);
   const current = await Member.findByPk(member.id, { include: [MemberType] });
+  const prevXp = current.xp || 0;
+  const prevRp = current.rp || 0;
   await applyMemberProgression(data, {
     current,
     syncType: req.body?.xp !== undefined || req.body?.rp !== undefined,
@@ -433,6 +458,14 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   const updated = await Member.findByPk(member.id, {
     include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
   });
+  if (req.body?.xp !== undefined || req.body?.rp !== undefined) {
+    await recordAbsoluteChange(updated, {
+      prevXp,
+      prevRp,
+      source: 'admin',
+      title: 'Админ шинэчлэл',
+    });
+  }
   res.json({ member: serializeMember(updated, req) });
 });
 
@@ -773,7 +806,9 @@ router.post('/attendance/scan', requirePermission('attendance.scan'), async (req
   if (!code) return res.status(400).json({ message: 'QR буруу.' });
   const member = await Member.findOne({ where: { memberCode: code } });
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
-  const row = await Attendance.create({ memberId: member.id, note: 'QR scan' });
+  const row = await Attendance.create({ memberId: member.id, kind: 'training', title: 'Бэлтгэл', note: 'QR scan' });
+  const { awardTrainingHourXp } = require('../services/pointLedger');
+  await awardTrainingHourXp(member, row);
   const setting = await Setting.findByPk('club');
   if (setting?.value) {
     const next = { ...setting.value, todayCount: Number(setting.value.todayCount || 0) + 1 };

@@ -2,11 +2,10 @@ const { Op } = require('sequelize');
 const { Member, MemberType } = require('../models');
 const {
   THRESHOLDS,
-  toInt,
   computeMembershipLevel,
   membershipLabel,
-  addExperience,
 } = require('../domain/membership');
+const { clampAbsoluteScores } = require('../domain/points');
 
 async function nextStudentCode() {
   const rows = await Member.findAll({
@@ -43,8 +42,12 @@ function hasParentLink(data = {}, current) {
 }
 
 async function applyMemberProgression(data = {}, { current, syncType = false } = {}) {
-  const xp = data.xp !== undefined ? toInt(data.xp) : toInt(current?.xp);
-  const rp = data.rp !== undefined ? toInt(data.rp) : toInt(current?.rp);
+  const next = clampAbsoluteScores(current, {
+    xp: data.xp !== undefined ? data.xp : current?.xp,
+    rp: data.rp !== undefined ? data.rp : current?.rp,
+  });
+  const xp = next.xp;
+  const rp = next.rp;
   const level = computeMembershipLevel(xp, rp);
   data.xp = xp;
   data.rp = rp;
@@ -104,32 +107,8 @@ async function ensureStudentDefaults() {
   }
 }
 
-async function grantMembersExperience(memberIds, { xp = 0, rp = 0 } = {}, { transaction } = {}) {
-  const ids = [...new Set((memberIds || []).map(String).filter(Boolean))];
-  if (!ids.length) return [];
-  const members = await Member.findAll({
-    where: { id: ids },
-    include: [MemberType],
-    transaction,
-  });
-  for (const member of members) {
-    const next = addExperience(member, { xp, rp });
-    const data = {
-      xp: next.xp,
-      rp: next.rp,
-      parentAccountId: member.parentAccountId,
-      parentId: member.parentId,
-      memberTypeId: member.memberTypeId,
-    };
-    await applyMemberProgression(data, { current: member, syncType: true });
-    await member.update({
-      xp: data.xp,
-      rp: data.rp,
-      level: data.level,
-      memberTypeId: data.memberTypeId,
-    }, { transaction });
-  }
-  return members;
+function grantMembersExperience(memberIds, delta, extra) {
+  return require('./pointLedger').grantMembersExperience(memberIds, delta, extra);
 }
 
 module.exports = {

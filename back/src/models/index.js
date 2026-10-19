@@ -19,6 +19,7 @@ const OrderItem = require('./orderItem');
 const Registration = require('./registration');
 const Attendance = require('./attendance');
 const MemberProgress = require('./memberProgress');
+const MemberPointEvent = require('./memberPointEvent');
 const Payment = require('./payment');
 const Setting = require('./setting');
 const SitePage = require('./sitePage');
@@ -77,6 +78,9 @@ Attendance.belongsTo(Member, { foreignKey: 'memberId' });
 
 Member.hasOne(MemberProgress, { foreignKey: 'memberId', as: 'progress' });
 MemberProgress.belongsTo(Member, { foreignKey: 'memberId' });
+
+Member.hasMany(MemberPointEvent, { foreignKey: 'memberId' });
+MemberPointEvent.belongsTo(Member, { foreignKey: 'memberId' });
 
 Parent.hasMany(Payment, { foreignKey: 'parentId' });
 Payment.belongsTo(Parent, { foreignKey: 'parentId' });
@@ -143,6 +147,7 @@ module.exports = {
   Registration,
   Attendance,
   MemberProgress,
+  MemberPointEvent,
   Payment,
   Setting,
   SitePage,

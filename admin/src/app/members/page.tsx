@@ -562,13 +562,13 @@ export default function MembersPage() {
       <Dialog open={xpOpen} onOpenChange={setXpOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>XP нэмэх</DialogTitle>
+            <DialogTitle>XP / RP бүртгэх</DialogTitle>
             <DialogDescription>
-              Сонгосон {selectedCount} гишүүнд XP/RP нэмнэ. Түвшин автоматаар шинэчлэгдэнэ.
+              XP зөвхөн нэмэгдэнэ. RP чансааны оноо — нэмэх, хасах хоёулаа болно. Сонгосон {selectedCount} гишүүн.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="XP">
+            <Field label="XP (+ only)">
               <Input
                 type="number"
                 min={0}
@@ -576,10 +576,9 @@ export default function MembersPage() {
                 onChange={(e) => setXpAmount(e.target.value === "" ? "" : Number(e.target.value))}
               />
             </Field>
-            <Field label="RP">
+            <Field label="RP (+/−)">
               <Input
                 type="number"
-                min={0}
                 value={rpAmount}
                 onChange={(e) => setRpAmount(e.target.value === "" ? "" : Number(e.target.value))}
               />

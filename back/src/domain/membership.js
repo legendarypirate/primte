@@ -30,7 +30,8 @@ function toDelta(value) {
 }
 
 function addExperience(current = {}, delta = {}) {
-  const xp = Math.max(0, toInt(current.xp) + toDelta(delta.xp));
+  // XP only goes up. RP can move either way, but never below zero.
+  const xp = toInt(current.xp) + Math.max(0, toDelta(delta.xp));
   const rp = Math.max(0, toInt(current.rp) + toDelta(delta.rp));
   return { xp, rp, level: computeMembershipLevel(xp, rp) };
 }

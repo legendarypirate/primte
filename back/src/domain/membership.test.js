@@ -32,5 +32,9 @@ test('addExperience increments XP/RP and recalculates level', () => {
 });
 
 test('addExperience does not go below zero', () => {
-  assert.deepEqual(addExperience({ xp: 10, rp: 5 }, { xp: -40, rp: -1 }), { xp: 0, rp: 4, level: 0 });
+  assert.deepEqual(addExperience({ xp: 10, rp: 5 }, { xp: -40, rp: -1 }), { xp: 10, rp: 4, level: 0 });
+});
+
+test('addExperience never decreases XP', () => {
+  assert.deepEqual(addExperience({ xp: 80, rp: 200 }, { xp: -20, rp: -50 }), { xp: 80, rp: 150, level: 1 });
 });
