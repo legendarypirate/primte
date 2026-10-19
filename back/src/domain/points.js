@@ -76,6 +76,25 @@ function competitionXpAward(competition) {
   return isTrainingMatch(competition) ? XP_AWARDS.trainingMatch : XP_AWARDS.competition;
 }
 
+/** Greedy XP ledger: 10 (тэмцээн), then 5 (бэлтгэл тэмцээн), then 1 (1 цаг бэлтгэл). */
+function decomposeXp(amount) {
+  let left = Math.max(0, Math.round(Number(amount) || 0));
+  const chunks = [];
+  while (left >= XP_AWARDS.competition.xp) {
+    chunks.push(XP_AWARDS.competition);
+    left -= XP_AWARDS.competition.xp;
+  }
+  while (left >= XP_AWARDS.trainingMatch.xp) {
+    chunks.push(XP_AWARDS.trainingMatch);
+    left -= XP_AWARDS.trainingMatch.xp;
+  }
+  while (left >= XP_AWARDS.trainingHour.xp) {
+    chunks.push(XP_AWARDS.trainingHour);
+    left -= XP_AWARDS.trainingHour.xp;
+  }
+  return chunks;
+}
+
 module.exports = {
   XP_AWARDS,
   POINT_RULES,
@@ -83,4 +102,5 @@ module.exports = {
   clampAbsoluteScores,
   isTrainingMatch,
   competitionXpAward,
+  decomposeXp,
 };

@@ -36,3 +36,10 @@ test('training matches award +5 XP', () => {
   assert.equal(competitionXpAward({ title: 'PRIME CUP', tags: [] }).xp, 10);
   assert.equal(isTrainingMatch({ MatchType: { name: 'Practice Match' } }), true);
 });
+
+test('decomposeXp splits 51 into 10 10 10 10 10 1', () => {
+  const { decomposeXp } = require('./points');
+  const chunks = decomposeXp(51).map((c) => c.xp);
+  assert.deepEqual(chunks, [10, 10, 10, 10, 10, 1]);
+  assert.equal(chunks.reduce((a, b) => a + b, 0), 51);
+});
