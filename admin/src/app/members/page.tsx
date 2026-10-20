@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ChevronsUpDown, FilterX, Plus, Search } from "lucide-react";
+import { FilterX, Plus } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, SortHead, TableEmpty, useClientTable } from "@/components/data-table";
 import { cn } from "@/lib/utils";
 import { membershipLabel, membershipLevel } from "@/lib/membership";
 
@@ -116,7 +117,6 @@ function num(value: number | "") {
   return value === "" ? 0 : Number(value);
 }
 
-const PAGE_SIZE = 50;
 const emptyFilters = {
   status: "",
   memberTypeId: "",
@@ -167,7 +167,6 @@ export default function MembersPage() {
   const [nextMemberCode, setNextMemberCode] = useState("S0001");
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<MemberFilters>(emptyFilters);
-  const [page, setPage] = useState(1);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -247,9 +246,11 @@ export default function MembersPage() {
     return next;
   }, [members, q, filters, sortKey, sortDir]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const table = useClientTable(filtered, {
+    pageSize: 50,
+    resetKey: `${query}|${filters.status}|${filters.memberTypeId}|${filters.level}|${filters.gender}|${filters.programId}|${filters.classification}`,
+  });
+  const visible = table.visible;
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const visibleIds = visible.map((m) => m.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedSet.has(id));
@@ -260,13 +261,11 @@ export default function MembersPage() {
 
   function setFilter<K extends keyof MemberFilters>(key: K, value: MemberFilters[K]) {
     setFilters((current) => ({ ...current, [key]: value }));
-    setPage(1);
   }
 
   function clearFilters() {
     setQuery("");
     setFilters(emptyFilters);
-    setPage(1);
   }
 
   function toggleOne(id: string) {
@@ -321,7 +320,6 @@ export default function MembersPage() {
       setSortKey(key);
       setSortDir("asc");
     }
-    setPage(1);
   }
 
   function openCreate() {
@@ -353,97 +351,100 @@ export default function MembersPage() {
       </div>
 
       <Card>
-        <CardContent className="space-y-4 pt-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative min-w-50 max-w-sm flex-1">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-8"
-                placeholder="Нэр, код, имэйл, утас..."
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setPage(1);
-                }}
-              />
-            </div>
-            <div className="w-36 shrink-0">
-              <FieldSelect value={filters.status} onChange={(status) => setFilter("status", status)}>
-                <option value="">Бүх төлөв</option>
-                <option value="active">Идэвхтэй</option>
-                <option value="inactive">Идэвхгүй</option>
-                <option value="expired">Хугацаа дууссан</option>
-              </FieldSelect>
-            </div>
-            <div className="w-44 shrink-0">
-              <FieldSelect value={filters.memberTypeId} onChange={(memberTypeId) => setFilter("memberTypeId", memberTypeId)}>
-                <option value="">Бүх төрөл</option>
-                {memberTypes.map((type) => (
-                  <option key={type.id} value={type.id}>{type.name}</option>
-                ))}
-              </FieldSelect>
-            </div>
-            <div className="w-40 shrink-0">
-              <FieldSelect value={filters.level} onChange={(level) => setFilter("level", level)}>
-                <option value="">Бүх түвшин</option>
-                <option value="0">Student member</option>
-                <option value="1">Level 1</option>
-                <option value="2">Level 2</option>
-                <option value="3">Level 3</option>
-              </FieldSelect>
-            </div>
-            <div className="w-32 shrink-0">
-              <FieldSelect value={filters.gender} onChange={(gender) => setFilter("gender", gender)}>
-                <option value="">Хүйс</option>
-                <option value="эр">эр</option>
-                <option value="эм">эм</option>
-              </FieldSelect>
-            </div>
-            <div className="w-44 shrink-0">
-              <FieldSelect value={filters.programId} onChange={(programId) => setFilter("programId", programId)}>
-                <option value="">Бүх хөтөлбөр</option>
-                {activities.map((activity) => (
-                  <option key={activity.id} value={activity.id}>{activity.name}</option>
-                ))}
-              </FieldSelect>
-            </div>
-            {classifications.length > 0 && (
-              <div className="w-40 shrink-0">
-                <FieldSelect value={filters.classification} onChange={(classification) => setFilter("classification", classification)}>
-                  <option value="">Ангилал</option>
-                  {classifications.map((value) => (
-                    <option key={value} value={value}>{value}</option>
-                  ))}
-                </FieldSelect>
-              </div>
-            )}
-            {hasFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                <FilterX className="size-4" /> Цэвэрлэх
-              </Button>
-            )}
-            <div className="ml-auto text-sm text-muted-foreground">
-              {filtered.length} гишүүн · хуудас {currentPage}/{pageCount}
-            </div>
-          </div>
-          {selectedCount > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
-              <span className="text-sm font-medium">{selectedCount} сонгосон</span>
-              {!allFilteredSelected && filtered.length > selectedCount && (
-                <Button variant="ghost" size="sm" onClick={selectFiltered}>
-                  Шүүлт дэх бүгдийг сонгох ({filtered.length})
-                </Button>
-              )}
-              <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
-                Болих
-              </Button>
-              {canAddXp && (
-                <Button size="sm" className="ml-auto" onClick={() => setXpOpen(true)}>
-                  XP нэмэх
-                </Button>
-              )}
-            </div>
-          )}
+        <CardContent className="pt-6">
+          <DataTable
+            search={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="Нэр, код, имэйл, утас..."
+            unit="гишүүн"
+            total={table.total}
+            page={table.page}
+            pageCount={table.pageCount}
+            onPageChange={table.setPage}
+            pageSize={table.pageSize}
+            onPageSizeChange={table.setPageSize}
+            from={table.from}
+            to={table.to}
+            filters={
+              <>
+                <div className="w-36 shrink-0">
+                  <FieldSelect value={filters.status} onChange={(status) => setFilter("status", status)}>
+                    <option value="">Бүх төлөв</option>
+                    <option value="active">Идэвхтэй</option>
+                    <option value="inactive">Идэвхгүй</option>
+                    <option value="expired">Хугацаа дууссан</option>
+                  </FieldSelect>
+                </div>
+                <div className="w-44 shrink-0">
+                  <FieldSelect value={filters.memberTypeId} onChange={(memberTypeId) => setFilter("memberTypeId", memberTypeId)}>
+                    <option value="">Бүх төрөл</option>
+                    {memberTypes.map((type) => (
+                      <option key={type.id} value={type.id}>{type.name}</option>
+                    ))}
+                  </FieldSelect>
+                </div>
+                <div className="w-40 shrink-0">
+                  <FieldSelect value={filters.level} onChange={(level) => setFilter("level", level)}>
+                    <option value="">Бүх түвшин</option>
+                    <option value="0">Student member</option>
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                  </FieldSelect>
+                </div>
+                <div className="w-32 shrink-0">
+                  <FieldSelect value={filters.gender} onChange={(gender) => setFilter("gender", gender)}>
+                    <option value="">Хүйс</option>
+                    <option value="эр">эр</option>
+                    <option value="эм">эм</option>
+                  </FieldSelect>
+                </div>
+                <div className="w-44 shrink-0">
+                  <FieldSelect value={filters.programId} onChange={(programId) => setFilter("programId", programId)}>
+                    <option value="">Бүх хөтөлбөр</option>
+                    {activities.map((activity) => (
+                      <option key={activity.id} value={activity.id}>{activity.name}</option>
+                    ))}
+                  </FieldSelect>
+                </div>
+                {classifications.length > 0 && (
+                  <div className="w-40 shrink-0">
+                    <FieldSelect value={filters.classification} onChange={(classification) => setFilter("classification", classification)}>
+                      <option value="">Ангилал</option>
+                      {classifications.map((value) => (
+                        <option key={value} value={value}>{value}</option>
+                      ))}
+                    </FieldSelect>
+                  </div>
+                )}
+                {hasFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    <FilterX className="size-4" /> Цэвэрлэх
+                  </Button>
+                )}
+              </>
+            }
+            extra={
+              selectedCount > 0 ? (
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+                  <span className="text-sm font-medium">{selectedCount} сонгосон</span>
+                  {!allFilteredSelected && filtered.length > selectedCount && (
+                    <Button variant="ghost" size="sm" onClick={selectFiltered}>
+                      Шүүлт дэх бүгдийг сонгох ({filtered.length})
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+                    Болих
+                  </Button>
+                  {canAddXp && (
+                    <Button size="sm" className="ml-auto" onClick={() => setXpOpen(true)}>
+                      XP нэмэх
+                    </Button>
+                  )}
+                </div>
+              ) : null
+            }
+          >
           <Table>
             <TableHeader>
               <TableRow>
@@ -532,30 +533,10 @@ export default function MembersPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {visible.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={15} className="py-10 text-center text-muted-foreground">
-                    Гишүүн алга.
-                  </TableCell>
-                </TableRow>
-              )}
+              {visible.length === 0 && <TableEmpty colSpan={15}>Гишүүн алга.</TableEmpty>}
             </TableBody>
           </Table>
-          {filtered.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">
-                {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} / {filtered.length}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>
-                  Өмнөх
-                </Button>
-                <Button variant="outline" size="sm" disabled={currentPage >= pageCount} onClick={() => setPage(currentPage + 1)}>
-                  Дараах
-                </Button>
-              </div>
-            </div>
-          )}
+          </DataTable>
         </CardContent>
       </Card>
 
@@ -639,28 +620,6 @@ function SelectCheckbox({
       aria-label={label}
       className="size-4 accent-primary"
     />
-  );
-}
-
-function SortHead({
-  label,
-  active,
-  dir,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  dir: "asc" | "desc";
-  onClick: () => void;
-}) {
-  const Icon = !active ? ChevronsUpDown : dir === "asc" ? ArrowUp : ArrowDown;
-  return (
-    <TableHead>
-      <button type="button" onClick={onClick} className="inline-flex items-center gap-1 hover:text-foreground">
-        {label}
-        <Icon className={cn("size-3.5", active ? "text-foreground" : "text-muted-foreground")} />
-      </button>
-    </TableHead>
   );
 }
 

@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { FieldSelect } from "@/components/field-select";
 
 type Order = {
   id: string;
@@ -20,10 +21,23 @@ type Order = {
 
 export default function OrdersPage() {
   const [items, setItems] = useState<Order[]>([]);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("");
   async function load() {
     setItems((await api<{ orders: Order[] }>("/api/admin/orders")).orders);
   }
   useEffect(() => { load().catch((e) => toast.error(e.message)); }, []);
+
+  const filtered = useMemo(
+    () =>
+      items.filter(
+        (o) =>
+          (!status || o.status === status) &&
+          matchesQuery(query, [o.Member?.name, o.Member?.memberCode, o.status, ...(o.items || []).map((i) => i.name)])
+      ),
+    [items, query, status]
+  );
+  const table = useClientTable(filtered, { resetKey: `${query}|${status}` });
 
   return (
     <Shell>
@@ -31,6 +45,31 @@ export default function OrdersPage() {
       <Card>
         <CardHeader><CardTitle>Бүх захиалга</CardTitle></CardHeader>
         <CardContent>
+          <DataTable
+            search={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="Гишүүн, бараа..."
+            unit="захиалга"
+            total={table.total}
+            page={table.page}
+            pageCount={table.pageCount}
+            onPageChange={table.setPage}
+            pageSize={table.pageSize}
+            onPageSizeChange={table.setPageSize}
+            from={table.from}
+            to={table.to}
+            filters={
+              <div className="w-36">
+                <FieldSelect value={status} onChange={setStatus}>
+                  <option value="">Бүх төлөв</option>
+                  <option value="pending">pending</option>
+                  <option value="paid">paid</option>
+                  <option value="fulfilled">fulfilled</option>
+                  <option value="cancelled">cancelled</option>
+                </FieldSelect>
+              </div>
+            }
+          >
           <Table>
             <TableHeader>
               <TableRow>
@@ -42,7 +81,7 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((o) => (
+              {table.visible.map((o) => (
                 <TableRow key={o.id}>
                   <TableCell>{o.Member?.name}<div className="text-xs text-muted-foreground">{o.Member?.memberCode}</div></TableCell>
                   <TableCell>{(o.items || []).map((i) => `${i.name} ×${i.quantity}`).join(", ")}</TableCell>
@@ -61,8 +100,10 @@ export default function OrdersPage() {
                   </TableCell>
                 </TableRow>
               ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={5}>Захиалга алга.</TableEmpty>}
             </TableBody>
           </Table>
+          </DataTable>
         </CardContent>
       </Card>
     </Shell>

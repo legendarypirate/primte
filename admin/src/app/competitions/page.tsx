@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type Competition = {
   id: string;
@@ -33,6 +34,8 @@ const empty = { title: "", subtitle: "", eventDate: "", location: "", capacity: 
 export default function CompetitionsPage() {
   const router = useRouter();
   const [items, setItems] = useState<Competition[]>([]);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("");
   const [form, setForm] = useState(empty);
 
   async function load() {
@@ -40,6 +43,17 @@ export default function CompetitionsPage() {
     setItems(data.competitions);
   }
   useEffect(() => { load().catch((e) => toast.error(e.message)); }, []);
+
+  const filtered = useMemo(
+    () =>
+      items.filter(
+        (c) =>
+          (!status || c.status === status) &&
+          matchesQuery(query, [c.title, c.subtitle, c.location, c.status, c.eventDate])
+      ),
+    [items, query, status]
+  );
+  const table = useClientTable(filtered, { resetKey: `${query}|${status}` });
 
   async function create() {
     try {
@@ -83,6 +97,32 @@ export default function CompetitionsPage() {
         <Card>
           <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
           <CardContent>
+            <DataTable
+              search={query}
+              onSearchChange={setQuery}
+              searchPlaceholder="Нэр, байршил..."
+              unit="тэмцээн"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+              filters={
+                <select
+                  className="h-8 w-36 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="">Бүх төлөв</option>
+                  <option value="upcoming">upcoming</option>
+                  <option value="open">open</option>
+                  <option value="past">past</option>
+                </select>
+              }
+            >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -95,7 +135,7 @@ export default function CompetitionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((c) => (
+                {table.visible.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell>
                       <div className="font-medium">{c.title}</div>
@@ -127,8 +167,10 @@ export default function CompetitionsPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={6}>Тэмцээн алга.</TableEmpty>}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       </div>

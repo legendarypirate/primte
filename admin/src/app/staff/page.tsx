@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type Role = { id: string; name: string; slug: string };
 type Staff = {
@@ -26,6 +27,8 @@ const empty = { name: "", email: "", password: "", roleId: "" };
 
 export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
   const [roles, setRoles] = useState<Role[]>([]);
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
@@ -43,6 +46,17 @@ export default function StaffPage() {
   useEffect(() => {
     load().catch((e) => toast.error(e.message));
   }, []);
+
+  const filtered = useMemo(
+    () =>
+      staff.filter(
+        (item) =>
+          (!roleFilter || item.roleId === roleFilter) &&
+          matchesQuery(query, [item.name, item.email, item.role?.name])
+      ),
+    [staff, query, roleFilter]
+  );
+  const table = useClientTable(filtered, { resetKey: `${query}|${roleFilter}` });
 
   async function save() {
     try {
@@ -101,6 +115,30 @@ export default function StaffPage() {
         <Card>
           <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
           <CardContent>
+            <DataTable
+              search={query}
+              onSearchChange={setQuery}
+              searchPlaceholder="Нэр, имэйл..."
+              unit="админ"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+              filters={
+                <div className="w-40">
+                  <FieldSelect value={roleFilter} onChange={setRoleFilter}>
+                    <option value="">Бүх role</option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>{role.name}</option>
+                    ))}
+                  </FieldSelect>
+                </div>
+              }
+            >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -111,7 +149,7 @@ export default function StaffPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {staff.map((item) => (
+                {table.visible.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.email}</TableCell>
@@ -141,8 +179,10 @@ export default function StaffPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={4}>Админ алга.</TableEmpty>}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       </div>

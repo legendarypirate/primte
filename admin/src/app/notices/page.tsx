@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -8,19 +8,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
-import { IconActionButton } from "@/components/icon-action-button";
+import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type Notice = { id: string; title: string; body: string; published: boolean; createdAt: string };
 
 export default function NoticesPage() {
   const [items, setItems] = useState<Notice[]>([]);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState({ title: "", body: "" });
 
   async function load() {
     setItems((await api<{ notices: Notice[] }>("/api/admin/notices")).notices);
   }
   useEffect(() => { load().catch((e) => toast.error(e.message)); }, []);
+  const filtered = useMemo(
+    () => items.filter((n) => matchesQuery(query, [n.title, n.body])),
+    [items, query]
+  );
+  const table = useClientTable(filtered, { resetKey: query });
 
   return (
     <Shell>
@@ -39,17 +48,53 @@ export default function NoticesPage() {
             }}>Нийтлэх</Button>
           </CardContent>
         </Card>
-        <div className="space-y-3">
-          {items.map((n) => (
-            <Card key={n.id}>
-              <CardHeader className="flex-row items-center justify-between">
-                <CardTitle className="text-base">{n.title}</CardTitle>
-                <IconActionButton action="delete" onClick={async () => { await api(`/api/admin/notices/${n.id}`, { method: "DELETE" }); load(); }} />
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">{n.body}</CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
+          <CardContent>
+            <DataTable
+              search={query}
+              onSearchChange={setQuery}
+              searchPlaceholder="Мэдэгдэл хайх..."
+              unit="мэдэгдэл"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Гарчиг</TableHead>
+                    <TableHead>Агуулга</TableHead>
+                    <TableHead>Төлөв</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {table.visible.map((n) => (
+                    <TableRow key={n.id}>
+                      <TableCell className="font-medium">{n.title}</TableCell>
+                      <TableCell className="max-w-sm truncate text-muted-foreground">{n.body}</TableCell>
+                      <TableCell>
+                        <Badge variant={n.published ? "default" : "secondary"}>{n.published ? "нийтэлсэн" : "ноорог"}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <ActionCell>
+                          <IconActionButton action="delete" onClick={async () => { await api(`/api/admin/notices/${n.id}`, { method: "DELETE" }); load(); }} />
+                        </ActionCell>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {table.visible.length === 0 && <TableEmpty colSpan={4}>Мэдэгдэл алга.</TableEmpty>}
+                </TableBody>
+              </Table>
+            </DataTable>
+          </CardContent>
+        </Card>
       </div>
     </Shell>
   );

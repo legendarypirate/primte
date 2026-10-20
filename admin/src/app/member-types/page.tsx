@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type MemberType = {
   id: string;
@@ -36,6 +37,8 @@ const empty = {
 
 export default function MemberTypesPage() {
   const [items, setItems] = useState<MemberType[]>([]);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
 
@@ -47,6 +50,17 @@ export default function MemberTypesPage() {
   useEffect(() => {
     load().catch((e) => toast.error(e.message));
   }, []);
+
+  const filtered = useMemo(
+    () =>
+      items.filter(
+        (item) =>
+          (!category || item.category === category) &&
+          matchesQuery(query, [item.name, item.slug, item.category, item.level])
+      ),
+    [items, query, category]
+  );
+  const table = useClientTable(filtered, { resetKey: `${query}|${category}` });
 
   function payload() {
     return {
@@ -121,6 +135,30 @@ export default function MemberTypesPage() {
         <Card>
           <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
           <CardContent>
+            <DataTable
+              search={query}
+              onSearchChange={setQuery}
+              searchPlaceholder="Төрөл хайх..."
+              unit="төрөл"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+              filters={
+                <div className="w-36">
+                  <FieldSelect value={category} onChange={setCategory}>
+                    <option value="">Бүх ангилал</option>
+                    <option value="student">Student</option>
+                    <option value="official">Official</option>
+                    <option value="junior">Junior</option>
+                  </FieldSelect>
+                </div>
+              }
+            >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -132,7 +170,7 @@ export default function MemberTypesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item) => (
+                {table.visible.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.category}</TableCell>
@@ -171,8 +209,10 @@ export default function MemberTypesPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={5}>Төрөл алга.</TableEmpty>}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import {
@@ -10,7 +10,6 @@ import {
   CreditCard,
   FileText,
   Layers,
-  Search,
   SlidersHorizontal,
   Trophy,
   Users,
@@ -26,6 +25,8 @@ import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, useClientTable } from "@/components/data-table";
+import { FieldSelect } from "@/components/field-select";
 import { cn } from "@/lib/utils";
 
 type Division = { id: string; abbreviation: string; name: string };
@@ -264,6 +265,23 @@ export default function CompetitionDetailPage() {
     }));
   }
 
+  const filteredRegistrations = useMemo(() => {
+    return registrations.filter((r) => {
+      if (statusFilter === "confirmed" && r.status !== "confirmed" && r.status !== "paid") return false;
+      if (statusFilter === "waitlist" && r.status !== "waitlist" && r.status !== "pending") return false;
+      if (statusFilter === "cancelled" && r.status !== "cancelled") return false;
+      if (!regSearch.trim()) return true;
+      const q = regSearch.toLowerCase();
+      const name = r.member?.name?.toLowerCase() || "";
+      const code = r.member?.memberCode?.toLowerCase() || "";
+      const squad = r.squadLabel?.toLowerCase() || "";
+      const phone = r.member?.phone?.toLowerCase() || "";
+      const division = r.division?.abbreviation?.toLowerCase() || "";
+      return name.includes(q) || code.includes(q) || squad.includes(q) || phone.includes(q) || division.includes(q);
+    });
+  }, [registrations, statusFilter, regSearch]);
+  const registrationTable = useClientTable(filteredRegistrations, { resetKey: `${regSearch}|${statusFilter}` });
+
   if (loading) {
     return (
       <Shell>
@@ -271,20 +289,6 @@ export default function CompetitionDetailPage() {
       </Shell>
     );
   }
-
-  const filteredRegistrations = registrations.filter((r) => {
-    if (statusFilter === "confirmed" && r.status !== "confirmed" && r.status !== "paid") return false;
-    if (statusFilter === "waitlist" && r.status !== "waitlist" && r.status !== "pending") return false;
-    if (statusFilter === "cancelled" && r.status !== "cancelled") return false;
-    if (!regSearch.trim()) return true;
-    const q = regSearch.toLowerCase();
-    const name = r.member?.name?.toLowerCase() || "";
-    const code = r.member?.memberCode?.toLowerCase() || "";
-    const squad = r.squadLabel?.toLowerCase() || "";
-    const phone = r.member?.phone?.toLowerCase() || "";
-    const division = r.division?.abbreviation?.toLowerCase() || "";
-    return name.includes(q) || code.includes(q) || squad.includes(q) || phone.includes(q) || division.includes(q);
-  });
 
   const totalPaid = registrations
     .filter((r) => r.status === "confirmed" || r.status === "paid")
@@ -633,29 +637,32 @@ export default function CompetitionDetailPage() {
                   Нийт {registrations.length} бүртгэл · {registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length} баталгаажсан
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative w-48 sm:w-64">
-                  <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Хайх (нэр, код, скуад)..."
-                    value={regSearch}
-                    onChange={(e) => setRegSearch(e.target.value)}
-                    className="h-8 pl-8 text-xs"
-                  />
-                </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="h-8 rounded-md border border-input bg-transparent px-2.5 text-xs text-foreground"
-                >
-                  <option value="all">Бүгд ({registrations.length})</option>
-                  <option value="confirmed">Баталгаажсан ({registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length})</option>
-                  <option value="waitlist">Хүлээгдэж буй ({registrations.filter((r) => r.status === "waitlist" || r.status === "pending").length})</option>
-                  <option value="cancelled">Цуцлагдсан ({registrations.filter((r) => r.status === "cancelled").length})</option>
-                </select>
-              </div>
             </CardHeader>
             <CardContent>
+              <DataTable
+                search={regSearch}
+                onSearchChange={setRegSearch}
+                searchPlaceholder="Хайх (нэр, код, скуад)..."
+                unit="оролцогч"
+                total={registrationTable.total}
+                page={registrationTable.page}
+                pageCount={registrationTable.pageCount}
+                onPageChange={registrationTable.setPage}
+                pageSize={registrationTable.pageSize}
+                onPageSizeChange={registrationTable.setPageSize}
+                from={registrationTable.from}
+                to={registrationTable.to}
+                filters={
+                  <div className="w-52">
+                    <FieldSelect value={statusFilter} onChange={setStatusFilter}>
+                      <option value="all">Бүгд ({registrations.length})</option>
+                      <option value="confirmed">Баталгаажсан ({registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length})</option>
+                      <option value="waitlist">Хүлээгдэж буй ({registrations.filter((r) => r.status === "waitlist" || r.status === "pending").length})</option>
+                      <option value="cancelled">Цуцлагдсан ({registrations.filter((r) => r.status === "cancelled").length})</option>
+                    </FieldSelect>
+                  </div>
+                }
+              >
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -669,7 +676,7 @@ export default function CompetitionDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRegistrations.map((r) => (
+                  {registrationTable.visible.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell>
                         <div className="font-medium leading-tight">{r.member?.name || "—"}</div>
@@ -696,11 +703,10 @@ export default function CompetitionDetailPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {!filteredRegistrations.length && (
-                    <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Оролцогч олдсонгүй</TableCell></TableRow>
-                  )}
+                  {registrationTable.visible.length === 0 && <TableEmpty colSpan={7}>Оролцогч олдсонгүй</TableEmpty>}
                 </TableBody>
               </Table>
+              </DataTable>
             </CardContent>
           </Card>
         </TabsContent>

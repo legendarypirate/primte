@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type Training = { id: string; title: string; subtitle?: string; eventDate?: string; timeLabel?: string; capacity: number; fee: number; imageUrl?: string };
 const empty = { title: "", subtitle: "", eventDate: "", timeLabel: "", capacity: 24, fee: 0, imageUrl: "" };
 
 export default function TrainingsPage() {
   const [items, setItems] = useState<Training[]>([]);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
 
@@ -24,6 +26,12 @@ export default function TrainingsPage() {
     setItems((await api<{ trainings: Training[] }>("/api/admin/trainings")).trainings);
   }
   useEffect(() => { load().catch((e) => toast.error(e.message)); }, []);
+
+  const filtered = useMemo(
+    () => items.filter((t) => matchesQuery(query, [t.title, t.subtitle, t.eventDate, t.timeLabel])),
+    [items, query]
+  );
+  const table = useClientTable(filtered, { resetKey: query });
 
   async function save() {
     try {
@@ -60,10 +68,24 @@ export default function TrainingsPage() {
         <Card>
           <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
           <CardContent>
+            <DataTable
+              search={query}
+              onSearchChange={setQuery}
+              searchPlaceholder="Сургалт хайх..."
+              unit="сургалт"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+            >
             <Table>
               <TableHeader><TableRow><TableHead>Нэр</TableHead><TableHead>Огноо</TableHead><TableHead>Хураамж</TableHead><TableHead></TableHead></TableRow></TableHeader>
               <TableBody>
-                {items.map((t) => (
+                {table.visible.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell>{t.title}</TableCell>
                     <TableCell>{t.eventDate} {t.timeLabel}</TableCell>
@@ -76,8 +98,10 @@ export default function TrainingsPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={4}>Сургалт алга.</TableEmpty>}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       </div>

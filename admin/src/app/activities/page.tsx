@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type Activity = {
   id: string;
@@ -24,6 +25,7 @@ const empty = { name: "", description: "" };
 
 export default function ActivitiesPage() {
   const [items, setItems] = useState<Activity[]>([]);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
 
@@ -35,6 +37,12 @@ export default function ActivitiesPage() {
   useEffect(() => {
     load().catch((e) => toast.error(e.message));
   }, []);
+
+  const filtered = useMemo(
+    () => items.filter((item) => matchesQuery(query, [item.name, item.slug, item.description])),
+    [items, query]
+  );
+  const table = useClientTable(filtered, { resetKey: query });
 
   async function save() {
     try {
@@ -81,6 +89,20 @@ export default function ActivitiesPage() {
         <Card>
           <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
           <CardContent>
+            <DataTable
+              search={query}
+              onSearchChange={setQuery}
+              searchPlaceholder="Хөтөлбөр хайх..."
+              unit="хөтөлбөр"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+            >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -90,7 +112,7 @@ export default function ActivitiesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item) => (
+                {table.visible.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.description || "—"}</TableCell>
@@ -117,8 +139,10 @@ export default function ActivitiesPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={3}>Хөтөлбөр алга.</TableEmpty>}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       </div>

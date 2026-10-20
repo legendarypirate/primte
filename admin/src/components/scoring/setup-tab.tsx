@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Save, Search, Trash2 } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
 import { COMPETITOR_STATUS_LABEL, type MatrixResponse, type ScoringStage } from "@/lib/scoring";
+import { DataTable, TableEmpty, useClientTable } from "@/components/data-table";
 
 type StageDraft = Pick<ScoringStage, "name" | "courseType" | "maximumPoints" | "minimumRounds" | "status">;
 
@@ -113,6 +114,7 @@ export function SetupTab({
       .map((r) => r.competitor)
       .filter((c) => !q || [c.name, c.memberCode, c.bibNumber].some((v) => String(v || "").toLowerCase().includes(q)));
   }, [data, query]);
+  const table = useClientTable(competitors, { resetKey: query });
 
   async function call(path: string, method: string, body?: unknown, success?: string) {
     try {
@@ -166,29 +168,37 @@ export function SetupTab({
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
           <CardTitle>Оролцогчид ({data?.rows.length ?? 0})</CardTitle>
-          <div className="flex flex-wrap gap-2">
-            <div className="relative">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input className="w-56 pl-8" placeholder="Хайх…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          {canManage && (
+            <div className="flex gap-2">
+              <Input className="w-40" placeholder="Шинэ скуад" value={squadName} onChange={(e) => setSquadName(e.target.value)} />
+              <Button
+                variant="outline"
+                disabled={!squadName.trim()}
+                onClick={async () => {
+                  await call(`/api/admin/scoring/matches/${matchId}/squads`, "POST", { name: squadName.trim() }, "Скуад нэмэгдлээ");
+                  setSquadName("");
+                }}
+              >
+                <Plus className="size-4" /> Скуад
+              </Button>
             </div>
-            {canManage && (
-              <div className="flex gap-2">
-                <Input className="w-40" placeholder="Шинэ скуад" value={squadName} onChange={(e) => setSquadName(e.target.value)} />
-                <Button
-                  variant="outline"
-                  disabled={!squadName.trim()}
-                  onClick={async () => {
-                    await call(`/api/admin/scoring/matches/${matchId}/squads`, "POST", { name: squadName.trim() }, "Скуад нэмэгдлээ");
-                    setSquadName("");
-                  }}
-                >
-                  <Plus className="size-4" /> Скуад
-                </Button>
-              </div>
-            )}
-          </div>
+          )}
         </CardHeader>
         <CardContent>
+          <DataTable
+            search={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="Хайх…"
+            unit="оролцогч"
+            total={table.total}
+            page={table.page}
+            pageCount={table.pageCount}
+            onPageChange={table.setPage}
+            pageSize={table.pageSize}
+            onPageSizeChange={table.setPageSize}
+            from={table.from}
+            to={table.to}
+          >
           <Table>
             <TableHeader>
               <TableRow>
@@ -201,7 +211,7 @@ export function SetupTab({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {competitors.map((c) => (
+              {table.visible.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
                     <div className="font-medium">{c.name}</div>
@@ -247,8 +257,10 @@ export function SetupTab({
                   </TableCell>
                 </TableRow>
               ))}
+              {table.visible.length === 0 && <TableEmpty colSpan={6}>Оролцогч алга.</TableEmpty>}
             </TableBody>
           </Table>
+          </DataTable>
         </CardContent>
       </Card>
     </div>

@@ -11,6 +11,7 @@ import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
 import { SCORE_STATUS_LABEL, downloadCsv, formatDateTime, formatHf, type Option, type ScoreRow } from "@/lib/scoring";
 import { EmptyState, FilterChip, ScoreStatusBadge } from "./ui";
+import { DataTable, TableEmpty, useClientTable } from "@/components/data-table";
 
 export type ScoreFilters = { status: string; stageId: string; divisionId: string; squadId: string; q: string };
 
@@ -74,6 +75,11 @@ export function ScoresTab({
     if (sort === "name") list.sort((a, b) => (a.competitor?.name || "").localeCompare(b.competitor?.name || ""));
     return list;
   }, [data, sort]);
+
+  const table = useClientTable(rows, {
+    pageSize: 50,
+    resetKey: `${sort}|${filters.status}|${filters.stageId}|${filters.divisionId}|${filters.squadId}|${filters.q}`,
+  });
 
   const totals = useMemo(() => {
     const signed = rows.filter((r) => r.status === "SIGNED");
@@ -165,7 +171,18 @@ export function ScoresTab({
         <EmptyState>Шүүлтүүрт тохирох оноо алга.</EmptyState>
       ) : (
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="pt-6">
+            <DataTable
+              unit="оноо"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+            >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -186,7 +203,7 @@ export function ScoresTab({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => (
+                {table.visible.map((r) => (
                   <TableRow key={r.id} className="cursor-pointer" onClick={() => onOpen(r.id)}>
                     <TableCell>
                       <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 font-heading text-primary">{r.stageNumber}</span>
@@ -221,8 +238,10 @@ export function ScoresTab({
                     </TableCell>
                   </TableRow>
                 ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={14}>Шүүлтүүрт тохирох оноо алга.</TableEmpty>}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       )}

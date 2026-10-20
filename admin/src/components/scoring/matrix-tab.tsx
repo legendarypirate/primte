@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { COMPETITOR_STATUS_LABEL, SCORE_STATUS_CLASS, SCORE_STATUS_LABEL, formatHf, type MatrixResponse, type ScoreStatus } from "@/lib/scoring";
 import { EmptyState, FilterChip } from "./ui";
+import { DataTable, useClientTable } from "@/components/data-table";
 
 export function MatrixTab({
   competitionId,
@@ -43,6 +44,7 @@ export function MatrixTab({
       ),
     [data, squadId, divisionId, onlyIncomplete]
   );
+  const table = useClientTable(rows, { resetKey: `${squadId}|${divisionId}|${onlyIncomplete}` });
 
   if (!data) return <div className="text-sm text-muted-foreground">Ачаалж байна…</div>;
 
@@ -72,7 +74,18 @@ export function MatrixTab({
         <EmptyState>Оролцогч алга.</EmptyState>
       ) : (
         <Card>
-          <CardContent className="overflow-x-auto p-0">
+          <CardContent className="overflow-x-auto pt-6">
+            <DataTable
+              unit="оролцогч"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+            >
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
@@ -86,7 +99,7 @@ export function MatrixTab({
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
+                {table.visible.map((r) => (
                   <tr key={r.competitor.id} className={cn("border-b border-border last:border-0", r.competitor.status !== "ACTIVE" && "opacity-50")}>
                     <td className="sticky left-0 z-10 bg-card p-3">
                       <div className="font-medium">{r.competitor.name}</div>
@@ -126,6 +139,7 @@ export function MatrixTab({
                 ))}
               </tbody>
             </table>
+            </DataTable>
           </CardContent>
         </Card>
       )}

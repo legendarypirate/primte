@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type MatchType = {
   id: string;
@@ -22,6 +23,7 @@ const empty = { name: "", comment: "" };
 
 export default function MatchTypesPage() {
   const [items, setItems] = useState<MatchType[]>([]);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
 
@@ -33,6 +35,12 @@ export default function MatchTypesPage() {
   useEffect(() => {
     load().catch((e) => toast.error(e.message));
   }, []);
+
+  const filtered = useMemo(
+    () => items.filter((item) => matchesQuery(query, [item.name, item.comment])),
+    [items, query]
+  );
+  const table = useClientTable(filtered, { resetKey: query });
 
   async function save() {
     try {
@@ -81,6 +89,20 @@ export default function MatchTypesPage() {
         <Card>
           <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
           <CardContent>
+            <DataTable
+              search={query}
+              onSearchChange={setQuery}
+              searchPlaceholder="Төрөл хайх..."
+              unit="төрөл"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+            >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -90,7 +112,7 @@ export default function MatchTypesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item) => (
+                {table.visible.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.comment || "—"}</TableCell>
@@ -115,8 +137,10 @@ export default function MatchTypesPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {table.visible.length === 0 && <TableEmpty colSpan={3}>Match type алга.</TableEmpty>}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       </div>

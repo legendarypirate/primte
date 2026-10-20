@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { FolderTree, Plus, Search, X } from "lucide-react";
+import { FolderTree, Plus, X } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { api, assetUrl, tugrik } from "@/lib/api";
 import { errorMessage, type Product, type ProductCategory } from "@/lib/products";
 import { cn } from "@/lib/utils";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type ProductForm = {
   name: string;
@@ -75,10 +76,14 @@ export default function ProductsPage() {
     [categories]
   );
 
-  const q = query.trim().toLowerCase();
-  const visible = items.filter(
-    (p) => (filter === "all" || p.category === filter) && (!q || p.name.toLowerCase().includes(q))
+  const filtered = useMemo(
+    () =>
+      items.filter(
+        (p) => (filter === "all" || p.category === filter) && matchesQuery(query, [p.name, p.subtitle, p.category])
+      ),
+    [items, filter, query]
   );
+  const table = useClientTable(filtered, { resetKey: `${query}|${filter}` });
 
   function openCreate() {
     setEditing(null);
@@ -121,28 +126,38 @@ export default function ProductsPage() {
       </div>
 
       <Card>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              {[{ slug: "all", name: "Бүгд", count: items.length }, ...categories.map((c) => ({ slug: c.slug, name: c.name, count: c.productCount }))].map((c) => (
-                <button
-                  key={c.slug}
-                  type="button"
-                  onClick={() => setFilter(c.slug)}
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                    filter === c.slug ? "border-primary bg-primary text-primary-foreground" : "border-input text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {c.name} <span className="opacity-70">({c.count})</span>
-                </button>
-              ))}
-            </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input className="pl-8" placeholder="Бараа хайх..." value={query} onChange={(e) => setQuery(e.target.value)} />
-            </div>
-          </div>
+        <CardContent className="pt-6">
+          <DataTable
+            search={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="Бараа хайх..."
+            unit="бараа"
+            total={table.total}
+            page={table.page}
+            pageCount={table.pageCount}
+            onPageChange={table.setPage}
+            pageSize={table.pageSize}
+            onPageSizeChange={table.setPageSize}
+            from={table.from}
+            to={table.to}
+            filters={
+              <div className="flex flex-wrap gap-2">
+                {[{ slug: "all", name: "Бүгд", count: items.length }, ...categories.map((c) => ({ slug: c.slug, name: c.name, count: c.productCount }))].map((c) => (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    onClick={() => setFilter(c.slug)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      filter === c.slug ? "border-primary bg-primary text-primary-foreground" : "border-input text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {c.name} <span className="opacity-70">({c.count})</span>
+                  </button>
+                ))}
+              </div>
+            }
+          >
           <Table>
             <TableHeader>
               <TableRow>
@@ -156,7 +171,7 @@ export default function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visible.map((p) => {
+              {table.visible.map((p) => {
                 const images = productImages(p);
                 return (
                   <TableRow key={p.id} className="cursor-pointer" onClick={() => openEdit(p)}>
@@ -190,13 +205,10 @@ export default function ProductsPage() {
                   </TableRow>
                 );
               })}
-              {visible.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">Бараа алга.</TableCell>
-                </TableRow>
-              )}
+              {table.visible.length === 0 && <TableEmpty colSpan={7}>Бараа алга.</TableEmpty>}
             </TableBody>
           </Table>
+          </DataTable>
         </CardContent>
       </Card>
 

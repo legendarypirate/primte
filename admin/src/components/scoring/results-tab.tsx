@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { COMPETITOR_STATUS_LABEL, MATCH_STATUS_LABEL, downloadCsv, formatHf, formatPoints, type ResultsResponse } from "@/lib/scoring";
 import { EmptyState, FilterChip } from "./ui";
+import { DataTable, useClientTable } from "@/components/data-table";
 
 const MEDAL = ["text-amber-400", "text-slate-400", "text-orange-500"];
 
@@ -37,11 +38,12 @@ export function ResultsTab({
     };
   }, [competitionId, refreshKey]);
 
-  if (!data) return <div className="text-sm text-muted-foreground">Ачаалж байна…</div>;
-  if (!data.divisions.length) return <EmptyState>Ангилал алга. Бүртгэлээс оролцогч татна уу.</EmptyState>;
+  const division = data?.divisions.find((d) => d.id === divisionId) || data?.divisions[0] || null;
+  const stages = data?.stages || [];
+  const table = useClientTable(division?.rows || [], { resetKey: division?.id });
 
-  const division = data.divisions.find((d) => d.id === divisionId) || data.divisions[0];
-  const stages = data.stages;
+  if (!data) return <div className="text-sm text-muted-foreground">Ачаалж байна…</div>;
+  if (!data.divisions.length || !division) return <EmptyState>Ангилал алга. Бүртгэлээс оролцогч татна уу.</EmptyState>;
 
   function exportCsv() {
     const rows: (string | number | null | undefined)[][] = [];
@@ -96,7 +98,18 @@ export function ResultsTab({
         <EmptyState>Энэ ангилалд баталгаажсан оноо алга.</EmptyState>
       ) : (
         <Card>
-          <CardContent className="overflow-x-auto p-0">
+          <CardContent className="overflow-x-auto pt-6">
+            <DataTable
+              unit="тамирчин"
+              total={table.total}
+              page={table.page}
+              pageCount={table.pageCount}
+              onPageChange={table.setPage}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              from={table.from}
+              to={table.to}
+            >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -109,7 +122,7 @@ export function ResultsTab({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {division.rows.map((r) => (
+                {table.visible.map((r) => (
                   <Fragment key={r.competitor.id}>
                     <TableRow className="cursor-pointer" onClick={() => setExpanded(expanded === r.competitor.id ? null : r.competitor.id)}>
                       <TableCell>
@@ -182,6 +195,7 @@ export function ResultsTab({
                 ))}
               </TableBody>
             </Table>
+            </DataTable>
           </CardContent>
         </Card>
       )}

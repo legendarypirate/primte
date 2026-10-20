@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, Plus } from "lucide-react";
@@ -14,9 +14,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { api } from "@/lib/api";
 import { errorMessage, type ProductCategory } from "@/lib/products";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 export default function ProductCategoriesPage() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ProductCategory | null>(null);
 
@@ -38,6 +40,12 @@ export default function ProductCategoriesPage() {
     setEditing(c);
     setOpen(true);
   }
+
+  const filtered = useMemo(
+    () => categories.filter((c) => matchesQuery(query, [c.name, c.slug])),
+    [categories, query]
+  );
+  const table = useClientTable(filtered, { resetKey: query });
 
   async function remove(c: ProductCategory) {
     if (!confirm(`"${c.name}" ангиллыг устгах уу?`)) return;
@@ -70,7 +78,21 @@ export default function ProductCategoriesPage() {
       </div>
 
       <Card>
-        <CardContent>
+        <CardContent className="pt-6">
+          <DataTable
+            search={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="Ангилал хайх..."
+            unit="ангилал"
+            total={table.total}
+            page={table.page}
+            pageCount={table.pageCount}
+            onPageChange={table.setPage}
+            pageSize={table.pageSize}
+            onPageSizeChange={table.setPageSize}
+            from={table.from}
+            to={table.to}
+          >
           <Table>
             <TableHeader>
               <TableRow>
@@ -82,7 +104,7 @@ export default function ProductCategoriesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map((c) => (
+              {table.visible.map((c) => (
                 <TableRow key={c.id} className="cursor-pointer" onClick={() => openEdit(c)}>
                   <TableCell className="text-muted-foreground">#{c.sortOrder}</TableCell>
                   <TableCell className="font-medium">{c.name}</TableCell>
@@ -96,13 +118,10 @@ export default function ProductCategoriesPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {categories.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">Ангилал алга.</TableCell>
-                </TableRow>
-              )}
+              {table.visible.length === 0 && <TableEmpty colSpan={5}>Ангилал алга.</TableEmpty>}
             </TableBody>
           </Table>
+          </DataTable>
         </CardContent>
       </Card>
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { FileUpload } from "@/components/file-upload";
 import { api } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type ChildRow = { id: string; name: string; memberType?: string };
 type ParentRow = {
@@ -67,14 +68,14 @@ export default function ParentsPage() {
     };
   }, []);
 
-  const q = query.trim().toLowerCase();
-  const visible = parents.filter(
-    (p) =>
-      !q ||
-      [p.name, p.phone, p.email, ...(p.children || []).map((c) => c.name)]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q))
+  const filtered = useMemo(
+    () =>
+      parents.filter((p) =>
+        matchesQuery(query, [p.name, p.phone, p.email, ...(p.children || []).map((c) => c.name)])
+      ),
+    [parents, query]
   );
+  const table = useClientTable(filtered, { resetKey: query });
 
   return (
     <Shell>
@@ -93,11 +94,21 @@ export default function ParentsPage() {
       </div>
 
       <Card>
-        <CardContent className="space-y-4 pt-6">
-          <div className="relative max-w-sm">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="pl-8" placeholder="Нэр, утас, хүүхэд..." value={query} onChange={(e) => setQuery(e.target.value)} />
-          </div>
+        <CardContent className="pt-6">
+          <DataTable
+            search={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="Нэр, утас, хүүхэд..."
+            unit="эцэг эх"
+            total={table.total}
+            page={table.page}
+            pageCount={table.pageCount}
+            onPageChange={table.setPage}
+            pageSize={table.pageSize}
+            onPageSizeChange={table.setPageSize}
+            from={table.from}
+            to={table.to}
+          >
           <Table>
             <TableHeader>
               <TableRow>
@@ -110,7 +121,7 @@ export default function ParentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visible.map((p) => (
+              {table.visible.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>
                     <div className="font-medium">{p.name}</div>
@@ -159,15 +170,10 @@ export default function ParentsPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {visible.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                    Эцэг эх алга.
-                  </TableCell>
-                </TableRow>
-              )}
+              {table.visible.length === 0 && <TableEmpty colSpan={6}>Эцэг эх алга.</TableEmpty>}
             </TableBody>
           </Table>
+          </DataTable>
         </CardContent>
       </Card>
 
