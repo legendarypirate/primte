@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { FormDrawer } from "@/components/form-drawer";
 
 type Permission = { key: string; group: string; label: string };
 type Role = {
@@ -25,6 +27,8 @@ export default function RbacPage() {
   const [grouped, setGrouped] = useState<Record<string, Permission[]>>({});
   const [selectedId, setSelectedId] = useState<string>("");
   const [newName, setNewName] = useState("");
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const selected = useMemo(() => roles.find((r) => r.id === selectedId) || null, [roles, selectedId]);
 
@@ -65,10 +69,17 @@ export default function RbacPage() {
 
   return (
     <Shell>
-      <h1 className="mb-2 font-heading text-3xl text-primary">RBAC / Role</h1>
-      <p className="mb-6 text-sm text-muted-foreground">
-        Head / Senior / Admin / Assistant эрхийг эндээс өөрчилнө. Шинэ role нэмж permission-оор хязгаарлаж болно.
-      </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-3xl text-primary">RBAC / Role</h1>
+          <p className="text-sm text-muted-foreground">
+            Head / Senior / Admin / Assistant эрхийг эндээс өөрчилнө. Шинэ role нэмж permission-оор хязгаарлаж болно.
+          </p>
+        </div>
+        <Button onClick={() => { setNewName(""); setOpen(true); }}>
+          <Plus className="size-4" /> Шинэ role
+        </Button>
+      </div>
       <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
         <Card>
           <CardHeader>
@@ -88,31 +99,6 @@ export default function RbacPage() {
                 <div className="text-xs text-muted-foreground">{role.description || role.slug}</div>
               </button>
             ))}
-            <div className="pt-3 space-y-2">
-              <Label>Шинэ role</Label>
-              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Custom admin" />
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={async () => {
-                  if (!newName.trim()) return;
-                  try {
-                    const data = await api<{ role: Role }>("/api/admin/roles", {
-                      method: "POST",
-                      body: JSON.stringify({ name: newName.trim(), permissions: [] }),
-                    });
-                    setNewName("");
-                    await load();
-                    setSelectedId(data.role.id);
-                    toast.success("Role нэмлээ");
-                  } catch (e) {
-                    toast.error(e instanceof Error ? e.message : "Алдаа");
-                  }
-                }}
-              >
-                Нэмэх
-              </Button>
-            </div>
           </CardContent>
         </Card>
         <Card>
@@ -166,6 +152,46 @@ export default function RbacPage() {
           </CardContent>
         </Card>
       </div>
+
+      <FormDrawer
+        open={open}
+        onOpenChange={(next) => { if (!next) { setOpen(false); setNewName(""); } else setOpen(true); }}
+        title="Шинэ role"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => { setOpen(false); setNewName(""); }}>Болих</Button>
+            <Button
+              disabled={saving || !newName.trim()}
+              onClick={async () => {
+                if (!newName.trim()) return;
+                setSaving(true);
+                try {
+                  const data = await api<{ role: Role }>("/api/admin/roles", {
+                    method: "POST",
+                    body: JSON.stringify({ name: newName.trim(), permissions: [] }),
+                  });
+                  setNewName("");
+                  setOpen(false);
+                  await load();
+                  setSelectedId(data.role.id);
+                  toast.success("Role нэмлээ");
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Алдаа");
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              {saving ? "Нэмж байна..." : "Үүсгэх"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-1">
+          <Label>Нэр</Label>
+          <Input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Custom admin" />
+        </div>
+      </FormDrawer>
     </Shell>
   );
 }
