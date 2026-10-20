@@ -13,6 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { MInput } from "@/components/custom/fields";
 import { FieldSelect } from "@/components/field-select";
 import { cn } from "@/lib/utils";
 
@@ -227,8 +228,8 @@ export function DataTable({
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <ListFilter className="size-4 shrink-0 text-muted-foreground" />
               {onSearchChange ? (
-                <input
-                  className="h-9 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                <MInput
+                  className="h-9 min-w-0 flex-1"
                   placeholder={searchPlaceholder}
                   value={search ?? ""}
                   onChange={(e) => onSearchChange(e.target.value)}

@@ -351,10 +351,10 @@ export default function CompetitionDetailPage() {
               <div className="space-y-1"><Label>Дэд гарчиг (IPSC Action Air)</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
               <div className="space-y-1">
                 <Label>Match type</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.matchTypeId} onChange={(e) => setForm({ ...form, matchTypeId: e.target.value })}>
+                <FieldSelect value={form.matchTypeId} onChange={(matchTypeId) => setForm({ ...form, matchTypeId })}>
                   <option value="">—</option>
                   {matchTypes.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                </select>
+                </FieldSelect>
               </div>
               <div className="space-y-1"><Label>Тэмцээн эхлэх</Label><Input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} /></div>
               <div className="space-y-1"><Label>Тэмцээн дуусах</Label><Input type="date" value={form.eventEndDate} onChange={(e) => setForm({ ...form, eventEndDate: e.target.value })} /></div>
@@ -364,11 +364,11 @@ export default function CompetitionDetailPage() {
               <div className="space-y-1"><Label>Зохион байгуулагч</Label><Input value={form.organizer} onChange={(e) => setForm({ ...form, organizer: e.target.value })} /></div>
               <div className="space-y-1"><Label>Түвшин</Label><Input value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} placeholder="Level 2" /></div>
               <div className="space-y-1"><Label>Төлөв</Label>
-                <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                <FieldSelect value={form.status} onChange={(status) => setForm({ ...form, status })}>
                   <option value="upcoming">upcoming</option>
                   <option value="open">open</option>
                   <option value="past">past</option>
-                </select>
+                </FieldSelect>
               </div>
               <div className="space-y-1"><Label>Хүчин чадал</Label><Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} /></div>
               <div className="space-y-1"><Label>Хураамж</Label><Input type="number" value={form.fee} onChange={(e) => setForm({ ...form, fee: Number(e.target.value) })} /></div>
@@ -485,19 +485,18 @@ export default function CompetitionDetailPage() {
             <CardContent className="space-y-3">
               {form.facts.map((fact, idx) => (
                 <div key={idx} className="grid gap-2 rounded-lg border p-3 md:grid-cols-3">
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  <FieldSelect
                     value={fact.icon}
-                    onChange={(e) => {
+                    onChange={(icon) => {
                       const facts = [...form.facts];
-                      facts[idx] = { ...fact, icon: e.target.value };
+                      facts[idx] = { ...fact, icon };
                       setForm({ ...form, facts });
                     }}
                   >
                     {FACT_ICONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
-                  </select>
+                  </FieldSelect>
                   <Input
                     placeholder="Гарчиг"
                     value={fact.title}

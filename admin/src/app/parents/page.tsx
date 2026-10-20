@@ -14,6 +14,7 @@ import { FileUpload } from "@/components/file-upload";
 import { api } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { MPassword } from "@/components/custom/fields";
 import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type ChildRow = { id: string; name: string; memberType?: string };
@@ -271,8 +272,7 @@ function ParentDrawer({
             <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
           </Field>
           <Field label="Нууц үг" required={!parent}>
-            <Input
-              type="password"
+            <MPassword
               value={form.password}
               placeholder={parent?.hasPassword ? "Хоосон бол хэвээр үлдэнэ" : "Апп-д утастай нэвтрэх нууц үг"}
               onChange={(e) => set("password", e.target.value)}

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MPassword } from "@/components/custom/fields";
 import { api } from "@/lib/api";
 import { saveSession } from "@/lib/auth";
 
@@ -49,7 +50,7 @@ export default function LoginPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Нууц үг</Label>
-          <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <MPassword id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <Button type="submit" className="w-full" disabled={loading} size="lg">
           {loading ? "Нэвтэрч байна..." : "Нэвтрэх"}

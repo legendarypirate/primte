@@ -6,6 +6,7 @@ import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MPassword } from "@/components/custom/fields";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -96,7 +97,7 @@ export default function StaffPage() {
             <div className="space-y-1"><Label>Имэйл</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             <div className="space-y-1">
               <Label>{editing ? "Шинэ нууц үг (хоосон бол хэвээр)" : "Нууц үг"}</Label>
-              <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              <MPassword value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
             </div>
             <div className="space-y-1">
               <Label>Role</Label>

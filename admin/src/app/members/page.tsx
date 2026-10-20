@@ -23,6 +23,7 @@ import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
+import { MPassword } from "@/components/custom/fields";
 import { DataTable, FilterField, SortHead, StatusBadge, TableEmpty, useClientTable } from "@/components/data-table";
 import { cn } from "@/lib/utils";
 import { membershipLabel, membershipLevel } from "@/lib/membership";
@@ -784,8 +785,7 @@ function MemberDrawer({
             )}
           </Field>
           <Field label="Нууц үг">
-            <Input
-              type="password"
+            <MPassword
               value={form.password}
               placeholder={member?.hasPassword ? "Хоосон бол хэвээр үлдэнэ" : "Апп-д нэвтрэх нууц үг"}
               onChange={(e) => set("password", e.target.value)}

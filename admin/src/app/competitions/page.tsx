@@ -86,11 +86,11 @@ export default function CompetitionsPage() {
             </div>
             <div className="space-y-1">
               <Label>Төлөв</Label>
-              <select className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <FieldSelect value={form.status} onChange={(status) => setForm({ ...form, status })}>
                 <option value="upcoming">upcoming</option>
                 <option value="open">open</option>
                 <option value="past">past</option>
-              </select>
+              </FieldSelect>
             </div>
             <Button onClick={create} disabled={!form.title.trim()}>Үүсгэх → дэлгэрэнгүй</Button>
           </CardContent>
