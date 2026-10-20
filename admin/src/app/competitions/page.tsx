@@ -13,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, FilterField, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { FieldSelect } from "@/components/field-select";
 
 type Competition = {
   id: string;
@@ -94,10 +95,7 @@ export default function CompetitionsPage() {
             <Button onClick={create} disabled={!form.title.trim()}>Үүсгэх → дэлгэрэнгүй</Button>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
-          <CardContent>
-            <DataTable
+        <DataTable
               search={query}
               onSearchChange={setQuery}
               searchPlaceholder="Нэр, байршил..."
@@ -108,19 +106,20 @@ export default function CompetitionsPage() {
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
+              hasActiveFilters={Boolean(status || query.trim())}
+              onClear={() => {
+                setStatus("");
+                setQuery("");
+              }}
               filters={
-                <select
-                  className="h-8 w-36 rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                >
-                  <option value="">Бүх төлөв</option>
-                  <option value="upcoming">upcoming</option>
-                  <option value="open">open</option>
-                  <option value="past">past</option>
-                </select>
+                <FilterField label="Төлөв" className="w-36">
+                  <FieldSelect value={status} onChange={setStatus}>
+                    <option value="">Бүх төлөв</option>
+                    <option value="upcoming">upcoming</option>
+                    <option value="open">open</option>
+                    <option value="past">past</option>
+                  </FieldSelect>
+                </FilterField>
               }
             >
             <Table>
@@ -171,8 +170,6 @@ export default function CompetitionsPage() {
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
   );

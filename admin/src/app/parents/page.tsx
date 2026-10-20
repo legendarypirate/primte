@@ -7,7 +7,6 @@ import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +14,7 @@ import { FileUpload } from "@/components/file-upload";
 import { api } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type ChildRow = { id: string; name: string; memberType?: string };
 type ParentRow = {
@@ -93,9 +92,7 @@ export default function ParentsPage() {
         )}
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <DataTable
+      <DataTable
             search={query}
             onSearchChange={setQuery}
             searchPlaceholder="Нэр, утас, хүүхэд..."
@@ -106,8 +103,6 @@ export default function ParentsPage() {
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
           >
           <Table>
             <TableHeader>
@@ -140,9 +135,7 @@ export default function ParentsPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={p.hasPassword ? "default" : "secondary"}>
-                      {p.hasPassword ? "нууц үгтэй" : "тохируулаагүй"}
-                    </Badge>
+                    <StatusBadge active={Boolean(p.hasPassword)} activeLabel="Нууц үгтэй" inactiveLabel="Тохируулаагүй" />
                   </TableCell>
                   <TableCell>
                     <ActionCell>
@@ -174,8 +167,6 @@ export default function ParentsPage() {
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-full gap-0 sm:max-w-3xl!">

@@ -9,10 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type Notice = { id: string; title: string; body: string; published: boolean; createdAt: string };
 
@@ -48,10 +47,7 @@ export default function NoticesPage() {
             }}>Нийтлэх</Button>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
-          <CardContent>
-            <DataTable
+        <DataTable
               search={query}
               onSearchChange={setQuery}
               searchPlaceholder="Мэдэгдэл хайх..."
@@ -62,8 +58,6 @@ export default function NoticesPage() {
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
             >
               <Table>
                 <TableHeader>
@@ -80,7 +74,7 @@ export default function NoticesPage() {
                       <TableCell className="font-medium">{n.title}</TableCell>
                       <TableCell className="max-w-sm truncate text-muted-foreground">{n.body}</TableCell>
                       <TableCell>
-                        <Badge variant={n.published ? "default" : "secondary"}>{n.published ? "нийтэлсэн" : "ноорог"}</Badge>
+                        <StatusBadge active={n.published} activeLabel="Нийтэлсэн" inactiveLabel="Ноорог" />
                       </TableCell>
                       <TableCell>
                         <ActionCell>
@@ -93,8 +87,6 @@ export default function NoticesPage() {
                 </TableBody>
               </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
   );

@@ -3,10 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, tugrik } from "@/lib/api";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, FilterField, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 import { FieldSelect } from "@/components/field-select";
 
 type Tx = { id: string; title: string; amount: number; kind: string; createdAt: string; Member?: { name: string } };
@@ -31,10 +30,7 @@ export default function TransactionsPage() {
   return (
     <Shell>
       <h1 className="mb-6 font-heading text-3xl text-primary">Гүйлгээ</h1>
-      <Card>
-        <CardHeader><CardTitle>Wallet түүх</CardTitle></CardHeader>
-        <CardContent>
-          <DataTable
+      <DataTable
             search={query}
             onSearchChange={setQuery}
             searchPlaceholder="Гишүүн, гүйлгээ..."
@@ -45,18 +41,21 @@ export default function TransactionsPage() {
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
+            hasActiveFilters={Boolean(kind || query.trim())}
+            onClear={() => {
+              setKind("");
+              setQuery("");
+            }}
             filters={
               kinds.length ? (
-                <div className="w-36">
+                <FilterField label="Төрөл" className="w-36">
                   <FieldSelect value={kind} onChange={setKind}>
                     <option value="">Бүх төрөл</option>
                     {kinds.map((value) => (
                       <option key={value} value={value}>{value}</option>
                     ))}
                   </FieldSelect>
-                </div>
+                </FilterField>
               ) : null
             }
           >
@@ -75,8 +74,6 @@ export default function TransactionsPage() {
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
     </Shell>
   );
 }

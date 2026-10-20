@@ -97,8 +97,6 @@ export function ResultsTab({
       {division.rows.length === 0 ? (
         <EmptyState>Энэ ангилалд баталгаажсан оноо алга.</EmptyState>
       ) : (
-        <Card>
-          <CardContent className="overflow-x-auto pt-6">
             <DataTable
               unit="тамирчин"
               total={table.total}
@@ -107,8 +105,6 @@ export function ResultsTab({
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
             >
             <Table>
               <TableHeader>
@@ -196,8 +192,6 @@ export function ResultsTab({
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       )}
 
       {division.unranked.length > 0 && (

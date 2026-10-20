@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, TableEmpty, useClientTable } from "@/components/data-table";
+import { DataTable, FilterField, TableEmpty, useClientTable } from "@/components/data-table";
 import { FieldSelect } from "@/components/field-select";
 import { cn } from "@/lib/utils";
 
@@ -629,16 +629,6 @@ export default function CompetitionDetailPage() {
         </TabsContent>
 
         <TabsContent value="competitors" className="mt-2">
-          <Card>
-            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Оролцогчдын жагсаалт</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Нийт {registrations.length} бүртгэл · {registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length} баталгаажсан
-                </p>
-              </div>
-            </CardHeader>
-            <CardContent>
               <DataTable
                 search={regSearch}
                 onSearchChange={setRegSearch}
@@ -650,17 +640,20 @@ export default function CompetitionDetailPage() {
                 onPageChange={registrationTable.setPage}
                 pageSize={registrationTable.pageSize}
                 onPageSizeChange={registrationTable.setPageSize}
-                from={registrationTable.from}
-                to={registrationTable.to}
+                hasActiveFilters={statusFilter !== "all" || Boolean(regSearch.trim())}
+                onClear={() => {
+                  setStatusFilter("all");
+                  setRegSearch("");
+                }}
                 filters={
-                  <div className="w-52">
+                  <FilterField label="Төлөв" className="w-52">
                     <FieldSelect value={statusFilter} onChange={setStatusFilter}>
                       <option value="all">Бүгд ({registrations.length})</option>
                       <option value="confirmed">Баталгаажсан ({registrations.filter((r) => r.status === "confirmed" || r.status === "paid").length})</option>
                       <option value="waitlist">Хүлээгдэж буй ({registrations.filter((r) => r.status === "waitlist" || r.status === "pending").length})</option>
                       <option value="cancelled">Цуцлагдсан ({registrations.filter((r) => r.status === "cancelled").length})</option>
                     </FieldSelect>
-                  </div>
+                  </FilterField>
                 }
               >
               <Table>
@@ -707,8 +700,6 @@ export default function CompetitionDetailPage() {
                 </TableBody>
               </Table>
               </DataTable>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </Shell>

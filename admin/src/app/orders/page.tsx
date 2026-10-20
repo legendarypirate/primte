@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/components/shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, FilterField, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 import { FieldSelect } from "@/components/field-select";
 
 type Order = {
@@ -42,10 +41,7 @@ export default function OrdersPage() {
   return (
     <Shell>
       <h1 className="mb-6 font-heading text-3xl text-primary">Захиалга</h1>
-      <Card>
-        <CardHeader><CardTitle>Бүх захиалга</CardTitle></CardHeader>
-        <CardContent>
-          <DataTable
+      <DataTable
             search={query}
             onSearchChange={setQuery}
             searchPlaceholder="Гишүүн, бараа..."
@@ -56,10 +52,13 @@ export default function OrdersPage() {
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
+            hasActiveFilters={Boolean(status || query.trim())}
+            onClear={() => {
+              setStatus("");
+              setQuery("");
+            }}
             filters={
-              <div className="w-36">
+              <FilterField label="Төлөв" className="w-36">
                 <FieldSelect value={status} onChange={setStatus}>
                   <option value="">Бүх төлөв</option>
                   <option value="pending">pending</option>
@@ -67,7 +66,7 @@ export default function OrdersPage() {
                   <option value="fulfilled">fulfilled</option>
                   <option value="cancelled">cancelled</option>
                 </FieldSelect>
-              </div>
+              </FilterField>
             }
           >
           <Table>
@@ -104,8 +103,6 @@ export default function OrdersPage() {
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
     </Shell>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Card, CardContent } from "@/components/ui/card";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -73,8 +72,6 @@ export function MatrixTab({
       {rows.length === 0 ? (
         <EmptyState>Оролцогч алга.</EmptyState>
       ) : (
-        <Card>
-          <CardContent className="overflow-x-auto pt-6">
             <DataTable
               unit="оролцогч"
               total={table.total}
@@ -83,8 +80,6 @@ export function MatrixTab({
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
             >
             <table className="w-full text-sm">
               <thead>
@@ -140,8 +135,6 @@ export function MatrixTab({
               </tbody>
             </table>
             </DataTable>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

@@ -17,10 +17,15 @@ type ActionKind = "edit" | "delete" | "topup" | "approve" | "cancel" | "deliver"
 
 const ACTIONS: Record<
   ActionKind,
-  { icon: LucideIcon; label: string; variant: ComponentProps<typeof Button>["variant"] }
+  { icon: LucideIcon; label: string; variant: ComponentProps<typeof Button>["variant"]; className?: string }
 > = {
-  edit: { icon: Pencil, label: "Засах", variant: "outline" },
-  delete: { icon: Trash2, label: "Устгах", variant: "destructive" },
+  edit: { icon: Pencil, label: "Засах", variant: "outline", className: "text-muted-foreground shadow-sm" },
+  delete: {
+    icon: Trash2,
+    label: "Устгах",
+    variant: "default",
+    className: "border-transparent bg-red-400 text-white shadow-sm hover:bg-red-500 hover:text-white",
+  },
   topup: { icon: Wallet, label: "Цэнэглэх", variant: "outline" },
   approve: { icon: Check, label: "Батлах", variant: "default" },
   cancel: { icon: X, label: "Цуцлах", variant: "destructive" },
@@ -32,7 +37,7 @@ export function IconActionButton({
   className,
   ...props
 }: Omit<ComponentProps<typeof Button>, "children" | "size" | "variant"> & { action: ActionKind }) {
-  const { icon: Icon, label, variant } = ACTIONS[action];
+  const { icon: Icon, label, variant, className: actionClass } = ACTIONS[action];
   return (
     <Button
       type="button"
@@ -40,7 +45,7 @@ export function IconActionButton({
       variant={variant}
       title={label}
       aria-label={label}
-      className={cn("shrink-0", className)}
+      className={cn("size-8 shrink-0 rounded-md", actionClass, className)}
       {...props}
     >
       <Icon />

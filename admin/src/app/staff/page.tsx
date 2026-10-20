@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, FilterField, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type Role = { id: string; name: string; slug: string };
 type Staff = {
@@ -112,10 +112,7 @@ export default function StaffPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
-          <CardContent>
-            <DataTable
+        <DataTable
               search={query}
               onSearchChange={setQuery}
               searchPlaceholder="Нэр, имэйл..."
@@ -126,17 +123,20 @@ export default function StaffPage() {
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
+              hasActiveFilters={Boolean(roleFilter || query.trim())}
+              onClear={() => {
+                setRoleFilter("");
+                setQuery("");
+              }}
               filters={
-                <div className="w-40">
+                <FilterField label="Role" className="w-40">
                   <FieldSelect value={roleFilter} onChange={setRoleFilter}>
                     <option value="">Бүх role</option>
                     {roles.map((role) => (
                       <option key={role.id} value={role.id}>{role.name}</option>
                     ))}
                   </FieldSelect>
-                </div>
+                </FilterField>
               }
             >
             <Table>
@@ -183,8 +183,6 @@ export default function StaffPage() {
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
   );

@@ -65,10 +65,7 @@ export default function TrainingsPage() {
             <Button onClick={save}>Хадгалах</Button>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
-          <CardContent>
-            <DataTable
+        <DataTable
               search={query}
               onSearchChange={setQuery}
               searchPlaceholder="Сургалт хайх..."
@@ -79,8 +76,6 @@ export default function TrainingsPage() {
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
             >
             <Table>
               <TableHeader><TableRow><TableHead>Нэр</TableHead><TableHead>Огноо</TableHead><TableHead>Хураамж</TableHead><TableHead></TableHead></TableRow></TableHeader>
@@ -102,8 +97,6 @@ export default function TrainingsPage() {
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
   );

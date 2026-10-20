@@ -170,8 +170,6 @@ export function ScoresTab({
       {data && rows.length === 0 ? (
         <EmptyState>Шүүлтүүрт тохирох оноо алга.</EmptyState>
       ) : (
-        <Card>
-          <CardContent className="pt-6">
             <DataTable
               unit="оноо"
               total={table.total}
@@ -180,8 +178,6 @@ export function ScoresTab({
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
             >
             <Table>
               <TableHeader>
@@ -242,8 +238,6 @@ export function ScoresTab({
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

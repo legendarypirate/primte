@@ -165,9 +165,9 @@ export function SetupTab({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-          <CardTitle>Оролцогчид ({data?.rows.length ?? 0})</CardTitle>
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="flex flex-row flex-wrap items-center justify-between gap-3">
+          <h2 className="font-heading text-lg">Оролцогчид ({data?.rows.length ?? 0})</h2>
           {canManage && (
             <div className="flex gap-2">
               <Input className="w-40" placeholder="Шинэ скуад" value={squadName} onChange={(e) => setSquadName(e.target.value)} />
@@ -183,8 +183,7 @@ export function SetupTab({
               </Button>
             </div>
           )}
-        </CardHeader>
-        <CardContent>
+        </div>
           <DataTable
             search={query}
             onSearchChange={setQuery}
@@ -196,8 +195,6 @@ export function SetupTab({
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
           >
           <Table>
             <TableHeader>
@@ -261,8 +258,7 @@ export function SetupTab({
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -86,10 +86,7 @@ export default function ActivitiesPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
-          <CardContent>
-            <DataTable
+        <DataTable
               search={query}
               onSearchChange={setQuery}
               searchPlaceholder="Хөтөлбөр хайх..."
@@ -100,8 +97,6 @@ export default function ActivitiesPage() {
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
             >
             <Table>
               <TableHeader>
@@ -143,8 +138,6 @@ export default function ActivitiesPage() {
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
   );

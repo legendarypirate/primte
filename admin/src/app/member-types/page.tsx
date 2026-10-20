@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, FilterField, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type MemberType = {
   id: string;
@@ -132,10 +132,7 @@ export default function MemberTypesPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
-          <CardContent>
-            <DataTable
+        <DataTable
               search={query}
               onSearchChange={setQuery}
               searchPlaceholder="Төрөл хайх..."
@@ -146,17 +143,20 @@ export default function MemberTypesPage() {
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
+              hasActiveFilters={Boolean(category || query.trim())}
+              onClear={() => {
+                setCategory("");
+                setQuery("");
+              }}
               filters={
-                <div className="w-36">
+                <FilterField label="Ангилал" className="w-36">
                   <FieldSelect value={category} onChange={setCategory}>
                     <option value="">Бүх ангилал</option>
                     <option value="student">Student</option>
                     <option value="official">Official</option>
                     <option value="junior">Junior</option>
                   </FieldSelect>
-                </div>
+                </FilterField>
               }
             >
             <Table>
@@ -177,7 +177,7 @@ export default function MemberTypesPage() {
                     <TableCell>{item.level ?? "—"}</TableCell>
                     <TableCell className="space-x-1">
                       {item.requiresParent && <Badge variant="secondary">parent</Badge>}
-                      {item.isInactive ? <Badge variant="secondary">inactive</Badge> : <Badge>app</Badge>}
+                      <StatusBadge active={!item.isInactive} activeLabel="Апп" inactiveLabel="Inactive" />
                     </TableCell>
                     <TableCell>
                       <ActionCell>
@@ -213,8 +213,6 @@ export default function MemberTypesPage() {
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
   );

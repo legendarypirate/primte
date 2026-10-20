@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FieldSelect } from "@/components/field-select";
@@ -19,7 +18,7 @@ import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { api, assetUrl, tugrik } from "@/lib/api";
 import { errorMessage, type Product, type ProductCategory } from "@/lib/products";
 import { cn } from "@/lib/utils";
-import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
+import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
 type ProductForm = {
   name: string;
@@ -125,9 +124,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <DataTable
+      <DataTable
             search={query}
             onSearchChange={setQuery}
             searchPlaceholder="Бараа хайх..."
@@ -138,8 +135,11 @@ export default function ProductsPage() {
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
+            hasActiveFilters={filter !== "all" || Boolean(query.trim())}
+            onClear={() => {
+              setFilter("all");
+              setQuery("");
+            }}
             filters={
               <div className="flex flex-wrap gap-2">
                 {[{ slug: "all", name: "Бүгд", count: items.length }, ...categories.map((c) => ({ slug: c.slug, name: c.name, count: c.productCount }))].map((c) => (
@@ -194,7 +194,7 @@ export default function ProductsPage() {
                     <TableCell>{images.length}</TableCell>
                     <TableCell>{p.relatedIds?.length ? p.relatedIds.length : <span className="text-muted-foreground">Авто</span>}</TableCell>
                     <TableCell>
-                      {p.inStock ? <Badge variant="secondary">Бэлэн</Badge> : <Badge variant="destructive">Дууссан</Badge>}
+                      <StatusBadge active={p.inStock} activeLabel="Бэлэн" inactiveLabel="Дууссан" />
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <ActionCell>
@@ -209,8 +209,6 @@ export default function ProductsPage() {
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-full gap-0 sm:max-w-xl">

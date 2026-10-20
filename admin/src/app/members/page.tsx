@@ -3,12 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { FilterX, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Dialog,
@@ -19,13 +18,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { FieldSelect } from "@/components/field-select";
 import { FileUpload } from "@/components/file-upload";
 import { api, tugrik } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
-import { DataTable, SortHead, TableEmpty, useClientTable } from "@/components/data-table";
+import { DataTable, FilterField, SortHead, StatusBadge, TableEmpty, useClientTable } from "@/components/data-table";
 import { cn } from "@/lib/utils";
 import { membershipLabel, membershipLevel } from "@/lib/membership";
 
@@ -247,7 +245,6 @@ export default function MembersPage() {
   }, [members, q, filters, sortKey, sortDir]);
 
   const table = useClientTable(filtered, {
-    pageSize: 50,
     resetKey: `${query}|${filters.status}|${filters.memberTypeId}|${filters.level}|${filters.gender}|${filters.programId}|${filters.classification}`,
   });
   const visible = table.visible;
@@ -350,12 +347,10 @@ export default function MembersPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <DataTable
+      <DataTable
             search={query}
             onSearchChange={setQuery}
-            searchPlaceholder="Нэр, код, имэйл, утас..."
+            searchPlaceholder="Овог, нэр, код, утас, имэйл…"
             unit="гишүүн"
             total={table.total}
             page={table.page}
@@ -363,27 +358,27 @@ export default function MembersPage() {
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
+            hasActiveFilters={hasFilters}
+            onClear={clearFilters}
             filters={
               <>
-                <div className="w-36 shrink-0">
+                <FilterField label="Төлөв" className="w-36">
                   <FieldSelect value={filters.status} onChange={(status) => setFilter("status", status)}>
                     <option value="">Бүх төлөв</option>
                     <option value="active">Идэвхтэй</option>
                     <option value="inactive">Идэвхгүй</option>
                     <option value="expired">Хугацаа дууссан</option>
                   </FieldSelect>
-                </div>
-                <div className="w-44 shrink-0">
+                </FilterField>
+                <FilterField label="Төрөл" className="w-44">
                   <FieldSelect value={filters.memberTypeId} onChange={(memberTypeId) => setFilter("memberTypeId", memberTypeId)}>
                     <option value="">Бүх төрөл</option>
                     {memberTypes.map((type) => (
                       <option key={type.id} value={type.id}>{type.name}</option>
                     ))}
                   </FieldSelect>
-                </div>
-                <div className="w-40 shrink-0">
+                </FilterField>
+                <FilterField label="Түвшин" className="w-40">
                   <FieldSelect value={filters.level} onChange={(level) => setFilter("level", level)}>
                     <option value="">Бүх түвшин</option>
                     <option value="0">Student member</option>
@@ -391,36 +386,31 @@ export default function MembersPage() {
                     <option value="2">Level 2</option>
                     <option value="3">Level 3</option>
                   </FieldSelect>
-                </div>
-                <div className="w-32 shrink-0">
+                </FilterField>
+                <FilterField label="Хүйс" className="w-32">
                   <FieldSelect value={filters.gender} onChange={(gender) => setFilter("gender", gender)}>
                     <option value="">Хүйс</option>
                     <option value="эр">эр</option>
                     <option value="эм">эм</option>
                   </FieldSelect>
-                </div>
-                <div className="w-44 shrink-0">
+                </FilterField>
+                <FilterField label="Хөтөлбөр" className="w-44">
                   <FieldSelect value={filters.programId} onChange={(programId) => setFilter("programId", programId)}>
                     <option value="">Бүх хөтөлбөр</option>
                     {activities.map((activity) => (
                       <option key={activity.id} value={activity.id}>{activity.name}</option>
                     ))}
                   </FieldSelect>
-                </div>
+                </FilterField>
                 {classifications.length > 0 && (
-                  <div className="w-40 shrink-0">
+                  <FilterField label="Ангилал" className="w-40">
                     <FieldSelect value={filters.classification} onChange={(classification) => setFilter("classification", classification)}>
                       <option value="">Ангилал</option>
                       {classifications.map((value) => (
                         <option key={value} value={value}>{value}</option>
                       ))}
                     </FieldSelect>
-                  </div>
-                )}
-                {hasFilters && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    <FilterX className="size-4" /> Цэвэрлэх
-                  </Button>
+                  </FilterField>
                 )}
               </>
             }
@@ -502,7 +492,7 @@ export default function MembersPage() {
                   <TableCell>{m.developmentActivity?.name || "—"}</TableCell>
                   <TableCell>{tugrik(m.walletBalance)}</TableCell>
                   <TableCell>
-                    <Badge variant={m.status === "active" ? "default" : "secondary"}>{m.status}</Badge>
+                    <StatusBadge active={m.status === "active"} inactiveLabel={m.status} />
                   </TableCell>
                   <TableCell>
                     <ActionCell>
@@ -537,8 +527,6 @@ export default function MembersPage() {
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
 
       <Dialog open={xpOpen} onOpenChange={setXpOpen}>
         <DialogContent className="sm:max-w-md">

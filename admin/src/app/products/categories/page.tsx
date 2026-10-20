@@ -8,7 +8,6 @@ import { Shell } from "@/components/shell";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
@@ -77,9 +76,7 @@ export default function ProductCategoriesPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <DataTable
+      <DataTable
             search={query}
             onSearchChange={setQuery}
             searchPlaceholder="Ангилал хайх..."
@@ -90,8 +87,6 @@ export default function ProductCategoriesPage() {
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
           >
           <Table>
             <TableHeader>
@@ -122,8 +117,6 @@ export default function ProductCategoriesPage() {
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-full gap-0 sm:max-w-md">

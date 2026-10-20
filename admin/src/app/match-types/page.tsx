@@ -86,10 +86,7 @@ export default function MatchTypesPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>Жагсаалт</CardTitle></CardHeader>
-          <CardContent>
-            <DataTable
+        <DataTable
               search={query}
               onSearchChange={setQuery}
               searchPlaceholder="Төрөл хайх..."
@@ -100,8 +97,6 @@ export default function MatchTypesPage() {
               onPageChange={table.setPage}
               pageSize={table.pageSize}
               onPageSizeChange={table.setPageSize}
-              from={table.from}
-              to={table.to}
             >
             <Table>
               <TableHeader>
@@ -141,8 +136,6 @@ export default function MatchTypesPage() {
               </TableBody>
             </Table>
             </DataTable>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
   );

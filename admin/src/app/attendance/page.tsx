@@ -46,10 +46,7 @@ export default function AttendancePage() {
           }}>Бүртгэх</Button>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader><CardTitle>Сүүлийн ирц</CardTitle></CardHeader>
-        <CardContent>
-          <DataTable
+      <DataTable
             search={query}
             onSearchChange={setQuery}
             searchPlaceholder="Гишүүн, код..."
@@ -60,8 +57,6 @@ export default function AttendancePage() {
             onPageChange={table.setPage}
             pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize}
-            from={table.from}
-            to={table.to}
           >
           <Table>
             <TableHeader><TableRow><TableHead>Гишүүн</TableHead><TableHead>Код</TableHead><TableHead>Цаг</TableHead></TableRow></TableHeader>
@@ -77,8 +72,6 @@ export default function AttendancePage() {
             </TableBody>
           </Table>
           </DataTable>
-        </CardContent>
-      </Card>
     </Shell>
   );
 }
