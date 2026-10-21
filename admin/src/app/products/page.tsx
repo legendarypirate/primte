@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
-import { FolderTree, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Shell } from "@/components/shell";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FieldSelect } from "@/components/field-select";
 import { MultiImageUpload } from "@/components/multi-image-upload";
@@ -54,8 +54,12 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [tab, setTab] = useState("products");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
 
   async function load() {
     const [productData, categoryData] = await Promise.all([
@@ -68,6 +72,9 @@ export default function ProductsPage() {
 
   useEffect(() => {
     load().catch((e) => toast.error(e.message));
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "categories") {
+      setTab("categories");
+    }
   }, []);
 
   const categoryName = useMemo(
@@ -83,6 +90,11 @@ export default function ProductsPage() {
     [items, filter, query]
   );
   const table = useClientTable(filtered, { resetKey: `${query}|${filter}` });
+  const filteredCategories = useMemo(
+    () => categories.filter((c) => matchesQuery(categoryQuery, [c.name, c.slug])),
+    [categories, categoryQuery]
+  );
+  const categoryTable = useClientTable(filteredCategories, { resetKey: categoryQuery });
 
   function openCreate() {
     setEditing(null);
@@ -105,26 +117,60 @@ export default function ProductsPage() {
     }
   }
 
+  function openCreateCategory() {
+    setEditingCategory(null);
+    setCategoryOpen(true);
+  }
+
+  function openEditCategory(c: ProductCategory) {
+    setEditingCategory(c);
+    setCategoryOpen(true);
+  }
+
+  async function removeCategory(c: ProductCategory) {
+    if (!confirm(`"${c.name}" ангиллыг устгах уу?`)) return;
+    try {
+      await api(`/api/admin/product-categories/${c.id}`, { method: "DELETE" });
+      await load();
+      toast.success("Устгалаа");
+    } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  }
+
   return (
     <Shell>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-heading text-3xl text-primary">Бараа</h1>
-          <p className="text-sm text-muted-foreground">{items.length} бараа</p>
+          <p className="text-sm text-muted-foreground">{items.length} бараа · {categories.length} ангилал</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/products/categories" className={buttonVariants({ variant: "outline" })}>
-            <FolderTree />
-            Ангилал
-          </Link>
-          <Button onClick={openCreate}>
-            <Plus />
-            Шинэ бараа
+        {tab === "categories" ? (
+          <Button onClick={openCreateCategory}>
+            <Plus className="size-4" /> Шинэ ангилал
           </Button>
-        </div>
+        ) : (
+          <Button onClick={openCreate}>
+            <Plus className="size-4" /> Шинэ бараа
+          </Button>
+        )}
       </div>
 
-      <DataTable
+      <Tabs
+        value={tab}
+        onValueChange={(value) => {
+          const next = String(value);
+          setTab(next);
+          window.history.replaceState(null, "", next === "categories" ? "/products?tab=categories" : "/products");
+        }}
+        className="gap-4"
+      >
+        <TabsList variant="line" className="mb-2">
+          <TabsTrigger value="products">Бараа</TabsTrigger>
+          <TabsTrigger value="categories">Ангилал</TabsTrigger>
+        </TabsList>
+        <TabsContent value="products">
+          <DataTable
             search={query}
             onSearchChange={setQuery}
             searchPlaceholder="Бараа хайх..."
@@ -209,6 +255,51 @@ export default function ProductsPage() {
             </TableBody>
           </Table>
           </DataTable>
+        </TabsContent>
+        <TabsContent value="categories">
+          <DataTable
+            search={categoryQuery}
+            onSearchChange={setCategoryQuery}
+            searchPlaceholder="Ангилал хайх..."
+            unit="ангилал"
+            total={categoryTable.total}
+            page={categoryTable.page}
+            pageCount={categoryTable.pageCount}
+            onPageChange={categoryTable.setPage}
+            pageSize={categoryTable.pageSize}
+            onPageSizeChange={categoryTable.setPageSize}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-20">Эрэмбэ</TableHead>
+                  <TableHead>Нэр</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Бараа</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categoryTable.visible.map((c) => (
+                  <TableRow key={c.id} className="cursor-pointer" onClick={() => openEditCategory(c)}>
+                    <TableCell className="text-muted-foreground">#{c.sortOrder}</TableCell>
+                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{c.slug}</TableCell>
+                    <TableCell>{c.productCount}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <ActionCell>
+                        <IconActionButton action="edit" onClick={() => openEditCategory(c)} />
+                        <IconActionButton action="delete" onClick={() => removeCategory(c)} />
+                      </ActionCell>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {categoryTable.visible.length === 0 && <TableEmpty colSpan={5}>Ангилал алга.</TableEmpty>}
+              </TableBody>
+            </Table>
+          </DataTable>
+        </TabsContent>
+      </Tabs>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-full gap-0 sm:max-w-xl">
@@ -223,6 +314,22 @@ export default function ProductsPage() {
                 await load();
               }}
               onCancel={() => setOpen(false)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
+      <Sheet open={categoryOpen} onOpenChange={setCategoryOpen}>
+        <SheetContent className="w-full gap-0 sm:max-w-md">
+          {categoryOpen && (
+            <CategoryDrawerForm
+              key={editingCategory?.id ?? "new"}
+              category={editingCategory}
+              nextSortOrder={Math.max(0, ...categories.map((c) => c.sortOrder)) + 1}
+              onSaved={async () => {
+                setCategoryOpen(false);
+                await load();
+              }}
+              onCancel={() => setCategoryOpen(false)}
             />
           )}
         </SheetContent>
@@ -374,6 +481,71 @@ function ProductDrawerForm({
       <SheetFooter className="flex-row justify-end border-t border-border">
         <Button variant="outline" onClick={onCancel}>Болих</Button>
         <Button onClick={save} disabled={saving}>{saving ? "Хадгалж байна..." : product ? "Шинэчлэх" : "Үүсгэх"}</Button>
+      </SheetFooter>
+    </>
+  );
+}
+
+function CategoryDrawerForm({
+  category,
+  nextSortOrder,
+  onSaved,
+  onCancel,
+}: {
+  category: ProductCategory | null;
+  nextSortOrder: number;
+  onSaved: () => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState(category?.name ?? "");
+  const [sortOrder, setSortOrder] = useState(category?.sortOrder ?? nextSortOrder);
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!name.trim()) return toast.error("Ангиллын нэр оруулна уу.");
+    setSaving(true);
+    try {
+      const body = JSON.stringify({ name, sortOrder });
+      if (category) await api(`/api/admin/product-categories/${category.id}`, { method: "PUT", body });
+      else await api("/api/admin/product-categories", { method: "POST", body });
+      toast.success("Хадгаллаа");
+      await onSaved();
+    } catch (e) {
+      toast.error(errorMessage(e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <SheetHeader className="border-b border-border">
+        <SheetTitle>{category ? "Ангилал засах" : "Шинэ ангилал"}</SheetTitle>
+        <SheetDescription>
+          {category ? `${category.productCount} бараа энэ ангилалд байна.` : "Дэлгүүрийн шинэ ангилал нэмэх"}
+        </SheetDescription>
+      </SheetHeader>
+      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+        <div className="space-y-1">
+          <Label>Нэр</Label>
+          <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} />
+        </div>
+        <div className="space-y-1">
+          <Label>Эрэмбэ</Label>
+          <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
+          <p className="text-xs text-muted-foreground">Бага тоо эхэнд харагдана.</p>
+        </div>
+        {category && (
+          <div className="space-y-1">
+            <Label>Slug</Label>
+            <Input value={category.slug} disabled className="font-mono text-xs" />
+            <p className="text-xs text-muted-foreground">Бараатай холбогдсон тул өөрчлөгдөхгүй.</p>
+          </div>
+        )}
+      </div>
+      <SheetFooter className="flex-row justify-end border-t border-border">
+        <Button variant="outline" onClick={onCancel}>Болих</Button>
+        <Button onClick={save} disabled={saving}>{saving ? "Хадгалж байна..." : category ? "Шинэчлэх" : "Үүсгэх"}</Button>
       </SheetFooter>
     </>
   );

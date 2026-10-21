@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { GraduationCap, HeartHandshake, Plus, UserRound } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +28,16 @@ import { DataTable, FilterField, SortHead, StatusBadge, TableEmpty, useClientTab
 import { cn } from "@/lib/utils";
 import { membershipLabel, membershipLevel } from "@/lib/membership";
 
-type Named = { id: string; name: string; slug?: string; requiresParent?: boolean };
+type Named = {
+  id: string;
+  name: string;
+  slug?: string;
+  requiresParent?: boolean;
+  category?: string;
+  level?: number | null;
+};
 type ParentRow = { id: string; name: string; phone?: string; email?: string };
+type RegistrationKind = "adult" | "junior" | "parent";
 type Member = {
   id: string;
   name: string;
@@ -55,7 +63,8 @@ type Member = {
   parentAccountId?: string | null;
   parentName?: string | null;
   avatarUrl?: string | null;
-  memberType?: { name: string; requiresParent?: boolean } | null;
+  category?: string | null;
+  memberType?: { name: string; requiresParent?: boolean; category?: string } | null;
   developmentActivity?: { name: string } | null;
 };
 
@@ -342,7 +351,7 @@ export default function MembersPage() {
           )}
           {can("members.create") && (
             <Button onClick={openCreate}>
-              <Plus className="size-4" /> Гишүүн нэмэх
+              <Plus className="size-4" /> Бүртгэх
             </Button>
           )}
         </div>
@@ -486,7 +495,13 @@ export default function MembersPage() {
                   <TableCell>{m.birthday ? String(m.birthday).slice(0, 10) : "—"}</TableCell>
                   <TableCell>{m.gender || "—"}</TableCell>
                   <TableCell>{m.classification || "—"}</TableCell>
-                  <TableCell>{m.membershipLabel || membershipLabel(membershipLevel(m.xp || 0, m.rp || 0))}</TableCell>
+                  <TableCell>
+                    {m.membershipLabel ||
+                      membershipLabel(
+                        membershipLevel(m.xp || 0, m.rp || 0),
+                        m.memberType?.category || m.category
+                      )}
+                  </TableCell>
                   <TableCell>{m.xp ?? 0}</TableCell>
                   <TableCell>{m.rp ?? 0}</TableCell>
                   <TableCell>{m.parentName || "—"}</TableCell>
@@ -624,6 +639,53 @@ function Field({ label, required, children }: { label: string; required?: boolea
   );
 }
 
+const registrationKinds: Array<{
+  id: RegistrationKind;
+  title: string;
+  body: string;
+  icon: typeof UserRound;
+}> = [
+  {
+    id: "junior",
+    title: "Жуниор",
+    body: "18 хүртэлх суралцагч. Эцэг/эх заавал холбогдоно.",
+    icon: GraduationCap,
+  },
+  {
+    id: "parent",
+    title: "Эцэг эх",
+    body: "Эцэг эхийн апп-д нэвтрэх бүртгэл. Хүүхэд дараа холбоно.",
+    icon: HeartHandshake,
+  },
+  {
+    id: "adult",
+    title: "Насанд хүрсэн гишүүн",
+    body: "Клубийн энгийн гишүүн. Student → Official түвшин.",
+    icon: UserRound,
+  },
+];
+
+function defaultTypeId(memberTypes: Named[], kind: RegistrationKind) {
+  if (kind === "junior") {
+    return (
+      memberTypes.find((t) => t.slug === "junior-l1")?.id ||
+      memberTypes.find((t) => t.category === "junior" && !t.slug?.includes("inactive"))?.id ||
+      ""
+    );
+  }
+  return memberTypes.find((t) => t.slug === "student-member")?.id || "";
+}
+
+function typesForKind(memberTypes: Named[], kind: RegistrationKind) {
+  if (kind === "junior") return memberTypes.filter((t) => t.category === "junior");
+  return memberTypes.filter((t) => t.category !== "junior");
+}
+
+function inferKind(member: Member | null): RegistrationKind {
+  if (member?.memberType?.category === "junior" || member?.category === "junior") return "junior";
+  return "adult";
+}
+
 function MemberDrawer({
   member,
   parents,
@@ -641,7 +703,167 @@ function MemberDrawer({
   onSaved: () => Promise<void>;
   onCancel: () => void;
 }) {
-  const studentTypeId = memberTypes.find((t) => t.slug === "student-member")?.id || "";
+  const [kind, setKind] = useState<RegistrationKind | null>(member ? inferKind(member) : null);
+
+  if (!member && !kind) {
+    return (
+      <>
+        <SheetHeader className="border-b border-border text-center">
+          <SheetTitle className="text-center">Бүртгэлийн төрөл</SheetTitle>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto p-4">
+          <p className="mb-4 text-sm text-muted-foreground">Хэнийг бүртгэхээ сонгоно уу.</p>
+          <div className="grid gap-3">
+            {registrationKinds.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setKind(item.id)}
+                className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted/40"
+              >
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <item.icon className="size-5" />
+                </div>
+                <div>
+                  <div className="font-medium">{item.title}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.body}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <SheetFooter className="flex-row justify-end border-t border-border">
+          <Button variant="outline" onClick={onCancel}>Болих</Button>
+        </SheetFooter>
+      </>
+    );
+  }
+
+  if (kind === "parent") {
+    return <ParentCreateForm onBack={() => setKind(null)} onSaved={onSaved} onCancel={onCancel} />;
+  }
+
+  return (
+    <MemberFormDrawer
+      member={member}
+      kind={kind || "adult"}
+      parents={parents}
+      memberTypes={memberTypes}
+      activities={activities}
+      nextMemberCode={nextMemberCode}
+      onBack={member ? undefined : () => setKind(null)}
+      onSaved={onSaved}
+      onCancel={onCancel}
+    />
+  );
+}
+
+function ParentCreateForm({
+  onBack,
+  onSaved,
+  onCancel,
+}: {
+  onBack: () => void;
+  onSaved: () => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", avatarUrl: "" });
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!form.name.trim() || !form.phone.trim()) {
+      toast.error("Нэр, утас оруулна уу");
+      return;
+    }
+    if (!form.password.trim()) {
+      toast.error("Нууц үг оруулна уу");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api("/api/admin/parents", {
+        method: "POST",
+        body: JSON.stringify({
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim() || null,
+          avatarUrl: form.avatarUrl || null,
+          password: form.password.trim(),
+        }),
+      });
+      toast.success("Эцэг эх бүртгэлээ. Жуниор хүүхдийг дараа холбоно.");
+      await onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Алдаа");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <SheetHeader className="border-b border-border text-center">
+        <SheetTitle className="text-center">Эцэг эх бүртгэх</SheetTitle>
+      </SheetHeader>
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Нэр" required>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </Field>
+          <Field label="Утас" required>
+            <Input value={form.phone} placeholder="+97699112233" onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </Field>
+          <Field label="Имэйл">
+            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          </Field>
+          <Field label="Нууц үг" required>
+            <MPassword
+              value={form.password}
+              placeholder="Апп-д утастай нэвтрэх нууц үг"
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              autoComplete="new-password"
+            />
+            <p className="text-xs text-muted-foreground">Эцэг эх апп-д утас + нууц үгээр нэвтэрнэ.</p>
+          </Field>
+          <div className="md:col-span-2">
+            <FileUpload label="Зураг холбоос" folder="prime/parents" value={form.avatarUrl} onChange={(avatarUrl) => setForm({ ...form, avatarUrl })} />
+          </div>
+        </div>
+      </div>
+      <SheetFooter className="flex-row justify-end border-t border-border">
+        <Button variant="outline" onClick={onBack}>Буцах</Button>
+        <Button variant="ghost" onClick={onCancel}>Болих</Button>
+        {can("members.create") && (
+          <Button onClick={save} disabled={saving}>{saving ? "Хадгалж байна..." : "Үүсгэх"}</Button>
+        )}
+      </SheetFooter>
+    </>
+  );
+}
+
+function MemberFormDrawer({
+  member,
+  kind,
+  parents,
+  memberTypes,
+  activities,
+  nextMemberCode,
+  onBack,
+  onSaved,
+  onCancel,
+}: {
+  member: Member | null;
+  kind: Exclude<RegistrationKind, "parent">;
+  parents: ParentRow[];
+  memberTypes: Named[];
+  activities: Named[];
+  nextMemberCode: string;
+  onBack?: () => void;
+  onSaved: () => Promise<void>;
+  onCancel: () => void;
+}) {
+  const kindTypes = useMemo(() => typesForKind(memberTypes, kind), [memberTypes, kind]);
+  const fallbackTypeId = defaultTypeId(memberTypes, kind);
   const [form, setForm] = useState<MemberForm>(
     member
       ? {
@@ -667,14 +889,12 @@ function MemberDrawer({
           parentAccountId: member.parentAccountId || "",
           avatarUrl: member.avatarUrl || "",
         }
-      : { ...empty, memberCode: nextMemberCode, memberTypeId: studentTypeId }
+      : { ...empty, memberCode: nextMemberCode, memberTypeId: fallbackTypeId }
   );
+  const [parentMode, setParentMode] = useState<"existing" | "new">(parents.length ? "existing" : "new");
+  const [newParent, setNewParent] = useState({ name: "", phone: "", email: "", password: "" });
   const [saving, setSaving] = useState(false);
-
-  const selectedType = useMemo(
-    () => memberTypes.find((t) => t.id === form.memberTypeId),
-    [memberTypes, form.memberTypeId]
-  );
+  const isJunior = kind === "junior";
 
   function set<K extends keyof MemberForm>(key: K, value: MemberForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -685,27 +905,50 @@ function MemberDrawer({
       toast.error("Нэр, нэвтрэх нэр, код оруулна уу");
       return;
     }
-    if (selectedType?.requiresParent && !form.parentAccountId) {
-      toast.error("Эцэг/эх сонгоно уу");
+    if (isJunior && !form.birthday) {
+      toast.error("Жуниор суралцагчийн төрсөн өдөр оруулна уу");
       return;
     }
     setSaving(true);
     try {
+      let parentAccountId = form.parentAccountId || null;
+      if (isJunior && !member && parentMode === "new") {
+        if (!newParent.name.trim() || !newParent.phone.trim() || !newParent.password.trim()) {
+          toast.error("Эцэг/эхийн нэр, утас, нууц үг оруулна уу");
+          setSaving(false);
+          return;
+        }
+        const created = await api<{ parent: ParentRow }>("/api/admin/parents", {
+          method: "POST",
+          body: JSON.stringify({
+            name: newParent.name.trim(),
+            phone: newParent.phone.trim(),
+            email: newParent.email.trim() || null,
+            password: newParent.password.trim(),
+          }),
+        });
+        parentAccountId = created.parent.id;
+      }
+      if (isJunior && !parentAccountId) {
+        toast.error("Эцэг/эх сонгоно уу, эсвэл шинээр бүртгэнэ үү");
+        setSaving(false);
+        return;
+      }
       const body = {
         ...form,
         xp: num(form.xp),
         rp: num(form.rp),
         level: membershipLevel(num(form.xp), num(form.rp)),
         rank: num(form.rank),
-        memberTypeId: form.memberTypeId || null,
+        memberTypeId: form.memberTypeId || fallbackTypeId || null,
         developmentActivityId: form.developmentActivityId || null,
-        parentAccountId: form.parentAccountId || null,
+        parentAccountId: isJunior ? parentAccountId : member ? form.parentAccountId || null : null,
         parentId: null,
         password: form.password.trim() || undefined,
       };
       if (member) await api(`/api/admin/members/${member.id}`, { method: "PUT", body: JSON.stringify(body) });
       else await api("/api/admin/members", { method: "POST", body: JSON.stringify(body) });
-      toast.success("Хадгаллаа");
+      toast.success(isJunior ? "Жуниор бүртгэлээ" : "Гишүүн бүртгэлээ");
       await onSaved();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Алдаа");
@@ -714,10 +957,19 @@ function MemberDrawer({
     }
   }
 
+  const title = member
+    ? "Гишүүн засах"
+    : isJunior
+      ? "Жуниор бүртгэх"
+      : "Насанд хүрсэн гишүүн бүртгэх";
+
+  const selectedJuniorType = kindTypes.find((t) => t.id === form.memberTypeId);
+  const juniorLevel = selectedJuniorType?.level || 1;
+
   return (
     <>
       <SheetHeader className="border-b border-border text-center">
-        <SheetTitle className="text-center">{member ? "Гишүүн засах" : "Гишүүн нэмэх"}</SheetTitle>
+        <SheetTitle className="text-center">{title}</SheetTitle>
       </SheetHeader>
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid gap-4 md:grid-cols-2">
@@ -740,7 +992,7 @@ function MemberDrawer({
           <Field label="Имэйл">
             <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
           </Field>
-          <Field label="Төрсөн өдөр">
+          <Field label="Төрсөн өдөр" required={isJunior}>
             <Input type="date" value={form.birthday} onChange={(e) => set("birthday", e.target.value)} />
           </Field>
           <Field label="Хүйс">
@@ -753,10 +1005,10 @@ function MemberDrawer({
           <Field label="Ангилал">
             <Input value={form.classification} placeholder="Unclassified" onChange={(e) => set("classification", e.target.value)} />
           </Field>
-          <Field label="Гишүүний төрөл" required>
+          <Field label={isJunior ? "Жуниор түвшин" : "Гишүүний төрөл"} required>
             <FieldSelect value={form.memberTypeId} onChange={(memberTypeId) => set("memberTypeId", memberTypeId)}>
               <option value="">Сонгох</option>
-              {memberTypes.map((type) => (
+              {kindTypes.map((type) => (
                 <option key={type.id} value={type.id}>{type.name}</option>
               ))}
             </FieldSelect>
@@ -769,21 +1021,69 @@ function MemberDrawer({
               ))}
             </FieldSelect>
           </Field>
-          <Field label="Эцэг/эх" required={selectedType?.requiresParent}>
-            <FieldSelect value={form.parentAccountId} onChange={(parentAccountId) => set("parentAccountId", parentAccountId)}>
-              <option value="">Сонгох</option>
-              {parents.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}{p.phone ? ` · ${p.phone}` : ""}
-                </option>
-              ))}
-            </FieldSelect>
-            {parents.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                Эхлээд <Link href="/parents" className="text-primary underline">Эцэг эх</Link> хуудаснаас бүртгэнэ үү.
-              </p>
-            )}
-          </Field>
+          {isJunior && (
+            <div className="space-y-3 rounded-lg border border-border p-3 md:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Label>Эцэг/эх <span className="text-destructive">*</span></Label>
+                {!member && (
+                  <div className="flex gap-1 rounded-lg bg-muted p-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setParentMode("existing")}
+                      className={cn("rounded-md px-2 py-1", parentMode === "existing" ? "bg-background shadow-sm" : "text-muted-foreground")}
+                    >
+                      Бүртгэлтэй
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setParentMode("new")}
+                      className={cn("rounded-md px-2 py-1", parentMode === "new" ? "bg-background shadow-sm" : "text-muted-foreground")}
+                    >
+                      Шинээр бүртгэх
+                    </button>
+                  </div>
+                )}
+              </div>
+              {(member || parentMode === "existing") ? (
+                <>
+                  <FieldSelect value={form.parentAccountId} onChange={(parentAccountId) => set("parentAccountId", parentAccountId)}>
+                    <option value="">Сонгох</option>
+                    {parents.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}{p.phone ? ` · ${p.phone}` : ""}
+                      </option>
+                    ))}
+                  </FieldSelect>
+                  {parents.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Бүртгэлтэй эцэг эх алга. Дээрх “Шинээр бүртгэх”-ийг сонгоно уу, эсвэл{" "}
+                      <Link href="/parents" className="text-primary underline">Эцэг эх</Link> хуудсыг ашиглана уу.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Field label="Эцэг/эхийн нэр" required>
+                    <Input value={newParent.name} onChange={(e) => setNewParent({ ...newParent, name: e.target.value })} />
+                  </Field>
+                  <Field label="Утас" required>
+                    <Input value={newParent.phone} placeholder="+97699112233" onChange={(e) => setNewParent({ ...newParent, phone: e.target.value })} />
+                  </Field>
+                  <Field label="Имэйл">
+                    <Input type="email" value={newParent.email} onChange={(e) => setNewParent({ ...newParent, email: e.target.value })} />
+                  </Field>
+                  <Field label="Нууц үг" required>
+                    <MPassword
+                      value={newParent.password}
+                      placeholder="Эцэг эхийн апп-д нэвтрэх"
+                      onChange={(e) => setNewParent({ ...newParent, password: e.target.value })}
+                      autoComplete="new-password"
+                    />
+                  </Field>
+                </div>
+              )}
+            </div>
+          )}
           <Field label="Нууц үг">
             <MPassword
               value={form.password}
@@ -804,9 +1104,15 @@ function MemberDrawer({
           </Field>
           <Field label="Гишүүнчлэлийн түвшин">
             <div className="rounded-lg border border-border px-3 py-2">
-              <div className="text-sm font-medium">{membershipLabel(membershipLevel(num(form.xp), num(form.rp)))}</div>
+              <div className="text-sm font-medium">
+                {isJunior
+                  ? membershipLabel(juniorLevel, "junior")
+                  : membershipLabel(membershipLevel(num(form.xp), num(form.rp)))}
+              </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                XP &gt; 50 → Level 1 · XP &gt; 50 ба RP &gt; 150 → Level 2 · XP &gt; 200 ба RP &gt; 600 → Level 3
+                {isJunior
+                  ? "Жуниор түвшин нь хөтөлбөрийн анги. 18 нас хүртлээ насанд хүрэгчдийн системд шилжинэ."
+                  : "XP > 50 → Level 1 · XP > 50 ба RP > 150 → Level 2 · XP > 200 ба RP > 600 → Level 3"}
               </p>
             </div>
           </Field>
@@ -842,7 +1148,8 @@ function MemberDrawer({
         </div>
       </div>
       <SheetFooter className="flex-row justify-end border-t border-border">
-        <Button variant="outline" onClick={onCancel}>Болих</Button>
+        {onBack && <Button variant="outline" onClick={onBack}>Буцах</Button>}
+        <Button variant={onBack ? "ghost" : "outline"} onClick={onCancel}>Болих</Button>
         {(member ? can("members.update") : can("members.create")) && (
           <Button onClick={save} disabled={saving}>{saving ? "Хадгалж байна..." : member ? "Шинэчлэх" : "Үүсгэх"}</Button>
         )}

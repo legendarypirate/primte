@@ -23,7 +23,6 @@ import {
   Swords,
   Layers,
   LayoutTemplate,
-  FolderTree,
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
@@ -69,7 +68,6 @@ const navGroups: NavGroup[] = [
     label: "Дэлгүүр & санхүү",
     items: [
       { href: "/products", label: "Бараа", icon: ShoppingBag, permission: "products.view" },
-      { href: "/products/categories", label: "Барааны ангилал", icon: FolderTree, permission: "products.view" },
       { href: "/orders", label: "Захиалга", icon: Receipt, permission: "orders.view" },
       { href: "/transactions", label: "Гүйлгээ", icon: Wallet, permission: "transactions.view" },
     ],

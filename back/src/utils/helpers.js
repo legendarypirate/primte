@@ -216,7 +216,9 @@ function serializeRegistration(registration) {
 
 function serializeChildSummary(member, req, extra = {}) {
   const type = member.MemberType;
+  const category = type?.category || 'junior';
   const level = computeMembershipLevel(member.xp, member.rp);
+  const displayLevel = category === 'junior' ? (type?.level || 1) : level;
   return {
     id: member.id,
     name: member.name,
@@ -225,12 +227,13 @@ function serializeChildSummary(member, req, extra = {}) {
     xp: member.xp || 0,
     rp: member.rp || 0,
     level,
-    membershipLabel: membershipLabel(level),
+    membershipLabel: membershipLabel(displayLevel, category),
     rank: member.rank,
     status: member.status,
     walletBalance: member.walletBalance,
-    memberTypeName: type?.name || membershipLabel(level),
-    category: type?.category || 'junior',
+    memberTypeName: type?.name || membershipLabel(displayLevel, category),
+    category,
+    memberTypeLevel: type?.level ?? null,
     validFromLabel: formatDate(member.validFrom),
     validToLabel: formatDate(member.validTo),
     attendancePercent: extra.attendancePercent ?? 92,
@@ -298,7 +301,9 @@ function serializeMember(member, req) {
   const activity = member.DevelopmentActivity;
   const parent = member.parent;
   const parentAccount = member.parentAccount;
+  const category = type?.category || null;
   const level = computeMembershipLevel(member.xp, member.rp);
+  const displayLevel = category === 'junior' ? (type?.level || 1) : level;
   return {
     id: member.id,
     name: member.name,
@@ -315,7 +320,7 @@ function serializeMember(member, req) {
     xp: member.xp || 0,
     rp: member.rp || 0,
     level,
-    membershipLabel: membershipLabel(level),
+    membershipLabel: membershipLabel(displayLevel, category),
     rank: member.rank,
     competitionCount: member.competitionCount,
     validFrom: member.validFrom,
@@ -324,6 +329,8 @@ function serializeMember(member, req) {
     validToLabel: formatDate(member.validTo),
     status: member.status,
     walletBalance: member.walletBalance,
+    category,
+    memberTypeLevel: type?.level ?? null,
     memberTypeId: member.memberTypeId,
     developmentActivityId: member.developmentActivityId,
     parentId: member.parentId,

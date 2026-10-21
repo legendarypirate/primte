@@ -437,51 +437,76 @@ export function JuniorPage() {
           placeholder="Table background"
           editMode="corner"
         >
-          <table className="relative z-10 w-full min-w-[700px] text-left text-sm">
+          <table className="relative z-10 w-full min-w-[860px] text-left text-sm">
             <thead className="border-b border-border bg-[#101012] text-xs text-muted-foreground">
               <tr>
                 <th className="p-4 font-medium">
-                  <EditableText field="levels.header.0" defaultValue="Нас хязгаарлалт" />
+                  <EditableText field="curriculum.header.0" defaultValue="Оролцох боломжит үйл ажиллагаа" />
                 </th>
                 <th className="p-4 font-medium">
-                  <EditableText field="levels.header.1" defaultValue="Level 1 (Анхан)" />
+                  <EditableText field="curriculum.header.1" defaultValue="LEVEL I JUNIOR" />
                 </th>
                 <th className="p-4 font-medium">
-                  <EditableText field="levels.header.2" defaultValue="Level 2 (Дунд)" />
+                  <EditableText field="curriculum.header.2" defaultValue="LEVEL II JUNIOR" />
                 </th>
                 <th className="p-4 font-medium">
-                  <EditableText field="levels.header.3" defaultValue="Level 3 (Ахисан)" />
+                  <EditableText field="curriculum.header.3" defaultValue="LEVEL III JUNIOR" />
                 </th>
               </tr>
             </thead>
             <tbody className="text-sm">
               {[
-                { label: "Сургалтын төлбөр", v1: "3 сарын 100,000", v2: "3 сарын 100,000", v3: "Клубтай хэлэлцсэнээр Практик буудлагын 50% хөнгөлөлт" },
-                { label: "Фраг гүйцэтгэх баатна", v1: "—", v2: "—", v3: "(19 цаг ашиглагч)" },
-                { label: "Боттр тэмцээн", v1: "—", v2: "Хязгааргүй бүх тэмцээн", v3: "Хязгааргүй бүх тэмцээн" },
-                { label: "Level 1 тэмцээн", v1: "1 тэмцээн", v2: "2 тэмцээн", v3: "" },
-                { label: "Level 2 тэмцээн (ТАULL)", v1: "—", v2: "1 тэмцээн", v3: "" },
-                { label: "Level 3,4,5 тэмцээн", v1: "—", v2: "—", v3: "" },
-                { label: "Хийн хадгалах/ТОК оролцох", v1: "—", v2: "—", v3: "✓" },
-                { label: "Гарт хадгалах хяналттай", v1: "шаардлагатай", v2: "хөнөлгүй", v3: "Гаргаар хадгалах хяналттай" },
+                {
+                  label: "Төлбөр",
+                  v1: "3 сараар 750,000₮. Нэмэлт сар бүрт 250,000₮",
+                  v2: "3 сараар 750,000₮. Нэмэлт сар бүрт 250,000₮ (Хуучин гэрээгээр суралцаж байгаа хүүхдүүд гэрээний дагуу)",
+                  v3: "Жуниорын сургалтын төлбөр гэж байхгүй, клубийн гишүүнчлэлийн тарифаас хөнгөлөлттэй дүнгээр",
+                },
+                { label: "Өдөр тутмын бэлтгэл / DAILY PRACTICE", v1: "—", v2: "—", v3: "Тийм (19 цаг хүртэл, эцэг эхийн зөвшөөрлөөр 22 цаг хүртэл)" },
+                { label: "Бэлтгэл тэмцээн / PRACTICE MATCH", v1: "—", v2: "Тийм / багшийн зөвшөөрлөөр (Хичээлийн бус цагаар)", v3: "Тийм" },
+                { label: "Level 1-р түвшний тэмцээн / LEVEL I MATCH", v1: "—", v2: "Тийм / багшийн зөвшөөрлөөр", v3: "Тийм" },
+                { label: "Level 2-р түвшний тэмцээн / LEVEL II MATCH (УАШТ)", v1: "—", v2: "Тийм / багшийн зөвшөөрлөөр", v3: "Тийм" },
+                { label: "Level 3, 4, 5-р түвшний тэмцээн / LEVEL III+ MATCH (ОУ, ТАШТ, ДАШТ)", v1: "—", v2: "—", v3: "Тийм" },
+                { label: "Клубийн шүүгчийн 1, 2-р түвшний сургалтад хамрагдах", v1: "—", v2: "Тийм", v3: "—" },
+                { label: "Хийн карабин/ГСК төрлийн сургалт", v1: "—", v2: "Тийм (Хичээлийн дундуур)", v3: "Тийм" },
+                { label: "Галт өдөрлөгт оролцох", v1: "—", v2: "—", v3: "Тийм" },
+                {
+                  label: "Тухайн түвшний суралцагчид тавигдах шаардлага",
+                  v1: "Шинэ элсэгч тул анхны 4 баримт бичиг",
+                  v2: "Цусны бүлэг тодорхойлсон хуудас, МПБХ-ны гэрээ, жуниорын II түвшний гэрээ, анхан шатны 30 цагийн хичээлд бүрэн хамрагдсан байх, 1-р түвшний сургалтад хамрагдсанаас хойш 6 сарын дотор дэвшсэн суралцагч",
+                  v3: "Жуниор хөтөлбөрийн 2-р түвшний ангид 6 сар хичээллэсэн байх, түвшин тогтоох шалгалтад тэнцсэн байх, A-33 тодорхойлолт, жуниорын III түвшний гэрээ, RP 300+, клубийн шүүгчийн 2-р түвшний сургалтад хамрагдсан байх, Level 1+ түвшний тэмцээнд 60 цагийн RS хийсэн байх",
+                },
+                {
+                  label: "Жуниор хөтөлбөрийн агуулга",
+                  v1: "Сард 2×6 = 12 цаг",
+                  v2: "Сард 2×6 = 12 цаг",
+                  v3: "Хичээлгүй, насанд хүрэгчдийн адилаар бэлтгэл, бэлтгэл тэмцээнд 50% хөнгөлөлттэй оролцох боломжтой.",
+                },
               ].map((row, idx) => (
-                <tr key={row.label} className="border-t border-border">
+                <tr key={row.label} className="border-t border-border align-top">
                   <td className="p-4 font-medium text-muted-foreground">
-                    <EditableText field={`levels.rows.${idx}.label`} defaultValue={row.label} />
+                    <EditableText field={`curriculum.rows.${idx}.label`} defaultValue={row.label} />
                   </td>
                   <td className="p-4">
-                    <EditableText field={`levels.rows.${idx}.v1`} defaultValue={row.v1} />
+                    <EditableText field={`curriculum.rows.${idx}.v1`} defaultValue={row.v1} multiline />
                   </td>
                   <td className="p-4">
-                    <EditableText field={`levels.rows.${idx}.v2`} defaultValue={row.v2} />
+                    <EditableText field={`curriculum.rows.${idx}.v2`} defaultValue={row.v2} multiline />
                   </td>
                   <td className="p-4">
-                    <EditableText field={`levels.rows.${idx}.v3`} defaultValue={row.v3} />
+                    <EditableText field={`curriculum.rows.${idx}.v3`} defaultValue={row.v3} multiline />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <p className="relative z-10 px-4 py-3 text-xs text-muted-foreground">
+            <EditableText
+              field="curriculum.footnote"
+              defaultValue="*Жуниор хөтөлбөрийн суралцагч 18 нас хүртэл насанд хүрэгчдийн системийн тохирох түвшинд дүйцүүлэн шилжинэ."
+              multiline
+            />
+          </p>
         </EditableBackground>
       </ContentSection>
 

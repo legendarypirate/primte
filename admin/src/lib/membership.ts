@@ -5,7 +5,11 @@ export function membershipLevel(xp = 0, rp = 0) {
   return 0;
 }
 
-export function membershipLabel(level: number) {
+export function membershipLabel(level: number, category?: string | null) {
+  if (category === "junior") {
+    const n = Math.max(1, Number(level) || 1);
+    return `Junior L${n} member`;
+  }
   if (!level) return "Student member";
   return `Level ${level} member`;
 }

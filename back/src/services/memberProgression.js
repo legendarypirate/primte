@@ -20,25 +20,13 @@ async function nextStudentCode() {
   return `S${String(max + 1).padStart(4, '0')}`;
 }
 
-async function resolveMembershipTypeId({ level, hasParent, currentType }) {
+async function resolveMembershipTypeId({ level, currentType }) {
   if (currentType?.isInactive) return currentType.id;
-  const slug = level <= 0
-    ? 'student-member'
-    : hasParent
-      ? `junior-l${level}`
-      : `official-l${level}`;
+  // Junior academy levels are assigned in admin, not by XP/RP.
+  if (currentType?.category === 'junior') return currentType.id;
+  const slug = level <= 0 ? 'student-member' : `official-l${level}`;
   const type = await MemberType.findOne({ where: { slug } });
   return type?.id || currentType?.id || null;
-}
-
-function hasParentLink(data = {}, current) {
-  if (data.parentAccountId === null || data.parentAccountId === '') return false;
-  return Boolean(
-    data.parentAccountId ||
-    data.parentId ||
-    current?.parentAccountId ||
-    current?.parentId
-  );
 }
 
 async function applyMemberProgression(data = {}, { current, syncType = false } = {}) {
@@ -61,7 +49,6 @@ async function applyMemberProgression(data = {}, { current, syncType = false } =
 
   const typeId = await resolveMembershipTypeId({
     level,
-    hasParent: hasParentLink(data, current),
     currentType,
   });
   if (typeId) data.memberTypeId = typeId;
