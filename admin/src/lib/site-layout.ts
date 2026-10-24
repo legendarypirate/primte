@@ -64,7 +64,10 @@ export const DEFAULT_FOOTER: SiteFooterData = {
     "Илүү сайн хүн, Илүү аюулгүй нийгэм.\nПрактик буудлагын спортоор дамжуулан сахилга бат, хариуцлага, манлайлыг төлөвшүүлнэ.",
   linksLabel: "ХОЛБООС",
   navItems: DEFAULT_NAV,
-  extraLinks: [{ label: "Дэлгүүр", href: "/training#shop" }],
+  extraLinks: [
+    { label: "Дэлгүүр", href: "/training#shop" },
+    { label: "Нууцлалын бодлого", href: "/privacy" },
+  ],
   contactLabel: "ХОЛБОО БАРИХ",
   phone: "8611-0200",
   email: "registration@prime.mn",

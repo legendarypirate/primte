@@ -318,6 +318,15 @@ const DEFAULT_PAGES = [
   { slug: 'course-2', title: 'Course 2', metaTitle: 'Course 2 | PRIME', sortOrder: 8, blocks: [] },
   { slug: 'junior', title: 'Junior', metaTitle: 'Junior хөтөлбөр | PRIME', sortOrder: 9, blocks: [] },
   { slug: 'ranking-rules', title: 'Чансааны журам', metaTitle: 'Чансааны журам | PRIME', sortOrder: 10, blocks: [] },
+  {
+    slug: 'privacy',
+    title: 'Нууцлалын бодлого',
+    metaTitle: 'Нууцлалын бодлого | Prime Club',
+    metaDescription:
+      'Prime Club — вэб сайт, гишүүний апп болон клубын үйл ажиллагааны нууцлалын бодлого.',
+    sortOrder: 11,
+    blocks: [],
+  },
 ];
 
 module.exports = { DEFAULT_PAGES };

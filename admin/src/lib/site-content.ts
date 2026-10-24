@@ -30,6 +30,7 @@ export const PAGE_SLUGS: Record<string, { slug: string; path: string; label: str
   "course-2": { slug: "course-2", path: "/training/course-2", label: "Course 2" },
   junior: { slug: "junior", path: "/training/junior", label: "Junior" },
   "ranking-rules": { slug: "ranking-rules", path: "/ranking/rules", label: "Чансааны журам" },
+  privacy: { slug: "privacy", path: "/privacy", label: "Нууцлалын бодлого" },
 };
 
 /**
@@ -47,4 +48,5 @@ export const CUSTOM_TEMPLATE_SLUGS = new Set<string>([
   "course-2",
   "junior",
   "ranking-rules",
+  "privacy",
 ]);

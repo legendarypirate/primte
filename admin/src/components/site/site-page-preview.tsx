@@ -9,6 +9,7 @@ import { HomePage } from "@/components/site/pages/home-page";
 import { JuniorPage } from "@/components/site/pages/junior-page";
 import { MembershipPage } from "@/components/site/pages/membership-page";
 import { RankingPage } from "@/components/site/pages/ranking-page";
+import { PrivacyPage } from "@/components/site/pages/privacy-page";
 import { RankingRulesPage } from "@/components/site/pages/ranking-rules-page";
 import { TrainingPage } from "@/components/site/pages/training-page";
 import type { PageContent } from "@/components/site/page-content-context";
@@ -26,6 +27,7 @@ const PAGES: Record<string, ComponentType> = {
   "course-2": Course2Page,
   junior: JuniorPage,
   "ranking-rules": RankingRulesPage,
+  privacy: PrivacyPage,
 };
 
 export function SitePagePreview({
