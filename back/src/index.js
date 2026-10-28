@@ -28,6 +28,10 @@ app.use('/api/app', appRoutes);
 app.use('/api/scoring', require('./routes/scoring'));
 app.use('/api/upload', uploadRoutes);
 
+app.use((req, res) => {
+  res.status(404).json({ message: 'Серверийн хаяг олдсонгүй.' });
+});
+
 app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ message: err.message || 'Серверийн алдаа' });
