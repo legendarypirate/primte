@@ -9,7 +9,7 @@
     "seed": "node src/seed.js",
     "seed:scoring": "node src/seed-scoring-profiles.js",
     "seed:scoring-demo": "node src/seed-scoring-demo.js",
-    "test": "node --test src/domain/scoring/scoring.test.js src/domain/membership.test.js src/domain/points.test.js src/domain/judge-levels.test.js"
+    "test": "node --test src/domain/scoring/scoring.test.js src/domain/membership.test.js src/domain/points.test.js src/domain/judge-levels.test.js src/domain/member-code.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

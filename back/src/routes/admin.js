@@ -435,8 +435,15 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
     data.username = loginName;
   }
-  if (data.memberCode && data.memberCode !== member.memberCode) {
-    data.pinHash = await bcrypt.hash(data.memberCode, 10);
+  if (data.memberCode) {
+    data.memberCode = String(data.memberCode).trim();
+    let pinMatchesCode = false;
+    try {
+      pinMatchesCode = Boolean(member.pinHash) && (await bcrypt.compare(data.memberCode, member.pinHash));
+    } catch {
+      pinMatchesCode = false;
+    }
+    if (!pinMatchesCode) data.pinHash = await bcrypt.hash(data.memberCode, 10);
   }
   const password = String(req.body?.password || '').trim();
   if (password) data.passwordHash = await bcrypt.hash(password, 10);

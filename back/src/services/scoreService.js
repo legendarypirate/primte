@@ -14,6 +14,16 @@ const { validateScoreInput, MESSAGES } = require('../domain/scoring/scoring-vali
 const { SCORE_STATUS, MATCH_STATUS } = require('../domain/scoring/scoring-types');
 const { getScoringProfile, PROFILES } = require('../domain/scoring/scoring-profile');
 const { recalculateAfterScore } = require('./resultService');
+const { memberCodeUnlocks, normalizeMemberCode } = require('../domain/member-code');
+
+async function pinHashMatches(secret, hash) {
+  if (!hash) return false;
+  try {
+    return await bcrypt.compare(String(secret), hash);
+  } catch {
+    return false;
+  }
+}
 
 async function loadProfileForMatch(match) {
   const row = await ScoringProfile.findByPk(match.scoringProfileId);
@@ -156,16 +166,13 @@ async function confirmScore(scoreId, pin, competitorId, officialId, deviceId) {
   const member = await require('../models/member').findByPk(score.Competitor.memberId);
   if (!member) throw new Error(MESSAGES.COMPETITOR_NOT_FOUND);
 
-  const code = String(pin ?? '').trim();
-  const candidates = [...new Set([code, code.toUpperCase()])].filter(Boolean);
-  let ok = false;
-  for (const candidate of candidates) {
-    if (member.pinHash && (await bcrypt.compare(candidate, member.pinHash))) {
-      ok = true;
-      break;
-    }
-  }
+  const ok = await memberCodeUnlocks(member, pin, pinHashMatches);
   if (!ok) throw new Error('Гишүүний код буруу байна.');
+
+  const liveCode = normalizeMemberCode(member.memberCode);
+  if (liveCode && !(await pinHashMatches(liveCode, member.pinHash))) {
+    await member.update({ pinHash: await bcrypt.hash(liveCode, 10) });
+  }
 
   await score.update({
     status: SCORE_STATUS.SIGNED,
