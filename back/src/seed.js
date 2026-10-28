@@ -292,7 +292,7 @@ async function run() {
   ]);
 
   await Setting.bulkCreate([
-    { key: 'club', value: { open: true, todayCount: 12, capacity: 40 } },
+    { key: 'club', value: { open: true, capacity: 40 } },
     { key: 'brand', value: { name: 'PRIME', tagline: 'Play. Train. Compete. Belong.' } },
   ]);
 

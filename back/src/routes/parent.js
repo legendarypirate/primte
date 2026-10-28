@@ -12,10 +12,10 @@ const {
   Product,
   Payment,
   Notice,
-  Setting,
   sequelize,
 } = require('../models');
 const { requireParent } = require('../middleware/auth');
+const { loadClubStatus } = require('../services/clubStatus');
 const { listPointHistory } = require('../services/pointLedger');
 const {
   serializeMember,
@@ -43,7 +43,6 @@ router.get('/home', async (req, res) => {
     include: [MemberType],
     order: [['name', 'ASC']],
   });
-  const clubSetting = await Setting.findByPk('club');
   const notices = await Notice.findAll({
     where: { published: true },
     order: [['createdAt', 'DESC']],
@@ -57,7 +56,7 @@ router.get('/home', async (req, res) => {
       avatarUrl: req.parent.avatarUrl,
     },
     children: children.map((c) => serializeChildSummary(c, req)),
-    club: clubSetting?.value || { open: true, todayCount: 0, capacity: 40 },
+    club: await loadClubStatus(),
     notices,
     unreadNotices: notices.length,
   });

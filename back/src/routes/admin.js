@@ -23,6 +23,10 @@ const {
   Parent,
 } = require('../models');
 const { requireAdmin, requirePermission } = require('../middleware/auth');
+const { loadClubStatus } = require('../services/clubStatus');
+const { startOfClubDay } = require('../domain/club');
+const { makeGatePayload, GATE_TTL_MS, attendanceHours, GATE_PREFIX } = require('../domain/attendance');
+const { applyGate, openSession, serializeSession } = require('../services/attendanceService');
 const {
   serializeMember,
   serializeProduct,
@@ -128,7 +132,9 @@ router.get('/dashboard', requirePermission('dashboard.view'), async (_req, res) 
     Competition.count(),
     Order.count(),
     Attendance.count({
-      where: { createdAt: { [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) } },
+      distinct: true,
+      col: 'memberId',
+      where: { createdAt: { [Op.gte]: startOfClubDay() } },
     }),
     Member.sum('walletBalance'),
   ]);
@@ -152,15 +158,19 @@ router.get('/dashboard', requirePermission('dashboard.view'), async (_req, res) 
   });
 });
 
-router.get('/settings', requirePermission('settings.manage'), async (_req, res) => {
+async function serializeSettings() {
   const rows = await Setting.findAll();
   const settings = Object.fromEntries(rows.map((row) => [row.key, row.value]));
-  const club = settings.club && typeof settings.club === 'object' ? settings.club : { open: true, todayCount: 0, capacity: 40 };
+  const live = await loadClubStatus();
   settings.club = {
-    ...club,
+    ...live,
     history: Array.isArray(settings.club_open_history) ? settings.club_open_history : [],
   };
-  res.json({ settings });
+  return settings;
+}
+
+router.get('/settings', requirePermission('settings.manage'), async (_req, res) => {
+  res.json({ settings: await serializeSettings() });
 });
 
 router.put('/settings', requirePermission('settings.manage'), async (req, res) => {
@@ -173,7 +183,6 @@ router.put('/settings', requirePermission('settings.manage'), async (req, res) =
       const history = Array.isArray(logRow?.value) ? logRow.value : [];
       const next = {
         open: value.open ?? prev.open,
-        todayCount: value.todayCount ?? prev.todayCount,
         capacity: value.capacity ?? prev.capacity,
       };
       if (Boolean(prev.open) !== Boolean(next.open)) {
@@ -196,14 +205,7 @@ router.put('/settings', requirePermission('settings.manage'), async (req, res) =
     }
     await Setting.upsert({ key, value });
   }
-  const rows = await Setting.findAll();
-  const settings = Object.fromEntries(rows.map((row) => [row.key, row.value]));
-  const club = settings.club && typeof settings.club === 'object' ? settings.club : { open: true, todayCount: 0, capacity: 40 };
-  settings.club = {
-    ...club,
-    history: Array.isArray(settings.club_open_history) ? settings.club_open_history : [],
-  };
-  res.json({ settings });
+  res.json({ settings: await serializeSettings() });
 });
 
 router.get('/members', requirePermission('members.view'), async (req, res) => {
@@ -803,25 +805,49 @@ router.get('/attendance', requirePermission('attendance.view'), async (_req, res
     order: [['createdAt', 'DESC']],
     limit: 200,
   });
-  res.json({ attendance });
+  res.json({
+    attendance: attendance.map((row) => {
+      const json = row.toJSON();
+      const hours = json.checkOutAt ? attendanceHours(json.createdAt, json.checkOutAt) : 0;
+      return { ...json, hours, present: !json.checkOutAt };
+    }),
+  });
+});
+
+router.get('/attendance/gates', requirePermission('attendance.view'), (_req, res) => {
+  res.json({
+    ttl: Math.floor(GATE_TTL_MS / 1000),
+    checkIn: { payload: makeGatePayload('IN'), label: 'Ирсэн' },
+    checkOut: { payload: makeGatePayload('OUT'), label: 'Явсан' },
+  });
 });
 
 router.post('/attendance/scan', requirePermission('attendance.scan'), async (req, res) => {
   const payload = String(req.body?.payload || '');
   const parts = payload.split('|');
+  if (parts[0] === GATE_PREFIX) {
+    return res.status(400).json({ message: 'Энэ QR-ийг гишүүний аппаар уншуулна.' });
+  }
   const code = parts[1];
   if (!code) return res.status(400).json({ message: 'QR буруу.' });
   const member = await Member.findOne({ where: { memberCode: code } });
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
-  const row = await Attendance.create({ memberId: member.id, kind: 'training', title: 'Бэлтгэл', note: 'QR scan' });
-  const { awardTrainingHourXp } = require('../services/pointLedger');
-  await awardTrainingHourXp(member, row);
-  const setting = await Setting.findByPk('club');
-  if (setting?.value) {
-    const next = { ...setting.value, todayCount: Number(setting.value.todayCount || 0) + 1 };
-    await setting.update({ value: next });
+  try {
+    const open = await openSession(member.id);
+    const result = await applyGate(member, open ? 'OUT' : 'IN');
+    await member.reload();
+    res.json({
+      action: result.action,
+      message: result.message,
+      hours: result.hours,
+      xpAwarded: result.xpAwarded,
+      attendance: serializeSession(result.attendance),
+      member: serializeMember(member, req),
+      club: await loadClubStatus(),
+    });
+  } catch (e) {
+    res.status(e.statusCode || 400).json({ message: e.message });
   }
-  res.json({ attendance: row, member: serializeMember(member, req) });
 });
 
 module.exports = router;

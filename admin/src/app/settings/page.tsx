@@ -121,8 +121,10 @@ export default function SettingsPage() {
               </button>
             </div>
             <div className="space-y-1">
-              <Label>Өнөөдрийн тоо</Label>
-              <Input type="number" value={todayCount} onChange={(e) => setTodayCount(e.target.value === "" ? 0 : Number(e.target.value))} />
+              <Label>Өнөөдрийн ирц</Label>
+              <div className="rounded-lg border border-border px-3 py-2 text-sm">
+                {todayCount}/{capacity} <span className="text-muted-foreground">· QR уншуулалтаар автоматаар нэмэгдэнэ</span>
+              </div>
             </div>
             <div className="space-y-1">
               <Label>Хүчин чадал</Label>

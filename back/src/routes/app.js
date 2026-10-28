@@ -11,12 +11,14 @@ const {
   Order,
   OrderItem,
   Registration,
-  Setting,
   Division,
   MatchType,
 } = require('../models');
 const { requireMember } = require('../middleware/auth');
+const { loadClubStatus } = require('../services/clubStatus');
 const { awardCompetitionXp, listPointHistory } = require('../services/pointLedger');
+const { parseGatePayload } = require('../domain/attendance');
+const { applyGate, openSession, serializeSession } = require('../services/attendanceService');
 const {
   serializeMember,
   serializeProduct,
@@ -78,8 +80,7 @@ router.use((req, res, next) => {
 });
 
 router.get('/home', async (req, res) => {
-  const clubRow = await Setting.findByPk('club');
-  const club = clubRow?.value || { open: true, todayCount: 0, capacity: 40 };
+  const club = await loadClubStatus();
   const competitions = await Competition.findAll({
     where: { status: ['upcoming', 'open'] },
     order: [['eventDate', 'ASC']],
@@ -521,6 +522,37 @@ router.get('/qr', async (req, res) => {
     member: serializeMember(req.member, req),
     ttl: 30,
   });
+});
+
+router.get('/attendance/status', async (req, res) => {
+  const open = await openSession(req.member.id);
+  res.json({
+    present: Boolean(open),
+    session: serializeSession(open),
+    club: await loadClubStatus(),
+  });
+});
+
+router.post('/attendance/scan', async (req, res) => {
+  const direction = parseGatePayload(req.body?.payload);
+  if (!direction) {
+    return res.status(400).json({ message: 'Клубын ирцийн QR буруу эсвэл хугацаа дууссан. Дахин уншуулна уу.' });
+  }
+  try {
+    const result = await applyGate(req.member, direction);
+    await req.member.reload();
+    res.json({
+      action: result.action,
+      message: result.message,
+      hours: result.hours,
+      xpAwarded: result.xpAwarded,
+      session: serializeSession(result.attendance),
+      member: serializeMember(req.member, req),
+      club: await loadClubStatus(),
+    });
+  } catch (e) {
+    res.status(e.statusCode || 400).json({ message: e.message });
+  }
 });
 
 module.exports = router;

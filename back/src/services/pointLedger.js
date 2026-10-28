@@ -237,14 +237,16 @@ async function awardTrainingHourXp(member, attendance, { hours = 1, transaction 
   if (await alreadyAwarded(member.id, { source: 'training_hour', refId: attendance.id }, { transaction })) {
     return null;
   }
-  const xp = XP_AWARDS.trainingHour.xp * Math.max(1, Math.floor(Number(hours) || 1));
+  const qty = Math.max(0, Math.floor(Number(hours) || 0));
+  if (qty < 1) return null;
+  const xp = XP_AWARDS.trainingHour.xp * qty;
   return applyMemberPoints(
     member,
     { xp },
     {
       source: 'training_hour',
-      title: XP_AWARDS.trainingHour.title,
-      note: attendance.title || 'Бэлтгэл',
+      title: qty === 1 ? XP_AWARDS.trainingHour.title : `${qty} цаг бэлтгэл`,
+      note: attendance.note || attendance.title || 'Бэлтгэл',
       refType: 'attendance',
       refId: attendance.id,
     },
