@@ -19,6 +19,7 @@ import {
   Tags,
   Briefcase,
   UserCog,
+  Gavel,
   HeartHandshake,
   Swords,
   Layers,
@@ -47,6 +48,7 @@ const navGroups: NavGroup[] = [
     label: "Гишүүд",
     items: [
       { href: "/members", label: "Гишүүд", icon: Users, permission: "members.view" },
+      { href: "/judges", label: "Шүүгчид", icon: Gavel, permission: "members.view" },
       { href: "/parents", label: "Эцэг эх", icon: HeartHandshake, permission: "members.view" },
       { href: "/attendance", label: "Ирц / QR", icon: QrCode, permission: "attendance.view" },
       { href: "/member-types", label: "Гишүүний төрөл", icon: Tags, permission: "member_types.manage" },

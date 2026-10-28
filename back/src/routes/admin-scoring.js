@@ -43,6 +43,8 @@ function requireAny(...keys) {
 
 const canView = requireAny('scoring.view', 'competitions.view');
 const canManage = requireAny('scoring.manage', 'competitions.manage');
+const canViewJudges = requireAny('scoring.view', 'competitions.view', 'members.view');
+const canManageJudges = requireAny('scoring.manage', 'competitions.manage', 'members.update');
 
 const num = (value) => Number(value || 0);
 const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
@@ -742,7 +744,65 @@ router.put('/scoring/competitors/:competitorId', canManage, async (req, res) => 
   return res.json({ ok: true });
 });
 
-router.get('/scoring/judge-candidates', canView, async (req, res) => {
+function serializeJudgeRow(judge) {
+  const member = judge.Member;
+  return {
+    ...serializeJudge(judge),
+    memberCode: member?.memberCode || null,
+    memberUsername: member?.username || judge.username,
+    phone: member?.phone || null,
+  };
+}
+
+async function createJudgeFromMember({ memberId, role, password }) {
+  if (!memberId) {
+    const err = new Error('Гишүүн сонгоно уу.');
+    err.statusCode = 400;
+    throw err;
+  }
+  const member = await Member.findByPk(memberId);
+  if (!member) {
+    const err = new Error('Гишүүн олдсонгүй.');
+    err.statusCode = 404;
+    throw err;
+  }
+  const login = String(member.username || '').trim().toLowerCase();
+  if (!login) {
+    const err = new Error('Энэ гишүүнд нэвтрэх нэр байхгүй.');
+    err.statusCode = 400;
+    throw err;
+  }
+  const already = await Judge.findOne({ where: { memberId: member.id } });
+  if (already) {
+    const err = new Error('Энэ гишүүн аль хэдийн шүүгч.');
+    err.statusCode = 409;
+    throw err;
+  }
+  const usernameTaken = await Judge.findOne({ where: { username: login } });
+  if (usernameTaken) {
+    const err = new Error('Энэ нэвтрэх нэр аль хэдийн шүүгчээр бүртгэгдсэн.');
+    err.statusCode = 409;
+    throw err;
+  }
+  let passwordHash = member.passwordHash || null;
+  if (password) passwordHash = await bcrypt.hash(String(password), 10);
+  if (!passwordHash) {
+    const err = new Error('Энэ гишүүнд нууц үг байхгүй. Нууц үг оруулна уу.');
+    err.statusCode = 400;
+    throw err;
+  }
+  return Judge.create({
+    username: login,
+    passwordHash,
+    name: member.name,
+    role: role || 'RO',
+    competitionId: null,
+    memberId: member.id,
+    active: true,
+  });
+}
+
+router.get('/scoring/judge-candidates', canViewJudges, async (req, res) => {
   const q = String(req.query.q || '').trim();
   if (q.length < 1) return res.json({ members: [] });
   const members = await Member.findAll({
@@ -770,59 +830,36 @@ router.get('/scoring/judge-candidates', canView, async (req, res) => {
   });
 });
 
-router.get('/competitions/:id/judges', canView, async (req, res) => {
+router.get('/judges', canViewJudges, async (_req, res) => {
   const judges = await Judge.findAll({
-    where: { competitionId: req.params.id },
+    include: [{ model: Member, attributes: ['id', 'name', 'username', 'memberCode', 'phone'] }],
     order: [['name', 'ASC']],
   });
-  res.json({ judges: judges.map(serializeJudge) });
+  res.json({ judges: judges.map(serializeJudgeRow) });
 });
 
-router.post('/competitions/:id/judges', canManage, async (req, res) => {
-  const competition = await Competition.findByPk(req.params.id);
-  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
-  const { username, password, name, role, memberId } = req.body || {};
-  let member = null;
-  let passwordHash = null;
-  let displayName = String(name || '').trim();
-  let login = String(username || '').trim().toLowerCase();
-
-  if (memberId) {
-    member = await Member.findByPk(memberId);
-    if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
-    const already = await Judge.findOne({ where: { competitionId: competition.id, memberId: member.id } });
-    if (already) return res.status(409).json({ message: 'Энэ гишүүн энэ тэмцээнд шүүгчээр бүртгэгдсэн.' });
-    displayName = displayName || String(member.name || '').trim();
-    login = login || String(member.username || '').trim().toLowerCase();
-    if (password) {
-      passwordHash = await bcrypt.hash(String(password), 10);
-    } else if (member.passwordHash) {
-      passwordHash = member.passwordHash;
-    } else {
-      return res.status(400).json({ message: 'Энэ гишүүнд нууц үг байхгүй. Шүүгчийн нууц үг оруулна уу.' });
-    }
-  } else if (password) {
-    passwordHash = await bcrypt.hash(String(password), 10);
+router.post('/judges', canManageJudges, async (req, res) => {
+  try {
+    const judge = await createJudgeFromMember(req.body || {});
+    const created = await Judge.findByPk(judge.id, {
+      include: [{ model: Member, attributes: ['id', 'name', 'username', 'memberCode', 'phone'] }],
+    });
+    res.status(201).json({ judge: serializeJudgeRow(created) });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || 'Серверийн алдаа' });
   }
+});
 
-  if (!login || !displayName || !passwordHash) {
-    return res.status(400).json({ message: 'Нэвтрэх нэр, нууц үг, нэр заавал.' });
-  }
-  const existing = await Judge.findOne({ where: { username: login } });
-  if (existing) return res.status(409).json({ message: 'Энэ нэвтрэх нэр аль хэдийн бүртгэгдсэн. Өөр нэвтрэх нэр өгнө үү.' });
-  const judge = await Judge.create({
-    username: login,
-    passwordHash,
-    name: displayName,
-    role: role || 'RO',
-    competitionId: competition.id,
-    memberId: member?.id || null,
-    active: true,
+router.get('/competitions/:id/judges', canView, async (_req, res) => {
+  const judges = await Judge.findAll({
+    where: { active: true },
+    include: [{ model: Member, attributes: ['id', 'name', 'username', 'memberCode', 'phone'] }],
+    order: [['name', 'ASC']],
   });
-  res.status(201).json({ judge: serializeJudge(judge) });
+  res.json({ judges: judges.map(serializeJudgeRow) });
 });
 
-router.patch('/judges/:judgeId', canManage, async (req, res) => {
+router.patch('/judges/:judgeId', canManageJudges, async (req, res) => {
   const judge = await Judge.findByPk(req.params.judgeId);
   if (!judge) return res.status(404).json({ message: 'Шүүгч олдсонгүй.' });
   const patch = {};
@@ -842,7 +879,7 @@ router.patch('/judges/:judgeId', canManage, async (req, res) => {
   res.json({ judge: serializeJudge(judge) });
 });
 
-router.delete('/judges/:judgeId', canManage, async (req, res) => {
+router.delete('/judges/:judgeId', canManageJudges, async (req, res) => {
   const judge = await Judge.findByPk(req.params.judgeId);
   if (!judge) return res.status(404).json({ message: 'Шүүгч олдсонгүй.' });
   await judge.destroy();

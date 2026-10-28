@@ -13,7 +13,7 @@ const Judge = sequelize.define(
       defaultValue: 'RO',
     },
     competitionId: { type: DataTypes.UUID, allowNull: true, field: 'competition_id' },
-    memberId: { type: DataTypes.UUID, allowNull: true, field: 'member_id' },
+    memberId: { type: DataTypes.UUID, allowNull: true, unique: true, field: 'member_id' },
     active: { type: DataTypes.BOOLEAN, defaultValue: true },
   },
   { tableName: 'judges', underscored: true }

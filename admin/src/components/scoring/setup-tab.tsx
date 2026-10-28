@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Plus, Save, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,15 +14,6 @@ import { COMPETITOR_STATUS_LABEL, type MatrixResponse, type ScoringStage } from 
 import { DataTable, TableEmpty, useClientTable } from "@/components/data-table";
 
 type StageDraft = Pick<ScoringStage, "name" | "courseType" | "maximumPoints" | "minimumRounds" | "status">;
-type JudgeRow = { id: string; name: string; username: string; role: string; active: boolean; memberId?: string | null };
-type JudgeCandidate = { id: string; name: string; username: string; memberCode: string; hasPassword: boolean; status: string };
-
-const JUDGE_ROLES = [
-  { value: "RO", label: "RO" },
-  { value: "SCOREKEEPER", label: "Scorekeeper" },
-  { value: "RANGE_MASTER", label: "Range Master" },
-  { value: "MATCH_DIRECTOR", label: "Match Director" },
-];
 
 function StageRow({ stage, canManage, onChanged }: { stage: ScoringStage; canManage: boolean; onChanged: () => void }) {
   const initial: StageDraft = {
@@ -104,15 +96,6 @@ export function SetupTab({
   refreshKey: number;
 }) {
   const [data, setData] = useState<MatrixResponse | null>(null);
-  const [judges, setJudges] = useState<JudgeRow[]>([]);
-  const [judgeName, setJudgeName] = useState("");
-  const [judgeUsername, setJudgeUsername] = useState("");
-  const [judgePassword, setJudgePassword] = useState("");
-  const [judgeRole, setJudgeRole] = useState("RO");
-  const [memberQuery, setMemberQuery] = useState("");
-  const [memberHits, setMemberHits] = useState<JudgeCandidate[]>([]);
-  const [selectedMember, setSelectedMember] = useState<JudgeCandidate | null>(null);
-  const [searchingMembers, setSearchingMembers] = useState(false);
   const [squadName, setSquadName] = useState("");
   const [query, setQuery] = useState("");
 
@@ -121,26 +104,10 @@ export function SetupTab({
     api<MatrixResponse>(`/api/admin/competitions/${competitionId}/scoring/matrix`)
       .then((d) => !cancelled && setData(d))
       .catch((e) => toast.error(e.message));
-    api<{ judges: JudgeRow[] }>(`/api/admin/competitions/${competitionId}/judges`)
-      .then((d) => !cancelled && setJudges(d.judges || []))
-      .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, [competitionId, refreshKey]);
-
-  useEffect(() => {
-    const q = memberQuery.trim();
-    if (selectedMember || q.length < 2) return;
-    const handle = window.setTimeout(() => {
-      setSearchingMembers(true);
-      api<{ members: JudgeCandidate[] }>(`/api/admin/scoring/judge-candidates?q=${encodeURIComponent(q)}`)
-        .then((d) => setMemberHits(d.members || []))
-        .catch(() => setMemberHits([]))
-        .finally(() => setSearchingMembers(false));
-    }, 250);
-    return () => window.clearTimeout(handle);
-  }, [memberQuery, selectedMember]);
 
   const competitors = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -168,141 +135,14 @@ export function SetupTab({
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>Шүүгчид (Score app)</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-xs text-muted-foreground">
-            Гишүүнээс шүүгч нэмбэл нэр, нэвтрэх нэр, гишүүний нууц үг хуулагдана. Шүүгч зөвхөн энэ тэмцээнд PRIME Judge апп-аар нэвтэрнэ.
-          </p>
-          {canManage && (
-            <div className="space-y-3">
-              <div className="relative">
-                <Input
-                  placeholder="Гишүүн хайх (нэр, username, код)"
-                  value={selectedMember ? `${selectedMember.name} · ${selectedMember.username || selectedMember.memberCode}` : memberQuery}
-                  onChange={(e) => {
-                    setSelectedMember(null);
-                    setJudgeName("");
-                    setJudgeUsername("");
-                    setMemberQuery(e.target.value);
-                  }}
-                />
-                {!selectedMember && memberQuery.trim().length >= 2 && (memberHits.length > 0 || searchingMembers) && (
-                  <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover shadow-md">
-                    {searchingMembers && memberHits.length === 0 && (
-                      <div className="px-3 py-2 text-xs text-muted-foreground">Хайж байна…</div>
-                    )}
-                    {memberHits.map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-accent"
-                        onClick={() => {
-                          setSelectedMember(m);
-                          setJudgeName(m.name);
-                          setJudgeUsername(m.username);
-                          setMemberQuery("");
-                          setMemberHits([]);
-                        }}
-                      >
-                        <span className="font-medium">{m.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {m.username || "username байхгүй"}
-                          {m.memberCode ? ` · ${m.memberCode}` : ""}
-                          {m.hasPassword ? "" : " · нууц үг байхгүй"}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="grid gap-2 md:grid-cols-5">
-                <Input placeholder="Нэр" value={judgeName} onChange={(e) => setJudgeName(e.target.value)} />
-                <Input placeholder="Нэвтрэх нэр" value={judgeUsername} onChange={(e) => setJudgeUsername(e.target.value)} />
-                <Input
-                  placeholder={selectedMember?.hasPassword ? "Нууц үг (хоосон = гишүүнийх)" : "Нууц үг"}
-                  type="password"
-                  value={judgePassword}
-                  onChange={(e) => setJudgePassword(e.target.value)}
-                />
-                <FieldSelect value={judgeRole} onChange={setJudgeRole}>
-                  {JUDGE_ROLES.map((r) => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
-                  ))}
-                </FieldSelect>
-                <Button
-                  disabled={!judgeName.trim() || !judgeUsername.trim() || (!selectedMember && !judgePassword) || Boolean(selectedMember && !selectedMember.hasPassword && !judgePassword)}
-                  onClick={async () => {
-                    try {
-                      await api(`/api/admin/competitions/${competitionId}/judges`, {
-                        method: "POST",
-                        body: JSON.stringify({
-                          name: judgeName.trim(),
-                          username: judgeUsername.trim(),
-                          password: judgePassword || undefined,
-                          role: judgeRole,
-                          memberId: selectedMember?.id,
-                        }),
-                      });
-                      toast.success(selectedMember ? `${selectedMember.name} шүүгч боллоо` : "Шүүгч нэмэгдлээ");
-                      setJudgeName("");
-                      setJudgeUsername("");
-                      setJudgePassword("");
-                      setJudgeRole("RO");
-                      setSelectedMember(null);
-                      setMemberQuery("");
-                      onChanged();
-                    } catch (e) {
-                      toast.error(e instanceof Error ? e.message : "Алдаа");
-                    }
-                  }}
-                >
-                  <Plus className="size-4" /> {selectedMember ? "Гишүүнээс нэмэх" : "Шүүгч нэмэх"}
-                </Button>
-              </div>
-            </div>
-          )}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Нэр</TableHead>
-                <TableHead>Нэвтрэх нэр</TableHead>
-                <TableHead>Эрх</TableHead>
-                <TableHead className="w-24">Төлөв</TableHead>
-                {canManage && <TableHead className="w-24" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {judges.map((j) => (
-                <TableRow key={j.id}>
-                  <TableCell>
-                    <div>{j.name}</div>
-                    {j.memberId && <div className="text-xs text-muted-foreground">Гишүүнээс</div>}
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{j.username}</TableCell>
-                  <TableCell>{j.role}</TableCell>
-                  <TableCell>{j.active ? "Идэвхтэй" : "Идэвхгүй"}</TableCell>
-                  {canManage && (
-                    <TableCell>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() =>
-                          call(`/api/admin/judges/${j.id}`, "DELETE", undefined, "Шүүгч устгалаа").then(() =>
-                            setJudges((prev) => prev.filter((x) => x.id !== j.id))
-                          )
-                        }
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-              {judges.length === 0 && <TableEmpty colSpan={canManage ? 5 : 4}>Шүүгч бүртгэгдээгүй.</TableEmpty>}
-            </TableBody>
-          </Table>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+          <div>
+            <div className="font-medium">Шүүгчид</div>
+            <p className="text-xs text-muted-foreground">Judge апп-д нэвтрэх эрхийг зөвхөн гишүүнээс нэмнэ.</p>
+          </div>
+          <Link href="/judges" className={buttonVariants({ variant: "outline" })}>
+            Шүүгчид хуудас
+          </Link>
         </CardContent>
       </Card>
 

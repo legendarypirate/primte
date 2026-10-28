@@ -73,14 +73,31 @@ router.get('/admin/me', requireAdmin, (req, res) => {
   res.json({ admin: serializeAdmin(req.admin) });
 });
 
+async function hashMatches(secret, hash) {
+  if (!hash) return false;
+  return bcrypt.compare(String(secret), hash);
+}
+
 router.post('/judge/login', async (req, res) => {
   const { username, password } = req.body || {};
   const login = String(username || '').trim().toLowerCase();
   if (!login || !password) {
     return res.status(400).json({ message: 'Нэвтрэх нэр болон нууц үгээ оруулна уу.' });
   }
-  const judge = await Judge.findOne({ where: { username: login } });
-  if (!judge || !judge.active || !(await bcrypt.compare(String(password), judge.passwordHash))) {
+  const member = await Member.findOne({ where: { username: { [Op.iLike]: login } } });
+  let judge = member ? await Judge.findOne({ where: { memberId: member.id } }) : null;
+  if (!judge) judge = await Judge.findOne({ where: { username: login } });
+
+  const memberPassOk = await hashMatches(password, member?.passwordHash);
+  const judgePassOk = await hashMatches(password, judge?.passwordHash);
+
+  if (!judge || !judge.active) {
+    if (memberPassOk) {
+      return res.status(403).json({ message: 'Энэ гишүүнд шүүгчийн эрх алга. Админ Шүүгчид хуудсанд нэмнэ үү.' });
+    }
+    return res.status(401).json({ message: 'Нэвтрэх нэр эсвэл нууц үг буруу.' });
+  }
+  if (!memberPassOk && !judgePassOk) {
     return res.status(401).json({ message: 'Нэвтрэх нэр эсвэл нууц үг буруу.' });
   }
   return res.json({
