@@ -1,8 +1,16 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
-const { Admin, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
-const { signToken, requireAdmin, requireParent, serializeAdmin, serializeParent } = require('../middleware/auth');
+const { Admin, Judge, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
+const {
+  signToken,
+  requireAdmin,
+  requireJudge,
+  requireParent,
+  serializeAdmin,
+  serializeJudge,
+  serializeParent,
+} = require('../middleware/auth');
 const { serializeMember } = require('../utils/helpers');
 
 const router = express.Router();
@@ -63,6 +71,26 @@ router.post('/member/login', async (req, res) => {
 
 router.get('/admin/me', requireAdmin, (req, res) => {
   res.json({ admin: serializeAdmin(req.admin) });
+});
+
+router.post('/judge/login', async (req, res) => {
+  const { username, password } = req.body || {};
+  const login = String(username || '').trim().toLowerCase();
+  if (!login || !password) {
+    return res.status(400).json({ message: 'Нэвтрэх нэр болон нууц үгээ оруулна уу.' });
+  }
+  const judge = await Judge.findOne({ where: { username: login } });
+  if (!judge || !judge.active || !(await bcrypt.compare(String(password), judge.passwordHash))) {
+    return res.status(401).json({ message: 'Нэвтрэх нэр эсвэл нууц үг буруу.' });
+  }
+  return res.json({
+    token: signToken({ id: judge.id, role: 'judge' }),
+    judge: serializeJudge(judge),
+  });
+});
+
+router.get('/judge/me', requireJudge, (req, res) => {
+  res.json({ judge: serializeJudge(req.judge) });
 });
 
 function parentPhoneCandidates(phone) {

@@ -95,6 +95,10 @@ export function SetupTab({
   refreshKey: number;
 }) {
   const [data, setData] = useState<MatrixResponse | null>(null);
+  const [judges, setJudges] = useState<{ id: string; name: string; username: string; role: string; active: boolean }[]>([]);
+  const [judgeName, setJudgeName] = useState("");
+  const [judgeUsername, setJudgeUsername] = useState("");
+  const [judgePassword, setJudgePassword] = useState("");
   const [squadName, setSquadName] = useState("");
   const [query, setQuery] = useState("");
 
@@ -103,6 +107,9 @@ export function SetupTab({
     api<MatrixResponse>(`/api/admin/competitions/${competitionId}/scoring/matrix`)
       .then((d) => !cancelled && setData(d))
       .catch((e) => toast.error(e.message));
+    api<{ judges: typeof judges }>(`/api/admin/competitions/${competitionId}/judges`)
+      .then((d) => !cancelled && setJudges(d.judges || []))
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -133,6 +140,86 @@ export function SetupTab({
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Шүүгчид (Score app)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Энд үүсгэсэн шүүгч зөвхөн энэ тэмцээнд нэвтэрч PRIME Judge апп-аар оноо оруулна.
+          </p>
+          {canManage && (
+            <div className="grid gap-2 md:grid-cols-4">
+              <Input placeholder="Нэр" value={judgeName} onChange={(e) => setJudgeName(e.target.value)} />
+              <Input placeholder="Нэвтрэх нэр" value={judgeUsername} onChange={(e) => setJudgeUsername(e.target.value)} />
+              <Input placeholder="Нууц үг" type="password" value={judgePassword} onChange={(e) => setJudgePassword(e.target.value)} />
+              <Button
+                disabled={!judgeName.trim() || !judgeUsername.trim() || !judgePassword}
+                onClick={async () => {
+                  try {
+                    await api(`/api/admin/competitions/${competitionId}/judges`, {
+                      method: "POST",
+                      body: JSON.stringify({
+                        name: judgeName.trim(),
+                        username: judgeUsername.trim(),
+                        password: judgePassword,
+                        role: "RO",
+                      }),
+                    });
+                    toast.success("Шүүгч нэмэгдлээ");
+                    setJudgeName("");
+                    setJudgeUsername("");
+                    setJudgePassword("");
+                    onChanged();
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Алдаа");
+                  }
+                }}
+              >
+                <Plus className="size-4" /> Шүүгч нэмэх
+              </Button>
+            </div>
+          )}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Нэр</TableHead>
+                <TableHead>Нэвтрэх нэр</TableHead>
+                <TableHead>Эрх</TableHead>
+                <TableHead className="w-24">Төлөв</TableHead>
+                {canManage && <TableHead className="w-24" />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {judges.map((j) => (
+                <TableRow key={j.id}>
+                  <TableCell>{j.name}</TableCell>
+                  <TableCell className="font-mono text-sm">{j.username}</TableCell>
+                  <TableCell>{j.role}</TableCell>
+                  <TableCell>{j.active ? "Идэвхтэй" : "Идэвхгүй"}</TableCell>
+                  {canManage && (
+                    <TableCell>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() =>
+                          call(`/api/admin/judges/${j.id}`, "DELETE", undefined, "Шүүгч устгалаа").then(() =>
+                            setJudges((prev) => prev.filter((x) => x.id !== j.id))
+                          )
+                        }
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+              {judges.length === 0 && <TableEmpty colSpan={canManage ? 5 : 4}>Шүүгч бүртгэгдээгүй.</TableEmpty>}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Стейжүүд</CardTitle>

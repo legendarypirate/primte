@@ -39,6 +39,7 @@ const ScoreRevision = require('./scoreRevision');
 const AuditLog = require('./auditLog');
 const SyncOperation = require('./syncOperation');
 const Official = require('./official');
+const Judge = require('./judge');
 
 Admin.belongsTo(Role, { foreignKey: 'roleId' });
 Role.hasMany(Admin, { foreignKey: 'roleId' });
@@ -126,6 +127,9 @@ ScoreRevision.belongsTo(Score, { foreignKey: 'scoreId' });
 Official.belongsTo(Admin, { foreignKey: 'adminId' });
 Admin.hasOne(Official, { foreignKey: 'adminId' });
 
+Judge.belongsTo(Competition, { foreignKey: 'competitionId' });
+Competition.hasMany(Judge, { foreignKey: 'competitionId' });
+
 module.exports = {
   sequelize,
   Admin,
@@ -166,4 +170,5 @@ module.exports = {
   AuditLog,
   SyncOperation,
   Official,
+  Judge,
 };

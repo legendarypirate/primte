@@ -18,7 +18,7 @@ const {
   Member,
   sequelize,
 } = require('../models');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, requireScoringAccess, scoringActorId } = require('../middleware/auth');
 const { createOrUpdateScore, confirmScore, invalidateScore, MESSAGES } = require('../services/scoreService');
 const {
   getSquadCompetitors,
@@ -106,10 +106,43 @@ function serializeScore(s) {
   };
 }
 
-router.use(requireAdmin);
+async function assertJudgeCanAccessMatch(req, res, matchId) {
+  if (req.admin || !req.judge?.competitionId) return true;
+  const match = await Match.findByPk(matchId);
+  if (!match || match.competitionId !== req.judge.competitionId) {
+    res.status(403).json({ message: 'Энэ тэмцэнд оноо оруулах эрхгүй.' });
+    return false;
+  }
+  return true;
+}
 
-router.get('/matches', async (_req, res) => {
+async function assertJudgeCanAccessSquad(req, res, squadId) {
+  if (req.admin || !req.judge?.competitionId) return true;
+  const squad = await Squad.findByPk(squadId);
+  if (!squad) {
+    res.status(404).json({ message: 'Squad олдсонгүй.' });
+    return false;
+  }
+  return assertJudgeCanAccessMatch(req, res, squad.matchId);
+}
+
+router.use(requireScoringAccess);
+
+router.param('matchId', async (req, res, next, matchId) => {
+  if (await assertJudgeCanAccessMatch(req, res, matchId)) return next();
+});
+
+router.param('squadId', async (req, res, next, squadId) => {
+  if (await assertJudgeCanAccessSquad(req, res, squadId)) return next();
+});
+
+router.get('/matches', async (req, res) => {
+  const where = {};
+  if (req.judge?.competitionId) {
+    where.competitionId = req.judge.competitionId;
+  }
   const matches = await Match.findAll({
+    where,
     order: [['startDate', 'DESC']],
     include: [{ model: Competition, include: [MatchType] }],
   });
@@ -244,8 +277,9 @@ router.post('/scores/preview', async (req, res) => {
 
 router.post('/scores', async (req, res) => {
   try {
+    if (!(await assertJudgeCanAccessMatch(req, res, req.body?.matchId))) return;
     const deviceId = req.headers['x-device-id'] || null;
-    const score = await createOrUpdateScore(req.body, req.admin.id, deviceId);
+    const score = await createOrUpdateScore(req.body, scoringActorId(req), deviceId);
     res.json({ score: serializeScore(score) });
   } catch (e) {
     if (e.code === 'VERSION_CONFLICT') {
@@ -262,14 +296,14 @@ router.post('/scores/:scoreId/confirm', async (req, res) => {
   try {
     const { pin, competitorId } = req.body || {};
     const deviceId = req.headers['x-device-id'] || null;
-    const score = await confirmScore(req.params.scoreId, pin, competitorId, req.admin.id, deviceId);
+    const score = await confirmScore(req.params.scoreId, pin, competitorId, scoringActorId(req), deviceId);
     res.json({ score: serializeScore(score) });
   } catch (e) {
     return res.status(400).json({ message: e.message });
   }
 });
 
-router.post('/scores/:scoreId/invalidate', async (req, res) => {
+router.post('/scores/:scoreId/invalidate', requireAdmin, async (req, res) => {
   try {
     const deviceId = req.headers['x-device-id'] || null;
     const score = await invalidateScore(req.params.scoreId, req.admin.id, req.body?.reason, deviceId);
@@ -392,9 +426,13 @@ router.post('/sync', async (req, res) => {
   for (const op of operations) {
     try {
       if (op.action === 'create_score' || op.action === 'update_score') {
+        if (!(await assertJudgeCanAccessMatch(req, res, op.payload?.matchId))) {
+          results.push({ id: op.id, status: 'FAILED', message: 'Энэ тэмцэнд оноо оруулах эрхгүй.' });
+          continue;
+        }
         const score = await createOrUpdateScore(
           { ...op.payload, expectedVersion: op.payload.expectedVersion },
-          req.admin.id,
+          scoringActorId(req),
           deviceId
         );
         results.push({ id: op.id, status: 'SYNCED', scoreId: score.id, version: score.version });
@@ -403,7 +441,7 @@ router.post('/sync', async (req, res) => {
           op.payload.scoreId,
           op.payload.pin,
           op.payload.competitorId,
-          req.admin.id,
+          scoringActorId(req),
           deviceId
         );
         results.push({ id: op.id, status: 'SYNCED', scoreId: score.id });
@@ -428,7 +466,7 @@ router.post('/sync', async (req, res) => {
   res.json({ results });
 });
 
-router.post('/registrations/:registrationId/import', async (req, res) => {
+router.post('/registrations/:registrationId/import', requireAdmin, async (req, res) => {
   const competitor = await ensureCompetitorFromRegistration(req.params.registrationId, {
     actorId: req.admin.id,
     powerFactor: req.body?.powerFactor,

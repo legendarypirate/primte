@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const {
   Admin,
@@ -14,9 +15,10 @@ const {
   Squad,
   Stage,
   StageResult,
+  Judge,
 } = require('../models');
 const AuditLog = require('../models/auditLog');
-const { requireAdmin, hasPermission } = require('../middleware/auth');
+const { requireAdmin, hasPermission, serializeJudge } = require('../middleware/auth');
 const { invalidateScore } = require('../services/scoreService');
 const { recalculateAfterScore, recalculateWholeMatch } = require('../services/resultService');
 const { ensureCompetitorFromRegistration, ensureMatchForCompetition } = require('../services/competitorService');
@@ -738,6 +740,63 @@ router.put('/scoring/competitors/:competitorId', canManage, async (req, res) => 
   if (affectsResults) await recalculateWholeMatch(competitor.matchId);
   await audit(req, 'competitor.updated', 'Competitor', competitor.id, before, { ...competitor.toJSON(), reason: body.reason || null });
   return res.json({ ok: true });
+});
+
+router.get('/competitions/:id/judges', canView, async (req, res) => {
+  const judges = await Judge.findAll({
+    where: { competitionId: req.params.id },
+    order: [['name', 'ASC']],
+  });
+  res.json({ judges: judges.map(serializeJudge) });
+});
+
+router.post('/competitions/:id/judges', canManage, async (req, res) => {
+  const competition = await Competition.findByPk(req.params.id);
+  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+  const { username, password, name, role } = req.body || {};
+  const login = String(username || '').trim().toLowerCase();
+  const displayName = String(name || '').trim();
+  if (!login || !password || !displayName) {
+    return res.status(400).json({ message: 'Нэвтрэх нэр, нууц үг, нэр заавал.' });
+  }
+  const existing = await Judge.findOne({ where: { username: login } });
+  if (existing) return res.status(409).json({ message: 'Энэ нэвтрэх нэр аль хэдийн бүртгэгдсэн.' });
+  const judge = await Judge.create({
+    username: login,
+    passwordHash: await bcrypt.hash(String(password), 10),
+    name: displayName,
+    role: role || 'RO',
+    competitionId: competition.id,
+    active: true,
+  });
+  res.status(201).json({ judge: serializeJudge(judge) });
+});
+
+router.patch('/judges/:judgeId', canManage, async (req, res) => {
+  const judge = await Judge.findByPk(req.params.judgeId);
+  if (!judge) return res.status(404).json({ message: 'Шүүгч олдсонгүй.' });
+  const patch = {};
+  if (req.body?.name != null) patch.name = String(req.body.name).trim();
+  if (req.body?.role != null) patch.role = req.body.role;
+  if (req.body?.active != null) patch.active = Boolean(req.body.active);
+  if (req.body?.password) {
+    patch.passwordHash = await bcrypt.hash(String(req.body.password), 10);
+  }
+  if (req.body?.username) {
+    const login = String(req.body.username).trim().toLowerCase();
+    const taken = await Judge.findOne({ where: { username: login, id: { [Op.ne]: judge.id } } });
+    if (taken) return res.status(409).json({ message: 'Энэ нэвтрэх нэр аль хэдийн бүртгэгдсэн.' });
+    patch.username = login;
+  }
+  await judge.update(patch);
+  res.json({ judge: serializeJudge(judge) });
+});
+
+router.delete('/judges/:judgeId', canManage, async (req, res) => {
+  const judge = await Judge.findByPk(req.params.judgeId);
+  if (!judge) return res.status(404).json({ message: 'Шүүгч олдсонгүй.' });
+  await judge.destroy();
+  res.json({ ok: true });
 });
 
 module.exports = router;

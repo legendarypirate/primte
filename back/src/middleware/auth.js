@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { Admin, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
+const { Admin, Judge, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -83,6 +83,59 @@ async function requireParent(req, res, next) {
   return next();
 }
 
+function serializeJudge(judge) {
+  return {
+    id: judge.id,
+    name: judge.name,
+    username: judge.username,
+    role: judge.role,
+    competitionId: judge.competitionId,
+    active: judge.active,
+  };
+}
+
+async function requireJudge(req, res, next) {
+  const payload = readToken(req);
+  if (!payload || payload.role !== 'judge') {
+    return res.status(401).json({ message: 'Шүүгчийн эрх шаардлагатай.' });
+  }
+  const judge = await Judge.findByPk(payload.id);
+  if (!judge || !judge.active) {
+    return res.status(401).json({ message: 'Шүүгчийн бүртгэл идэвхгүй эсвэл олдсонгүй.' });
+  }
+  req.judge = judge;
+  return next();
+}
+
+async function requireScoringAccess(req, res, next) {
+  const payload = readToken(req);
+  if (!payload) {
+    return res.status(401).json({ message: 'Нэвтэрнэ үү.' });
+  }
+  if (payload.role === 'admin') {
+    const admin = await Admin.findByPk(payload.id, { include: [Role] });
+    if (!admin) return res.status(401).json({ message: 'Админ олдсонгүй.' });
+    req.admin = admin;
+    req.adminRole = admin.Role;
+    return next();
+  }
+  if (payload.role === 'judge') {
+    const judge = await Judge.findByPk(payload.id);
+    if (!judge || !judge.active) {
+      return res.status(401).json({ message: 'Шүүгчийн бүртгэл идэвхгүй эсвэл олдсонгүй.' });
+    }
+    req.judge = judge;
+    return next();
+  }
+  return res.status(401).json({ message: 'Оноо оруулах эрхгүй.' });
+}
+
+function scoringActorId(req) {
+  if (req.admin) return req.admin.id;
+  if (req.judge) return req.judge.id;
+  return null;
+}
+
 async function requireMember(req, res, next) {
   const payload = readToken(req);
   if (!payload || payload.role !== 'member') {
@@ -102,10 +155,14 @@ async function requireMember(req, res, next) {
 module.exports = {
   signToken,
   requireAdmin,
+  requireJudge,
+  requireScoringAccess,
+  scoringActorId,
   requireMember,
   requireParent,
   requirePermission,
   serializeAdmin,
+  serializeJudge,
   serializeParent,
   hasPermission,
 };
