@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { Admin, Judge, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
+const { serializeJudgeLevel } = require('../domain/judge-levels');
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -92,6 +93,7 @@ function serializeJudge(judge) {
     competitionId: judge.competitionId,
     memberId: judge.memberId || null,
     active: judge.active,
+    ...serializeJudgeLevel(judge),
   };
 }
 

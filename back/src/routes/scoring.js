@@ -35,6 +35,7 @@ const { calculateStageProgress, calculateMatchProgress } = require('../domain/sc
 const { formatHitFactor } = require('../domain/scoring/scoring-engine');
 const { calculateScore } = require('../domain/scoring/scoring-engine');
 const { getScoringProfile, PROFILES } = require('../domain/scoring/scoring-profile');
+const { resolveCompetitionTier, grantsFor, formatGrants, canEnterScores } = require('../domain/judge-levels');
 
 const router = express.Router();
 
@@ -77,6 +78,21 @@ function serializeMatch(m) {
     organizer: c?.organizer || 'Монголын Практик Буудлагын Холбоо',
     imageUrl: c?.imageUrl || null,
     matchTypeName: mt?.name || null,
+    level: c?.level || null,
+    tags: Array.isArray(c?.tags) ? c.tags : [],
+    organizerKind: c?.organizer || null,
+    competitionTier: resolveCompetitionTier(c || { title: m.name, subtitle: m.discipline }),
+  };
+}
+
+function serializeMatchForJudge(m, judge) {
+  const base = serializeMatch(m);
+  if (!judge) return base;
+  const grants = grantsFor(judge.certificationLevel, base.competitionTier);
+  return {
+    ...base,
+    allowedPositions: formatGrants(grants),
+    canEnterScores: canEnterScores(judge.certificationLevel, base.competitionTier, judge.role),
   };
 }
 
@@ -146,7 +162,7 @@ router.get('/matches', async (req, res) => {
     order: [['startDate', 'DESC']],
     include: [{ model: Competition, include: [MatchType] }],
   });
-  res.json({ matches: matches.map(serializeMatch) });
+  res.json({ matches: matches.map((m) => serializeMatchForJudge(m, req.judge)) });
 });
 
 router.get('/matches/:matchId', async (req, res) => {
@@ -160,7 +176,7 @@ router.get('/matches/:matchId', async (req, res) => {
     ],
   });
   if (!match) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
-  res.json({ match: { ...serializeMatch(match), Stages: match.Stages, Squads: match.Squads } });
+  res.json({ match: { ...serializeMatchForJudge(match, req.judge), Stages: match.Stages, Squads: match.Squads } });
 });
 
 router.get('/matches/:matchId/squads', async (req, res) => {

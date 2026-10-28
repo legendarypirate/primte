@@ -18,6 +18,7 @@ type JudgeRow = {
   name: string;
   username: string;
   role: string;
+  certificationLevel?: string;
   active: boolean;
   memberId?: string | null;
   memberCode?: string | null;
@@ -40,6 +41,13 @@ const JUDGE_ROLES = [
   { value: "MATCH_DIRECTOR", label: "Match Director" },
 ];
 
+const JUDGE_CERT_LEVELS = [
+  { value: "LEVEL_I_RO", label: "LEVEL I RO" },
+  { value: "LEVEL_II_RO", label: "LEVEL II RO" },
+  { value: "LEVEL_III_RO", label: "LEVEL III RO" },
+  { value: "NROI", label: "NROI" },
+];
+
 const canManage = () => can("scoring.manage") || can("competitions.manage") || can("members.update");
 
 export default function JudgesPage() {
@@ -49,6 +57,7 @@ export default function JudgesPage() {
   const [hits, setHits] = useState<Candidate[]>([]);
   const [selected, setSelected] = useState<Candidate | null>(null);
   const [role, setRole] = useState("RO");
+  const [certificationLevel, setCertificationLevel] = useState("LEVEL_I_RO");
   const [password, setPassword] = useState("");
   const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -76,7 +85,7 @@ export default function JudgesPage() {
   }, [memberQuery, selected]);
 
   const filtered = useMemo(
-    () => judges.filter((j) => matchesQuery(query, [j.name, j.username, j.memberCode, j.phone, j.role])),
+    () => judges.filter((j) => matchesQuery(query, [j.name, j.username, j.memberCode, j.phone, j.role, j.certificationLevel])),
     [judges, query]
   );
   const table = useClientTable(filtered, { resetKey: query });
@@ -93,6 +102,7 @@ export default function JudgesPage() {
         body: JSON.stringify({
           memberId: selected.id,
           role,
+          certificationLevel,
           password: password || undefined,
         }),
       });
@@ -102,6 +112,7 @@ export default function JudgesPage() {
       setHits([]);
       setPassword("");
       setRole("RO");
+      setCertificationLevel("LEVEL_I_RO");
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Алдаа");
@@ -160,9 +171,14 @@ export default function JudgesPage() {
               </div>
             )}
           </div>
-          <div className="grid gap-2 md:grid-cols-3">
+          <div className="grid gap-2 md:grid-cols-4">
             <FieldSelect value={role} onChange={setRole}>
               {JUDGE_ROLES.map((r) => (
+                <option key={r.value} value={r.value}>{r.label}</option>
+              ))}
+            </FieldSelect>
+            <FieldSelect value={certificationLevel} onChange={setCertificationLevel}>
+              {JUDGE_CERT_LEVELS.map((r) => (
                 <option key={r.value} value={r.value}>{r.label}</option>
               ))}
             </FieldSelect>
@@ -197,6 +213,7 @@ export default function JudgesPage() {
               <TableHead>Гишүүн</TableHead>
               <TableHead>Нэвтрэх нэр</TableHead>
               <TableHead>Эрх</TableHead>
+              <TableHead>Түвшин</TableHead>
               <TableHead>Төлөв</TableHead>
               {manage && <TableHead />}
             </TableRow>
@@ -228,6 +245,27 @@ export default function JudgesPage() {
                     </FieldSelect>
                   ) : (
                     j.role
+                  )}
+                </TableCell>
+                <TableCell className="w-44">
+                  {manage ? (
+                    <FieldSelect
+                      value={j.certificationLevel || "LEVEL_I_RO"}
+                      onChange={async (certificationLevel) => {
+                        try {
+                          await api(`/api/admin/judges/${j.id}`, { method: "PATCH", body: JSON.stringify({ certificationLevel }) });
+                          setJudges((prev) => prev.map((row) => (row.id === j.id ? { ...row, certificationLevel } : row)));
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Алдаа");
+                        }
+                      }}
+                    >
+                      {JUDGE_CERT_LEVELS.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </FieldSelect>
+                  ) : (
+                    JUDGE_CERT_LEVELS.find((r) => r.value === j.certificationLevel)?.label || j.certificationLevel || "LEVEL I RO"
                   )}
                 </TableCell>
                 <TableCell>
@@ -267,7 +305,7 @@ export default function JudgesPage() {
                 )}
               </TableRow>
             ))}
-            {table.visible.length === 0 && <TableEmpty colSpan={manage ? 5 : 4}>Шүүгч алга. Гишүүнээс нэмнэ үү.</TableEmpty>}
+            {table.visible.length === 0 && <TableEmpty colSpan={manage ? 6 : 5}>Шүүгч алга. Гишүүнээс нэмнэ үү.</TableEmpty>}
           </TableBody>
         </Table>
       </DataTable>

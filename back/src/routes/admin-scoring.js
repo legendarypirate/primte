@@ -23,6 +23,7 @@ const { invalidateScore } = require('../services/scoreService');
 const { recalculateAfterScore, recalculateWholeMatch } = require('../services/resultService');
 const { ensureCompetitorFromRegistration, ensureMatchForCompetition } = require('../services/competitorService');
 const { MATCH_STATUS } = require('../domain/scoring/scoring-types');
+const { parseCertLevel } = require('../domain/judge-levels');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -754,7 +755,13 @@ function serializeJudgeRow(judge) {
   };
 }
 
-async function createJudgeFromMember({ memberId, role, password }) {
+function toHours(value, fallback = 0) {
+  if (value == null || value === '') return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.max(0, n) : fallback;
+}
+
+async function createJudgeFromMember({ memberId, role, password, certificationLevel }) {
   if (!memberId) {
     const err = new Error('Гишүүн сонгоно уу.');
     err.statusCode = 400;
@@ -796,6 +803,7 @@ async function createJudgeFromMember({ memberId, role, password }) {
     passwordHash,
     name: member.name,
     role: role || 'RO',
+    certificationLevel: parseCertLevel(certificationLevel),
     competitionId: null,
     memberId: member.id,
     active: true,
@@ -865,6 +873,11 @@ router.patch('/judges/:judgeId', canManageJudges, async (req, res) => {
   const patch = {};
   if (req.body?.name != null) patch.name = String(req.body.name).trim();
   if (req.body?.role != null) patch.role = req.body.role;
+  if (req.body?.certificationLevel != null) patch.certificationLevel = parseCertLevel(req.body.certificationLevel);
+  if (req.body?.trainingAroHours != null) patch.trainingAroHours = toHours(req.body.trainingAroHours);
+  if (req.body?.trainingRoHours != null) patch.trainingRoHours = toHours(req.body.trainingRoHours);
+  if (req.body?.clubL1AroHours != null) patch.clubL1AroHours = toHours(req.body.clubL1AroHours);
+  if (req.body?.annualHoursYtd != null) patch.annualHoursYtd = toHours(req.body.annualHoursYtd);
   if (req.body?.active != null) patch.active = Boolean(req.body.active);
   if (req.body?.password) {
     patch.passwordHash = await bcrypt.hash(String(req.body.password), 10);
