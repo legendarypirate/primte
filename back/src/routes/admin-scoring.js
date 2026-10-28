@@ -742,6 +742,34 @@ router.put('/scoring/competitors/:competitorId', canManage, async (req, res) => 
   return res.json({ ok: true });
 });
 
+router.get('/scoring/judge-candidates', canView, async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  if (q.length < 1) return res.json({ members: [] });
+  const members = await Member.findAll({
+    where: {
+      [Op.or]: [
+        { name: { [Op.iLike]: `%${q}%` } },
+        { username: { [Op.iLike]: `%${q}%` } },
+        { memberCode: { [Op.iLike]: `%${q}%` } },
+        { phone: { [Op.iLike]: `%${q}%` } },
+      ],
+    },
+    attributes: ['id', 'name', 'username', 'memberCode', 'passwordHash', 'status'],
+    order: [['name', 'ASC']],
+    limit: 20,
+  });
+  res.json({
+    members: members.map((m) => ({
+      id: m.id,
+      name: m.name,
+      username: m.username || '',
+      memberCode: m.memberCode || '',
+      hasPassword: Boolean(m.passwordHash),
+      status: m.status,
+    })),
+  });
+});
+
 router.get('/competitions/:id/judges', canView, async (req, res) => {
   const judges = await Judge.findAll({
     where: { competitionId: req.params.id },
@@ -753,20 +781,42 @@ router.get('/competitions/:id/judges', canView, async (req, res) => {
 router.post('/competitions/:id/judges', canManage, async (req, res) => {
   const competition = await Competition.findByPk(req.params.id);
   if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
-  const { username, password, name, role } = req.body || {};
-  const login = String(username || '').trim().toLowerCase();
-  const displayName = String(name || '').trim();
-  if (!login || !password || !displayName) {
+  const { username, password, name, role, memberId } = req.body || {};
+  let member = null;
+  let passwordHash = null;
+  let displayName = String(name || '').trim();
+  let login = String(username || '').trim().toLowerCase();
+
+  if (memberId) {
+    member = await Member.findByPk(memberId);
+    if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
+    const already = await Judge.findOne({ where: { competitionId: competition.id, memberId: member.id } });
+    if (already) return res.status(409).json({ message: 'Энэ гишүүн энэ тэмцээнд шүүгчээр бүртгэгдсэн.' });
+    displayName = displayName || String(member.name || '').trim();
+    login = login || String(member.username || '').trim().toLowerCase();
+    if (password) {
+      passwordHash = await bcrypt.hash(String(password), 10);
+    } else if (member.passwordHash) {
+      passwordHash = member.passwordHash;
+    } else {
+      return res.status(400).json({ message: 'Энэ гишүүнд нууц үг байхгүй. Шүүгчийн нууц үг оруулна уу.' });
+    }
+  } else if (password) {
+    passwordHash = await bcrypt.hash(String(password), 10);
+  }
+
+  if (!login || !displayName || !passwordHash) {
     return res.status(400).json({ message: 'Нэвтрэх нэр, нууц үг, нэр заавал.' });
   }
   const existing = await Judge.findOne({ where: { username: login } });
-  if (existing) return res.status(409).json({ message: 'Энэ нэвтрэх нэр аль хэдийн бүртгэгдсэн.' });
+  if (existing) return res.status(409).json({ message: 'Энэ нэвтрэх нэр аль хэдийн бүртгэгдсэн. Өөр нэвтрэх нэр өгнө үү.' });
   const judge = await Judge.create({
     username: login,
-    passwordHash: await bcrypt.hash(String(password), 10),
+    passwordHash,
     name: displayName,
     role: role || 'RO',
     competitionId: competition.id,
+    memberId: member?.id || null,
     active: true,
   });
   res.status(201).json({ judge: serializeJudge(judge) });

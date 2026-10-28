@@ -90,6 +90,7 @@ function serializeJudge(judge) {
     username: judge.username,
     role: judge.role,
     competitionId: judge.competitionId,
+    memberId: judge.memberId || null,
     active: judge.active,
   };
 }

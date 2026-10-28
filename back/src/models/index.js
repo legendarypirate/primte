@@ -129,6 +129,8 @@ Admin.hasOne(Official, { foreignKey: 'adminId' });
 
 Judge.belongsTo(Competition, { foreignKey: 'competitionId' });
 Competition.hasMany(Judge, { foreignKey: 'competitionId' });
+Judge.belongsTo(Member, { foreignKey: 'memberId' });
+Member.hasMany(Judge, { foreignKey: 'memberId' });
 
 module.exports = {
   sequelize,

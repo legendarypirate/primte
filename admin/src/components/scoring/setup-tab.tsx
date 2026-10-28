@@ -13,6 +13,15 @@ import { COMPETITOR_STATUS_LABEL, type MatrixResponse, type ScoringStage } from 
 import { DataTable, TableEmpty, useClientTable } from "@/components/data-table";
 
 type StageDraft = Pick<ScoringStage, "name" | "courseType" | "maximumPoints" | "minimumRounds" | "status">;
+type JudgeRow = { id: string; name: string; username: string; role: string; active: boolean; memberId?: string | null };
+type JudgeCandidate = { id: string; name: string; username: string; memberCode: string; hasPassword: boolean; status: string };
+
+const JUDGE_ROLES = [
+  { value: "RO", label: "RO" },
+  { value: "SCOREKEEPER", label: "Scorekeeper" },
+  { value: "RANGE_MASTER", label: "Range Master" },
+  { value: "MATCH_DIRECTOR", label: "Match Director" },
+];
 
 function StageRow({ stage, canManage, onChanged }: { stage: ScoringStage; canManage: boolean; onChanged: () => void }) {
   const initial: StageDraft = {
@@ -95,10 +104,15 @@ export function SetupTab({
   refreshKey: number;
 }) {
   const [data, setData] = useState<MatrixResponse | null>(null);
-  const [judges, setJudges] = useState<{ id: string; name: string; username: string; role: string; active: boolean }[]>([]);
+  const [judges, setJudges] = useState<JudgeRow[]>([]);
   const [judgeName, setJudgeName] = useState("");
   const [judgeUsername, setJudgeUsername] = useState("");
   const [judgePassword, setJudgePassword] = useState("");
+  const [judgeRole, setJudgeRole] = useState("RO");
+  const [memberQuery, setMemberQuery] = useState("");
+  const [memberHits, setMemberHits] = useState<JudgeCandidate[]>([]);
+  const [selectedMember, setSelectedMember] = useState<JudgeCandidate | null>(null);
+  const [searchingMembers, setSearchingMembers] = useState(false);
   const [squadName, setSquadName] = useState("");
   const [query, setQuery] = useState("");
 
@@ -107,13 +121,26 @@ export function SetupTab({
     api<MatrixResponse>(`/api/admin/competitions/${competitionId}/scoring/matrix`)
       .then((d) => !cancelled && setData(d))
       .catch((e) => toast.error(e.message));
-    api<{ judges: typeof judges }>(`/api/admin/competitions/${competitionId}/judges`)
+    api<{ judges: JudgeRow[] }>(`/api/admin/competitions/${competitionId}/judges`)
       .then((d) => !cancelled && setJudges(d.judges || []))
       .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, [competitionId, refreshKey]);
+
+  useEffect(() => {
+    const q = memberQuery.trim();
+    if (selectedMember || q.length < 2) return;
+    const handle = window.setTimeout(() => {
+      setSearchingMembers(true);
+      api<{ members: JudgeCandidate[] }>(`/api/admin/scoring/judge-candidates?q=${encodeURIComponent(q)}`)
+        .then((d) => setMemberHits(d.members || []))
+        .catch(() => setMemberHits([]))
+        .finally(() => setSearchingMembers(false));
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [memberQuery, selectedMember]);
 
   const competitors = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -146,38 +173,94 @@ export function SetupTab({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-xs text-muted-foreground">
-            Энд үүсгэсэн шүүгч зөвхөн энэ тэмцээнд нэвтэрч PRIME Judge апп-аар оноо оруулна.
+            Гишүүнээс шүүгч нэмбэл нэр, нэвтрэх нэр, гишүүний нууц үг хуулагдана. Шүүгч зөвхөн энэ тэмцээнд PRIME Judge апп-аар нэвтэрнэ.
           </p>
           {canManage && (
-            <div className="grid gap-2 md:grid-cols-4">
-              <Input placeholder="Нэр" value={judgeName} onChange={(e) => setJudgeName(e.target.value)} />
-              <Input placeholder="Нэвтрэх нэр" value={judgeUsername} onChange={(e) => setJudgeUsername(e.target.value)} />
-              <Input placeholder="Нууц үг" type="password" value={judgePassword} onChange={(e) => setJudgePassword(e.target.value)} />
-              <Button
-                disabled={!judgeName.trim() || !judgeUsername.trim() || !judgePassword}
-                onClick={async () => {
-                  try {
-                    await api(`/api/admin/competitions/${competitionId}/judges`, {
-                      method: "POST",
-                      body: JSON.stringify({
-                        name: judgeName.trim(),
-                        username: judgeUsername.trim(),
-                        password: judgePassword,
-                        role: "RO",
-                      }),
-                    });
-                    toast.success("Шүүгч нэмэгдлээ");
+            <div className="space-y-3">
+              <div className="relative">
+                <Input
+                  placeholder="Гишүүн хайх (нэр, username, код)"
+                  value={selectedMember ? `${selectedMember.name} · ${selectedMember.username || selectedMember.memberCode}` : memberQuery}
+                  onChange={(e) => {
+                    setSelectedMember(null);
                     setJudgeName("");
                     setJudgeUsername("");
-                    setJudgePassword("");
-                    onChanged();
-                  } catch (e) {
-                    toast.error(e instanceof Error ? e.message : "Алдаа");
-                  }
-                }}
-              >
-                <Plus className="size-4" /> Шүүгч нэмэх
-              </Button>
+                    setMemberQuery(e.target.value);
+                  }}
+                />
+                {!selectedMember && memberQuery.trim().length >= 2 && (memberHits.length > 0 || searchingMembers) && (
+                  <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover shadow-md">
+                    {searchingMembers && memberHits.length === 0 && (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">Хайж байна…</div>
+                    )}
+                    {memberHits.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-accent"
+                        onClick={() => {
+                          setSelectedMember(m);
+                          setJudgeName(m.name);
+                          setJudgeUsername(m.username);
+                          setMemberQuery("");
+                          setMemberHits([]);
+                        }}
+                      >
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {m.username || "username байхгүй"}
+                          {m.memberCode ? ` · ${m.memberCode}` : ""}
+                          {m.hasPassword ? "" : " · нууц үг байхгүй"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="grid gap-2 md:grid-cols-5">
+                <Input placeholder="Нэр" value={judgeName} onChange={(e) => setJudgeName(e.target.value)} />
+                <Input placeholder="Нэвтрэх нэр" value={judgeUsername} onChange={(e) => setJudgeUsername(e.target.value)} />
+                <Input
+                  placeholder={selectedMember?.hasPassword ? "Нууц үг (хоосон = гишүүнийх)" : "Нууц үг"}
+                  type="password"
+                  value={judgePassword}
+                  onChange={(e) => setJudgePassword(e.target.value)}
+                />
+                <FieldSelect value={judgeRole} onChange={setJudgeRole}>
+                  {JUDGE_ROLES.map((r) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </FieldSelect>
+                <Button
+                  disabled={!judgeName.trim() || !judgeUsername.trim() || (!selectedMember && !judgePassword) || Boolean(selectedMember && !selectedMember.hasPassword && !judgePassword)}
+                  onClick={async () => {
+                    try {
+                      await api(`/api/admin/competitions/${competitionId}/judges`, {
+                        method: "POST",
+                        body: JSON.stringify({
+                          name: judgeName.trim(),
+                          username: judgeUsername.trim(),
+                          password: judgePassword || undefined,
+                          role: judgeRole,
+                          memberId: selectedMember?.id,
+                        }),
+                      });
+                      toast.success(selectedMember ? `${selectedMember.name} шүүгч боллоо` : "Шүүгч нэмэгдлээ");
+                      setJudgeName("");
+                      setJudgeUsername("");
+                      setJudgePassword("");
+                      setJudgeRole("RO");
+                      setSelectedMember(null);
+                      setMemberQuery("");
+                      onChanged();
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Алдаа");
+                    }
+                  }}
+                >
+                  <Plus className="size-4" /> {selectedMember ? "Гишүүнээс нэмэх" : "Шүүгч нэмэх"}
+                </Button>
+              </div>
             </div>
           )}
           <Table>
@@ -193,7 +276,10 @@ export function SetupTab({
             <TableBody>
               {judges.map((j) => (
                 <TableRow key={j.id}>
-                  <TableCell>{j.name}</TableCell>
+                  <TableCell>
+                    <div>{j.name}</div>
+                    {j.memberId && <div className="text-xs text-muted-foreground">Гишүүнээс</div>}
+                  </TableCell>
                   <TableCell className="font-mono text-sm">{j.username}</TableCell>
                   <TableCell>{j.role}</TableCell>
                   <TableCell>{j.active ? "Идэвхтэй" : "Идэвхгүй"}</TableCell>
