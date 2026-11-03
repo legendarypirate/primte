@@ -103,19 +103,19 @@ export function RankingRulesPage() {
               field="hero.aside.line1"
               defaultValue="DISCIPLINE"
               as="p"
-              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase block"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#1B7F4E]/80 uppercase block"
             />
             <EditableText
               field="hero.aside.line2"
               defaultValue="SKILL"
               as="p"
-              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase block"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#1B7F4E]/80 uppercase block"
             />
             <EditableText
               field="hero.aside.line3"
               defaultValue="COMMUNITY"
               as="p"
-              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase block"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#1B7F4E]/80 uppercase block"
             />
             <EditableText
               field="hero.aside.line4"
@@ -130,7 +130,7 @@ export function RankingRulesPage() {
       {/* ── Principles ── */}
       <ContentSection>
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-6 w-1 rounded bg-[#e31e24]" />
+          <div className="h-6 w-1 rounded bg-[#1B7F4E]" />
           <EditableText
             field="principles.title"
             defaultValue="Үндсэн зарчим"
@@ -152,7 +152,7 @@ export function RankingRulesPage() {
                 <EditableText
                   field={`principles.${idx}.n`}
                   defaultValue={p.n}
-                  className="flex size-8 items-center justify-center rounded-full bg-[#e31e24] text-sm font-bold text-white"
+                  className="flex size-8 items-center justify-center rounded-full bg-[#1B7F4E] text-sm font-bold text-white"
                 />
               </div>
               <div className="relative z-10 mb-3 flex size-10 items-center justify-center rounded-lg bg-[#ffffff08]">
@@ -181,7 +181,7 @@ export function RankingRulesPage() {
         <div className="grid gap-8 lg:grid-cols-[1fr_0.5fr]">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-6 w-1 rounded bg-[#e31e24]" />
+              <div className="h-6 w-1 rounded bg-[#1B7F4E]" />
               <EditableText
                 field="formula.title"
                 defaultValue="Чансааны тооцооллын томьёо"
@@ -254,12 +254,12 @@ export function RankingRulesPage() {
               />
               <EditableBackground
                 field="formula.result.imageUrl"
-                className="relative z-10 flex items-center gap-3 rounded-xl border border-[#e31e24]/40 px-5 py-4"
-                fallbackClassName="bg-[#e31e24]/10"
+                className="relative z-10 flex items-center gap-3 rounded-xl border border-[#1B7F4E]/40 px-5 py-4"
+                fallbackClassName="bg-[#1B7F4E]/10"
                 placeholder="Formula tile background"
                 editMode="corner"
               >
-                <Star className="relative z-10 size-5 text-[#e31e24]" />
+                <Star className="relative z-10 size-5 text-[#1B7F4E]" />
                 <div className="relative z-10">
                   <EditableText
                     field="formula.result.label"
@@ -271,7 +271,7 @@ export function RankingRulesPage() {
                     field="formula.result.sub"
                     defaultValue="(Ranking point)"
                     as="p"
-                    className="font-semibold text-[#e31e24] block"
+                    className="font-semibold text-[#1B7F4E] block"
                   />
                 </div>
               </EditableBackground>
@@ -281,7 +281,7 @@ export function RankingRulesPage() {
           {/* Side notes */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-6 w-1 rounded bg-[#e31e24]" />
+              <div className="h-6 w-1 rounded bg-[#1B7F4E]" />
               <EditableText
                 field="notes.title"
                 defaultValue="Гол нөхцөл ба тэмдэглэл"
@@ -310,12 +310,12 @@ export function RankingRulesPage() {
               ))}
               <EditableBackground
                 field="notes.contactImageUrl"
-                className="rounded-xl border border-[#e31e24]/30 p-4"
-                fallbackClassName="bg-[#e31e24]/5"
+                className="rounded-xl border border-[#1B7F4E]/30 p-4"
+                fallbackClassName="bg-[#1B7F4E]/5"
                 placeholder="Contact box background"
                 editMode="corner"
               >
-                <div className="relative z-10 flex items-center gap-2 text-[#e31e24]">
+                <div className="relative z-10 flex items-center gap-2 text-[#1B7F4E]">
                   <Mail className="size-4" />
                   <EditableText
                     field="notes.contact.label"
@@ -339,7 +339,7 @@ export function RankingRulesPage() {
       {/* ── Competition Levels Table ── */}
       <ContentSection>
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-6 w-1 rounded bg-[#e31e24]" />
+          <div className="h-6 w-1 rounded bg-[#1B7F4E]" />
           <EditableText
             field="levels.title"
             defaultValue="Тэмцээний түвшин ба үржүүлэгч"
@@ -374,7 +374,7 @@ export function RankingRulesPage() {
             <tbody>
               {levelTable.map((row, idx) => (
                 <tr key={row.level} className="border-t border-border">
-                  <td className="p-4 font-bold text-[#e31e24]">
+                  <td className="p-4 font-bold text-[#1B7F4E]">
                     <EditableText field={`levels.rows.${idx}.level`} defaultValue={row.level} />
                   </td>
                   <td className="p-4 font-medium">
@@ -396,7 +396,7 @@ export function RankingRulesPage() {
       {/* ── How Ranking Points Are Calculated ── */}
       <ContentSection dark>
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-6 w-1 rounded bg-[#e31e24]" />
+          <div className="h-6 w-1 rounded bg-[#1B7F4E]" />
           <EditableText
             field="steps.title"
             defaultValue="Тэмцээний үр дүн хэрхэн чансааны оноо болох вэ?"
@@ -418,7 +418,7 @@ export function RankingRulesPage() {
                 <EditableText
                   field={`steps.${idx}.n`}
                   defaultValue={step.n}
-                  className="flex size-8 items-center justify-center rounded-full bg-[#e31e24] text-sm font-bold text-white"
+                  className="flex size-8 items-center justify-center rounded-full bg-[#1B7F4E] text-sm font-bold text-white"
                 />
                 <span className="h-px flex-1 bg-[#ffffff15]" />
               </div>
@@ -446,7 +446,7 @@ export function RankingRulesPage() {
       {/* ── FAQ ── */}
       <ContentSection>
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-6 w-1 rounded bg-[#e31e24]" />
+          <div className="h-6 w-1 rounded bg-[#1B7F4E]" />
           <EditableText
             field="faq.title"
             defaultValue="Түгээмэл асуулт"
@@ -473,7 +473,7 @@ export function RankingRulesPage() {
               <EditableText
                 field={`faq.${idx}.number`}
                 defaultValue={`${idx + 1}.`}
-                className="relative z-10 mt-0.5 text-sm font-bold text-[#e31e24]"
+                className="relative z-10 mt-0.5 text-sm font-bold text-[#1B7F4E]"
               />
               <EditableText
                 field={`faq.${idx}.question`}

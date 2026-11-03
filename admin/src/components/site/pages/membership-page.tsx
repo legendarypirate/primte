@@ -78,16 +78,16 @@ export function MembershipPage() {
             <EditableBackground
               field="about.cardImageUrl"
               className="flex h-64 w-full items-center justify-center rounded-2xl border border-border"
-              fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]"
+              fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
               placeholder="About card зураг"
               editMode="cover"
             >
-              <LionIcon className="relative z-10 size-24 text-[#e31e24]/30" />
+              <LionIcon className="relative z-10 size-24 text-[#1B7F4E]/30" />
               <div className="absolute bottom-4 right-4 z-10 text-right">
                 <EditableText
                   field="about.cardBrand"
                   defaultValue="PRIME"
-                  className="text-xs font-bold tracking-[0.2em] text-[#e31e24] block"
+                  className="text-xs font-bold tracking-[0.2em] text-[#1B7F4E] block"
                 />
                 <EditableText
                   field="about.cardSubtitle"
@@ -121,7 +121,7 @@ export function MembershipPage() {
             placeholder="Card background"
             editMode="corner"
           >
-            <Shield className="relative z-10 size-5 shrink-0 text-[#e31e24]" />
+            <Shield className="relative z-10 size-5 shrink-0 text-[#1B7F4E]" />
             <EditableText
               field="about.infoLeft"
               defaultValue="Прайм клубын гишүүнээр элсэхийн тулд практик буудлагын спортын аюулгүй ажиллагааны сургалтанд хамрагдах шаардлагатай."
@@ -159,7 +159,7 @@ export function MembershipPage() {
       <ContentSection dark>
         <SectionTag n="02" label="ГИШҮҮНЧЛЭЛИЙН ТӨРӨЛ" fieldPrefix="section.02" />
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="group overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-[#e31e24]/40">
+          <div className="group overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-[#1B7F4E]/40">
             <EditableBackground
               field="types.adult.imageUrl"
               className="relative h-56"
@@ -167,10 +167,10 @@ export function MembershipPage() {
               placeholder="Adult card зураг"
             >
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-                <LionIcon className="size-20 text-[#e31e24]/20" />
+                <LionIcon className="size-20 text-[#1B7F4E]/20" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#0d0d0f] to-transparent p-6">
-                <Users className="mb-2 size-5 text-[#e31e24]" />
+                <Users className="mb-2 size-5 text-[#1B7F4E]" />
                 <EditableText
                   field="types.adult.title"
                   defaultValue="НАСАНД ХҮРЭГЧИД"
@@ -190,15 +190,15 @@ export function MembershipPage() {
                 field="types.adult.price"
                 defaultValue="250,000₮ / сар"
                 as="p"
-                className="text-3xl font-bold text-[#e31e24] block"
+                className="text-3xl font-bold text-[#1B7F4E] block"
               />
-              <Link href="/training" className="mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
+              <Link href="/training" className="mt-4 inline-flex items-center gap-2 text-sm text-[#1B7F4E] hover:underline">
                 <EditableText field="types.adult.link" defaultValue="Дэлгэрэнгүй →" />
               </Link>
             </div>
           </div>
 
-          <div className="group overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-[#e31e24]/40">
+          <div className="group overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-[#1B7F4E]/40">
             <EditableBackground
               field="types.junior.imageUrl"
               className="relative h-56"
@@ -206,10 +206,10 @@ export function MembershipPage() {
               placeholder="Junior card зураг"
             >
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-                <Award className="size-20 text-[#e31e24]/20" />
+                <Award className="size-20 text-[#1B7F4E]/20" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#0d0d0f] to-transparent p-6">
-                <Award className="mb-2 size-5 text-[#e31e24]" />
+                <Award className="mb-2 size-5 text-[#1B7F4E]" />
                 <EditableText
                   field="types.junior.title"
                   defaultValue="ЖУНИОР ХӨТӨЛБӨР"
@@ -232,7 +232,7 @@ export function MembershipPage() {
                 as="p"
                 className="text-sm text-muted-foreground block"
               />
-              <Link href="/training/junior" className="mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
+              <Link href="/training/junior" className="mt-4 inline-flex items-center gap-2 text-sm text-[#1B7F4E] hover:underline">
                 <EditableText field="types.junior.link" defaultValue="Дэлгэрэнгүй →" />
               </Link>
             </div>
@@ -273,11 +273,11 @@ export function MembershipPage() {
             editMode="corner"
           >
             <div className="relative z-10 mb-4 flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-[#e31e24]/10 text-[#e31e24]">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-[#1B7F4E]/10 text-[#1B7F4E]">
                 <BookOpen className="size-5" />
               </div>
               <div>
-                <EditableText field="training.course1.tag" defaultValue="COURSE 1" className="text-xs font-bold tracking-[0.15em] text-[#e31e24] block" />
+                <EditableText field="training.course1.tag" defaultValue="COURSE 1" className="text-xs font-bold tracking-[0.15em] text-[#1B7F4E] block" />
                 <EditableText field="training.course1.title" defaultValue="1 долоо хоногийн тэмцээнд сургалт" className="text-sm font-semibold block" />
               </div>
             </div>
@@ -288,7 +288,7 @@ export function MembershipPage() {
               as="p"
               className="relative z-10 text-sm leading-7 text-muted-foreground block"
             />
-            <Link href="/training/course-1" className="relative z-10 mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
+            <Link href="/training/course-1" className="relative z-10 mt-4 inline-flex items-center gap-2 text-sm text-[#1B7F4E] hover:underline">
               <EditableText field="training.course1.link" defaultValue="Дэлгэрэнгүй →" />
             </Link>
           </EditableBackground>
@@ -301,11 +301,11 @@ export function MembershipPage() {
             editMode="corner"
           >
             <div className="relative z-10 mb-4 flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-[#e31e24]/10 text-[#e31e24]">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-[#1B7F4E]/10 text-[#1B7F4E]">
                 <Target className="size-5" />
               </div>
               <div>
-                <EditableText field="training.course2.tag" defaultValue="COURSE 2" className="text-xs font-bold tracking-[0.15em] text-[#e31e24] block" />
+                <EditableText field="training.course2.tag" defaultValue="COURSE 2" className="text-xs font-bold tracking-[0.15em] text-[#1B7F4E] block" />
                 <EditableText field="training.course2.title" defaultValue="1 долоо хоногийн сургалт" className="text-sm font-semibold block" />
               </div>
             </div>
@@ -316,7 +316,7 @@ export function MembershipPage() {
               as="p"
               className="relative z-10 text-sm leading-7 text-muted-foreground block"
             />
-            <Link href="/training/course-2" className="relative z-10 mt-4 inline-flex items-center gap-2 text-sm text-[#e31e24] hover:underline">
+            <Link href="/training/course-2" className="relative z-10 mt-4 inline-flex items-center gap-2 text-sm text-[#1B7F4E] hover:underline">
               <EditableText field="training.course2.link" defaultValue="Дэлгэрэнгүй →" />
             </Link>
           </EditableBackground>
@@ -369,7 +369,7 @@ export function MembershipPage() {
                 field={`points.${idx}.value`}
                 defaultValue={item.points}
                 as="p"
-                className="relative z-10 text-3xl font-bold text-[#e31e24] block"
+                className="relative z-10 text-3xl font-bold text-[#1B7F4E] block"
               />
               <EditableText
                 field={`points.${idx}.title`}
@@ -384,7 +384,7 @@ export function MembershipPage() {
 
         <EditableBackground
           field="fullMember.bannerImageUrl"
-          className="mt-10 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-[#e31e24]/30 p-6"
+          className="mt-10 flex flex-wrap items-center justify-between gap-6 rounded-xl border border-[#1B7F4E]/30 p-6"
           fallbackClassName="bg-gradient-to-r from-[#14080a] to-[#101012]"
           placeholder="CTA banner background"
           editMode="corner"

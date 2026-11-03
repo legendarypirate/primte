@@ -210,15 +210,15 @@ export function TrainingPage() {
         aside={
           <EditableBackground
             field="hero.aside.imageUrl"
-            className="rounded-2xl border border-[#e31e24]/40 p-8 text-right shadow-2xl"
-            fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+            className="rounded-2xl border border-[#1B7F4E]/40 p-8 text-right shadow-2xl"
+            fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
             editMode="corner"
           >
             <EditableText
               field="hero.aside.eyebrow"
               defaultValue="DISCIPLINE · SKILL"
               as="p"
-              className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+              className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
             />
             <EditableText
               field="hero.aside.title"
@@ -267,11 +267,11 @@ export function TrainingPage() {
             <EditableBackground
               key={title}
               field={`why.${idx}.imageUrl`}
-              className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/50"
+              className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#1B7F4E]/50"
               fallbackClassName="bg-[#121215]"
               editMode="corner"
             >
-              <div className="relative z-10 mb-4 flex size-12 items-center justify-center rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+              <div className="relative z-10 mb-4 flex size-12 items-center justify-center rounded-xl border border-[#1B7F4E]/40 bg-[#1B7F4E]/10 text-[#1B7F4E]">
                 <Icon className="size-6" />
               </div>
               <EditableText
@@ -310,7 +310,7 @@ export function TrainingPage() {
               className="text-xs text-muted-foreground block"
             />
           </div>
-          <Link href="/training/course-1" className="text-xs font-bold text-[#e31e24] hover:underline">
+          <Link href="/training/course-1" className="text-xs font-bold text-[#1B7F4E] hover:underline">
             <EditableText field="courses.allLink" defaultValue="ALL COURSES →" />
           </Link>
         </div>
@@ -320,7 +320,7 @@ export function TrainingPage() {
             <EditableBackground
               key={c.id}
               field={`courses.${idx}.imageUrl`}
-              className="flex flex-col justify-between rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/60"
+              className="flex flex-col justify-between rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#1B7F4E]/60"
               fallbackClassName="bg-[#121215]"
               editMode="corner"
             >
@@ -328,7 +328,7 @@ export function TrainingPage() {
                 <EditableText
                   field={`courses.${idx}.code`}
                   defaultValue={c.code}
-                  className="font-mono text-xs font-bold uppercase tracking-widest text-[#e31e24]"
+                  className="font-mono text-xs font-bold uppercase tracking-widest text-[#1B7F4E]"
                 />
                 <EditableText
                   field={`courses.${idx}.title`}
@@ -345,11 +345,11 @@ export function TrainingPage() {
 
                 <div className="mt-6 space-y-2 border-t border-[#ffffff10] pt-4 text-xs text-[#a0a0a5]">
                   <div className="flex items-center gap-2">
-                    <Clock className="size-4 text-[#e31e24]" />
+                    <Clock className="size-4 text-[#1B7F4E]" />
                     <EditableText field={`courses.${idx}.duration`} defaultValue={c.duration} />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="size-4 text-[#e31e24]" />
+                    <Users className="size-4 text-[#1B7F4E]" />
                     <EditableText field={`courses.${idx}.capacity`} defaultValue={c.capacity} />
                   </div>
                 </div>
@@ -360,18 +360,18 @@ export function TrainingPage() {
                   field={`courses.${idx}.price`}
                   defaultValue={c.price}
                   as="p"
-                  className="font-mono text-2xl font-extrabold text-[#e31e24] block"
+                  className="font-mono text-2xl font-extrabold text-[#1B7F4E] block"
                 />
                 <div className="mt-4 flex gap-2">
                   <Link
                     href={c.href}
-                    className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[#ffffff20] bg-[#1b1b20] text-xs font-bold text-white transition hover:border-[#e31e24] hover:text-[#e31e24]"
+                    className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[#ffffff20] bg-[#1b1b20] text-xs font-bold text-white transition hover:border-[#1B7F4E] hover:text-[#1B7F4E]"
                   >
                     <EditableText field={`courses.${idx}.detailsText`} defaultValue="ДЭЛГЭРЭНГҮЙ" />
                   </Link>
                   <Link
                     href={c.href}
-                    className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#e31e24] text-xs font-bold text-white shadow-md transition hover:bg-[#c91920]"
+                    className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#1B7F4E] text-xs font-bold text-white shadow-md transition hover:bg-[#156B41]"
                   >
                     <EditableText field={`courses.${idx}.buttonText`} defaultValue={c.buttonText} />
                   </Link>
@@ -399,7 +399,7 @@ export function TrainingPage() {
           editMode="corner"
         >
           <table className="relative z-10 w-full min-w-[700px] text-left text-xs">
-            <thead className="border-b border-[#ffffff15] bg-[#0a0a0c] font-mono text-[11px] font-bold uppercase tracking-wider text-[#e31e24]">
+            <thead className="border-b border-[#ffffff15] bg-[#0a0a0c] font-mono text-[11px] font-bold uppercase tracking-wider text-[#1B7F4E]">
               <tr>
                 <th className="p-4">
                   <EditableText field="compare.header.feature" defaultValue="Үзүүлэлт" />
@@ -455,7 +455,7 @@ export function TrainingPage() {
             editMode="corner"
           >
             <div className="relative z-10">
-              <Calendar className="mb-3 size-8 text-[#e31e24]" />
+              <Calendar className="mb-3 size-8 text-[#1B7F4E]" />
               <EditableText
                 field="schedule.weekday.title"
                 defaultValue="АЖЛЫН ӨДРИЙН АНГИ"
@@ -472,10 +472,10 @@ export function TrainingPage() {
                 field="schedule.weekday.time"
                 defaultValue="19:00 - 22:00"
                 as="p"
-                className="mt-1 font-mono text-sm font-bold text-[#e31e24] block"
+                className="mt-1 font-mono text-sm font-bold text-[#1B7F4E] block"
               />
             </div>
-            <ArrowRight className="relative z-10 mt-4 size-5 text-[#e31e24]" />
+            <ArrowRight className="relative z-10 mt-4 size-5 text-[#1B7F4E]" />
           </EditableBackground>
 
           <EditableBackground
@@ -485,7 +485,7 @@ export function TrainingPage() {
             editMode="corner"
           >
             <div className="relative z-10">
-              <Calendar className="mb-3 size-8 text-[#e31e24]" />
+              <Calendar className="mb-3 size-8 text-[#1B7F4E]" />
               <EditableText
                 field="schedule.weekend.title"
                 defaultValue="АМРАЛТЫН ӨДРИЙН АНГИ"
@@ -502,20 +502,20 @@ export function TrainingPage() {
                 field="schedule.weekend.time"
                 defaultValue="18:00 - 22:00"
                 as="p"
-                className="mt-1 font-mono text-sm font-bold text-[#e31e24] block"
+                className="mt-1 font-mono text-sm font-bold text-[#1B7F4E] block"
               />
             </div>
-            <ArrowRight className="relative z-10 mt-4 size-5 text-[#e31e24]" />
+            <ArrowRight className="relative z-10 mt-4 size-5 text-[#1B7F4E]" />
           </EditableBackground>
 
           <EditableBackground
             field="schedule.custom.imageUrl"
-            className="flex flex-col justify-between rounded-2xl border border-[#e31e24]/40 p-6 shadow-xl"
+            className="flex flex-col justify-between rounded-2xl border border-[#1B7F4E]/40 p-6 shadow-xl"
             fallbackClassName="bg-[#161412]"
             editMode="corner"
           >
             <div className="relative z-10">
-              <Users className="mb-3 size-8 text-[#e31e24]" />
+              <Users className="mb-3 size-8 text-[#1B7F4E]" />
               <EditableText
                 field="schedule.custom.title"
                 defaultValue="ТУСГАЙ ЦАГ ҮҮСГЭХ БОЛОМЖ"
@@ -533,7 +533,7 @@ export function TrainingPage() {
             <EditableText
               field="schedule.custom.tagline"
               defaultValue="TRAIN PRACTICE PROGRESS"
-              className="relative z-10 mt-4 font-mono text-[10px] font-bold text-[#e31e24]"
+              className="relative z-10 mt-4 font-mono text-[10px] font-bold text-[#1B7F4E]"
             />
           </EditableBackground>
         </div>
@@ -589,12 +589,12 @@ export function TrainingPage() {
                 field={`docs.${idx}.title`}
                 defaultValue={req.title}
                 as="h4"
-                className="relative z-10 font-heading text-xs font-bold uppercase tracking-wider text-[#e31e24] block"
+                className="relative z-10 font-heading text-xs font-bold uppercase tracking-wider text-[#1B7F4E] block"
               />
               <ul className="relative z-10 mt-4 space-y-2.5 text-xs text-[#a0a0a5]">
                 {req.items.map((item, j) => (
                   <li key={j} className="flex items-start gap-2">
-                    <CheckCircle2 className="size-4 shrink-0 text-[#e31e24] mt-0.5" />
+                    <CheckCircle2 className="size-4 shrink-0 text-[#1B7F4E] mt-0.5" />
                     <EditableText field={`docs.${idx}.items.${j}`} defaultValue={item} />
                   </li>
                 ))}
@@ -627,7 +627,7 @@ export function TrainingPage() {
                 fallbackClassName="bg-gradient-to-br from-[#1a1814] to-[#070707]"
                 editMode="cover"
               >
-                <LionIcon className="relative z-10 size-16 text-[#e31e24]/30" />
+                <LionIcon className="relative z-10 size-16 text-[#1B7F4E]/30" />
               </EditableBackground>
               <div className="p-4">
                 <EditableText
@@ -640,7 +640,7 @@ export function TrainingPage() {
                   field={`instructors.${idx}.role`}
                   defaultValue={ins.role}
                   as="p"
-                  className="mt-1 text-xs font-semibold text-[#e31e24] block"
+                  className="mt-1 text-xs font-semibold text-[#1B7F4E] block"
                 />
                 <EditableText
                   field={`instructors.${idx}.sub`}
@@ -693,7 +693,7 @@ export function TrainingPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Овог, нэр оруулах"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
                 <div>
@@ -709,7 +709,7 @@ export function TrainingPage() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="example@mail.com"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
               </div>
@@ -728,7 +728,7 @@ export function TrainingPage() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="9911-XXXX"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
                 <div>
@@ -741,7 +741,7 @@ export function TrainingPage() {
                   <select
                     value={formData.course}
                     onChange={(e) => setFormData({ ...formData, course: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#1B7F4E]"
                   >
                     <option value="Course 1">Course 1 (Анхан шат)</option>
                     <option value="Course 2">Course 2 (Анхан дунд)</option>
@@ -758,7 +758,7 @@ export function TrainingPage() {
                   <select
                     value={formData.time}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#1B7F4E]"
                   >
                     <option value="19:00 - 22:00">Ажлын өдөр (19:00-22:00)</option>
                     <option value="18:00 - 22:00">Амралтын өдөр (18:00-22:00)</option>
@@ -778,7 +778,7 @@ export function TrainingPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Тайлбар бичнэ үү..."
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                 />
               </div>
 
@@ -792,7 +792,7 @@ export function TrainingPage() {
           <div className="space-y-4">
             <EditableBackground
               field="register.contact.imageUrl"
-              className="rounded-2xl border border-[#e31e24]/40 p-6 shadow-xl space-y-4"
+              className="rounded-2xl border border-[#1B7F4E]/40 p-6 shadow-xl space-y-4"
               fallbackClassName="bg-[#161412]"
               editMode="corner"
             >
@@ -800,19 +800,19 @@ export function TrainingPage() {
                 field="register.contact.title"
                 defaultValue="ХОЛБОО БАРИХ"
                 as="h4"
-                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24] block"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#1B7F4E] block"
               />
               <ul className="relative z-10 space-y-3 text-xs text-[#a0a0a5]">
                 <li className="flex items-center gap-3">
-                  <Mail className="size-4 text-[#e31e24]" />
+                  <Mail className="size-4 text-[#1B7F4E]" />
                   <EditableText field="register.contact.email" defaultValue="registration@prime.mn" />
                 </li>
                 <li className="flex items-center gap-3">
-                  <Phone className="size-4 text-[#e31e24]" />
+                  <Phone className="size-4 text-[#1B7F4E]" />
                   <EditableText field="register.contact.phone1" defaultValue="9088-0200" />
                 </li>
                 <li className="flex items-center gap-3">
-                  <Phone className="size-4 text-[#e31e24]" />
+                  <Phone className="size-4 text-[#1B7F4E]" />
                   <EditableText field="register.contact.phone2" defaultValue="8611-0200" />
                 </li>
               </ul>
@@ -842,7 +842,7 @@ export function TrainingPage() {
                 </strong>
                 <br />
                 <EditableText field="register.payment.ibanLabel" defaultValue="IBAN:" />{" "}
-                <strong className="text-[#e31e24]">
+                <strong className="text-[#1B7F4E]">
                   <EditableText field="register.payment.iban" defaultValue="40000 4000 8000 96500" />
                 </strong>
                 <br />
@@ -870,7 +870,7 @@ export function TrainingPage() {
               field="discounts.refund.title"
               defaultValue="Төлбөрийн буцаалт"
               as="h4"
-              className="relative z-10 font-heading text-xs font-bold uppercase text-[#e31e24] block"
+              className="relative z-10 font-heading text-xs font-bold uppercase text-[#1B7F4E] block"
             />
             <EditableText
               field="discounts.refund.body"
@@ -883,7 +883,7 @@ export function TrainingPage() {
 
           <EditableBackground
             field="discounts.combo.imageUrl"
-            className="rounded-2xl border border-[#e31e24]/50 p-6 shadow-xl"
+            className="rounded-2xl border border-[#1B7F4E]/50 p-6 shadow-xl"
             fallbackClassName="bg-[#181612]"
             editMode="corner"
           >
@@ -891,13 +891,13 @@ export function TrainingPage() {
               field="discounts.combo.title"
               defaultValue="2 шат хамт бүртгүүлбэл"
               as="h4"
-              className="relative z-10 font-heading text-xs font-bold uppercase text-[#e31e24] block"
+              className="relative z-10 font-heading text-xs font-bold uppercase text-[#1B7F4E] block"
             />
             <EditableText
               field="discounts.combo.price"
               defaultValue="650,000₮"
               as="p"
-              className="relative z-10 mt-1 font-mono text-2xl font-extrabold text-[#e31e24] block"
+              className="relative z-10 mt-1 font-mono text-2xl font-extrabold text-[#1B7F4E] block"
             />
             <EditableText
               field="discounts.combo.note"
@@ -934,8 +934,8 @@ export function TrainingPage() {
       <ContentSection id="bottom-cta">
         <EditableBackground
           field="cta.bannerImageUrl"
-          className="rounded-3xl border border-[#e31e24]/40 p-8 shadow-2xl md:p-12"
-          fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+          className="rounded-3xl border border-[#1B7F4E]/40 p-8 shadow-2xl md:p-12"
+          fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
           editMode="corner"
         >
           <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -944,7 +944,7 @@ export function TrainingPage() {
                 field="cta.eyebrow"
                 defaultValue="11 —— PRIME-ТАЙ ЭХЛҮҮЛ"
                 as="p"
-                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
               />
               <EditableText
                 field="cta.title"

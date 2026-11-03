@@ -45,15 +45,15 @@ export function SiteFooter({
   const logoSrc = headerLogoUrl ? assetUrl(headerLogoUrl) : "";
 
   return (
-    <footer className={cn("border-t border-[#ffffff15] bg-[#050507] pt-14 pb-8 text-[#a0a0a5]", edit && "ring-1 ring-inset ring-[#e31e24]/20")}>
+    <footer className={cn("border-t border-[#1B7F4E22] bg-white pt-14 pb-8 text-[#4A6558]", edit && "ring-1 ring-inset ring-[#1B7F4E]/20")}>
       {edit ? (
         <div className="mx-auto mb-4 flex max-w-7xl items-center justify-between px-4 md:px-6">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#e31e24]">Footer</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#1B7F4E]">Footer</span>
           {edit.onOpenSettings ? (
             <button
               type="button"
               onClick={edit.onOpenSettings}
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-[#a0a0a5] hover:bg-[#ffffff10] hover:text-white"
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-[#4A6558] hover:bg-[#1B7F4E10] hover:text-[#143326]"
             >
               <Settings2 className="size-3" />
               Тохиргоо
@@ -87,22 +87,22 @@ export function SiteFooter({
               <InlineEdit
                 value={footer.linksLabel || ""}
                 onChange={(v) => edit.onChange(patchFooter(footer, "linksLabel", v))}
-                className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#e31e24] block"
+                className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#1B7F4E] block"
               />
             ) : (
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#e31e24]">{footer.linksLabel}</p>
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#1B7F4E]">{footer.linksLabel}</p>
             )}
             <ul className="grid grid-cols-2 gap-2 text-xs">
               {navItems.map((item) => (
                 <li key={`${item.href}-${item.label}`}>
-                  <Link href={item.href} className="transition-colors hover:text-white">
+                  <Link href={item.href} className="transition-colors hover:text-[#143326]">
                     {item.label}
                   </Link>
                 </li>
               ))}
               {extraLinks.map((item) => (
                 <li key={`${item.href}-${item.label}`}>
-                  <Link href={item.href} className="transition-colors hover:text-white">
+                  <Link href={item.href} className="transition-colors hover:text-[#143326]">
                     {item.label}
                   </Link>
                 </li>
@@ -115,14 +115,14 @@ export function SiteFooter({
               <InlineEdit
                 value={footer.contactLabel || ""}
                 onChange={(v) => edit.onChange(patchFooter(footer, "contactLabel", v))}
-                className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#e31e24] block"
+                className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#1B7F4E] block"
               />
             ) : (
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#e31e24]">{footer.contactLabel}</p>
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#1B7F4E]">{footer.contactLabel}</p>
             )}
             <ul className="space-y-3 text-xs">
               <li className="flex items-center gap-3">
-                <Phone className="size-4 text-[#e31e24]" />
+                <Phone className="size-4 text-[#1B7F4E]" />
                 {edit ? (
                   <InlineEdit
                     value={footer.phone || ""}
@@ -134,7 +134,7 @@ export function SiteFooter({
                 )}
               </li>
               <li className="flex items-center gap-3">
-                <Mail className="size-4 text-[#e31e24]" />
+                <Mail className="size-4 text-[#1B7F4E]" />
                 {edit ? (
                   <InlineEdit
                     value={footer.email || ""}
@@ -146,7 +146,7 @@ export function SiteFooter({
                 )}
               </li>
               <li className="flex items-center gap-3">
-                <MapPin className="size-4 text-[#e31e24]" />
+                <MapPin className="size-4 text-[#1B7F4E]" />
                 {edit ? (
                   <InlineEdit
                     value={footer.address || ""}
@@ -165,17 +165,17 @@ export function SiteFooter({
               <InlineEdit
                 value={footer.socialLabel || ""}
                 onChange={(v) => edit.onChange(patchFooter(footer, "socialLabel", v))}
-                className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#e31e24] block"
+                className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#1B7F4E] block"
               />
             ) : (
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#e31e24]">{footer.socialLabel}</p>
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#1B7F4E]">{footer.socialLabel}</p>
             )}
             <div className="mb-6 flex gap-3 text-[10px] font-bold">
               {socials.map((s, i) =>
                 edit ? (
                   <span
                     key={i}
-                    className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5]"
+                    className="flex size-9 items-center justify-center rounded-lg border border-[#1B7F4E22] bg-[#F6FBF8] text-[#4A6558]"
                   >
                     <InlineEdit
                       value={s.label}
@@ -189,14 +189,14 @@ export function SiteFooter({
                     href={s.href || "#"}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5] transition-all hover:border-[#e31e24] hover:bg-[#e31e24] hover:text-white"
+                    className="flex size-9 items-center justify-center rounded-lg border border-[#1B7F4E22] bg-[#F6FBF8] text-[#4A6558] transition-all hover:border-[#1B7F4E] hover:bg-[#1B7F4E] hover:text-white"
                   >
                     {s.label}
                   </a>
                 )
               )}
             </div>
-            <div className="space-y-0.5 font-mono text-[9px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase">
+            <div className="space-y-0.5 font-mono text-[9px] font-bold tracking-[0.25em] text-[#1B7F4E]/80 uppercase">
               {edit ? (
                 <InlineEdit
                   value={mottoLines.join("\n")}
@@ -222,7 +222,7 @@ export function SiteFooter({
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[#ffffff10] pt-6 text-[11px] text-muted-foreground sm:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[#1B7F4E22] pt-6 text-[11px] text-muted-foreground sm:flex-row">
           {edit ? (
             <InlineEdit
               value={footer.copyright || ""}

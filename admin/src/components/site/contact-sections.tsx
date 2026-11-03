@@ -92,9 +92,9 @@ export function ContactCardsSection({
           <InlineEdit
             value={String(data.sectionNumber || "01")}
             onChange={(v) => edit.onChange(patch(data, "sectionNumber", v))}
-            className="font-mono text-xs font-bold tracking-[0.2em] text-[#e31e24]"
+            className="font-mono text-xs font-bold tracking-[0.2em] text-[#1B7F4E]"
           />
-          <span className="h-px w-10 bg-gradient-to-r from-[#e31e24] to-transparent" />
+          <span className="h-px w-10 bg-gradient-to-r from-[#1B7F4E] to-transparent" />
           <InlineEdit
             value={String(data.sectionLabel || "")}
             onChange={(v) => edit.onChange(patch(data, "sectionLabel", v))}
@@ -123,8 +123,8 @@ export function ContactCardsSection({
             fallbackClassName="bg-card"
             editMode="corner"
           >
-            <div className="mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/30 bg-[#e31e24]/10">
-              <Icon name={card.icon} className="size-5 text-[#e31e24]" />
+            <div className="mb-4 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/30 bg-[#1B7F4E]/10">
+              <Icon name={card.icon} className="size-5 text-[#1B7F4E]" />
             </div>
             {edit ? (
               <>
@@ -149,7 +149,7 @@ export function ContactCardsSection({
                 <InlineEdit
                   value={card.linkText || ""}
                   onChange={(v) => edit.onChange(patchItem(data, "cards", i, { linkText: v }))}
-                  className="mt-3 text-xs text-[#e31e24] block"
+                  className="mt-3 text-xs text-[#1B7F4E] block"
                   placeholder="Link text"
                 />
               </>
@@ -163,7 +163,7 @@ export function ContactCardsSection({
                 ))}
                 {card.note ? <p className="mt-3 text-xs text-muted-foreground">{card.note}</p> : null}
                 {card.linkText ? (
-                  <Link href={card.linkHref || "#"} className="mt-3 inline-flex text-xs text-[#e31e24] hover:underline">
+                  <Link href={card.linkHref || "#"} className="mt-3 inline-flex text-xs text-[#1B7F4E] hover:underline">
                     {card.linkText}
                   </Link>
                 ) : null}
@@ -196,9 +196,9 @@ export function ContactFormMapSection({
               <InlineEdit
                 value={String(data.formTag || "02")}
                 onChange={(v) => edit.onChange(patch(data, "formTag", v))}
-                className="font-mono text-xs font-bold tracking-[0.2em] text-[#e31e24]"
+                className="font-mono text-xs font-bold tracking-[0.2em] text-[#1B7F4E]"
               />
-              <span className="h-px w-10 bg-gradient-to-r from-[#e31e24] to-transparent" />
+              <span className="h-px w-10 bg-gradient-to-r from-[#1B7F4E] to-transparent" />
               <InlineEdit
                 value={String(data.formLabel || "")}
                 onChange={(v) => edit.onChange(patch(data, "formLabel", v))}
@@ -284,9 +284,9 @@ export function ContactFormMapSection({
               <InlineEdit
                 value={String(data.mapTag || "03")}
                 onChange={(v) => edit.onChange(patch(data, "mapTag", v))}
-                className="font-mono text-xs font-bold tracking-[0.2em] text-[#e31e24]"
+                className="font-mono text-xs font-bold tracking-[0.2em] text-[#1B7F4E]"
               />
-              <span className="h-px w-10 bg-gradient-to-r from-[#e31e24] to-transparent" />
+              <span className="h-px w-10 bg-gradient-to-r from-[#1B7F4E] to-transparent" />
               <InlineEdit
                 value={String(data.mapLabel || "")}
                 onChange={(v) => edit.onChange(patch(data, "mapLabel", v))}
@@ -332,8 +332,8 @@ export function ContactFormMapSection({
                 <div className="absolute inset-0 bg-black/30" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full border border-[#e31e24]/40 bg-[#e31e24]/10">
-                      <MapPin className="size-6 text-[#e31e24]" />
+                    <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full border border-[#1B7F4E]/40 bg-[#1B7F4E]/10">
+                      <MapPin className="size-6 text-[#1B7F4E]" />
                     </div>
                     {edit ? (
                       <>
@@ -377,8 +377,8 @@ export function ContactFormMapSection({
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:2rem_2rem]" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full border border-[#e31e24]/40 bg-[#e31e24]/10">
-                      <MapPin className="size-6 text-[#e31e24]" />
+                    <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full border border-[#1B7F4E]/40 bg-[#1B7F4E]/10">
+                      <MapPin className="size-6 text-[#1B7F4E]" />
                     </div>
                     {edit ? (
                       <>
@@ -422,7 +422,7 @@ export function ContactFormMapSection({
           </div>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
             <div className="flex min-w-0 items-center gap-3">
-              <MapPin className="size-4 shrink-0 text-[#e31e24]" />
+              <MapPin className="size-4 shrink-0 text-[#1B7F4E]" />
               {edit ? (
                 <InlineEdit
                   value={String(data.mapAddressBar || "")}
@@ -438,10 +438,10 @@ export function ContactFormMapSection({
               <InlineEdit
                 value={String(data.mapLinkText || "")}
                 onChange={(v) => edit.onChange(patch(data, "mapLinkText", v))}
-                className="whitespace-nowrap text-xs font-semibold text-[#e31e24]"
+                className="whitespace-nowrap text-xs font-semibold text-[#1B7F4E]"
               />
             ) : data.mapLinkText ? (
-              <Link href={String(data.mapLinkHref || "#")} target="_blank" className="whitespace-nowrap text-xs font-semibold text-[#e31e24] hover:underline">
+              <Link href={String(data.mapLinkHref || "#")} target="_blank" className="whitespace-nowrap text-xs font-semibold text-[#1B7F4E] hover:underline">
                 {String(data.mapLinkText)}
               </Link>
             ) : null}
@@ -468,9 +468,9 @@ export function ContactCategoriesSection({
           <InlineEdit
             value={String(data.sectionNumber || "04")}
             onChange={(v) => edit.onChange(patch(data, "sectionNumber", v))}
-            className="font-mono text-xs font-bold tracking-[0.2em] text-[#e31e24]"
+            className="font-mono text-xs font-bold tracking-[0.2em] text-[#1B7F4E]"
           />
-          <span className="h-px w-10 bg-gradient-to-r from-[#e31e24] to-transparent" />
+          <span className="h-px w-10 bg-gradient-to-r from-[#1B7F4E] to-transparent" />
           <InlineEdit
             value={String(data.sectionLabel || "")}
             onChange={(v) => edit.onChange(patch(data, "sectionLabel", v))}
@@ -494,8 +494,8 @@ export function ContactCategoriesSection({
         {items.map((item, i) => {
           const inner = (
             <>
-              <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/20 bg-[#e31e24]/10">
-                <Icon name={item.icon} className="size-5 text-[#e31e24]" />
+              <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/20 bg-[#1B7F4E]/10">
+                <Icon name={item.icon} className="size-5 text-[#1B7F4E]" />
               </div>
               {edit ? (
                 <>
@@ -517,10 +517,10 @@ export function ContactCategoriesSection({
                   <p className="mt-2 text-sm text-muted-foreground">{item.body}</p>
                 </>
               )}
-              {!edit ? <ChevronRight className="mt-4 size-4 text-[#e31e24]/60" /> : null}
+              {!edit ? <ChevronRight className="mt-4 size-4 text-[#1B7F4E]/60" /> : null}
             </>
           );
-          const cls = "rounded-xl border border-border bg-card p-5 transition-all hover:border-[#e31e24]/40";
+          const cls = "rounded-xl border border-border bg-card p-5 transition-all hover:border-[#1B7F4E]/40";
           return edit ? (
             <div key={i} className={cls}>
               {inner}
@@ -550,7 +550,7 @@ export function ContactSocialCtaSection({
   const socials = (data.socials as { label: string; href: string }[]) || [];
   const inner = (
     <>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#e31e2408,transparent_50%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#1B7F4E08,transparent_50%)]" />
       <div className="relative flex flex-wrap items-center justify-between gap-8">
         <div>
           {edit ? (
@@ -558,7 +558,7 @@ export function ContactSocialCtaSection({
               <InlineEdit
                 value={String(data.eyebrow || "")}
                 onChange={(v) => edit.onChange(patch(data, "eyebrow", v))}
-                className="mb-2 text-xs font-bold tracking-[0.2em] text-[#e31e24] block"
+                className="mb-2 text-xs font-bold tracking-[0.2em] text-[#1B7F4E] block"
               />
               <InlineEdit
                 value={String(data.title || "")}
@@ -576,7 +576,7 @@ export function ContactSocialCtaSection({
           ) : (
             <>
               {data.eyebrow ? (
-                <p className="mb-2 text-xs font-bold tracking-[0.2em] text-[#e31e24]">{String(data.eyebrow)}</p>
+                <p className="mb-2 text-xs font-bold tracking-[0.2em] text-[#1B7F4E]">{String(data.eyebrow)}</p>
               ) : null}
               <h2 className="font-heading text-3xl font-bold md:text-4xl">{String(data.title || "")}</h2>
               {data.description ? (
@@ -614,7 +614,7 @@ export function ContactSocialCtaSection({
                   href={s.href || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5] transition-all hover:border-[#e31e24] hover:bg-[#e31e24] hover:text-white"
+                  className="flex size-9 items-center justify-center rounded-lg border border-[#ffffff15] bg-[#121215] text-[#a0a0a5] transition-all hover:border-[#1B7F4E] hover:bg-[#1B7F4E] hover:text-white"
                 >
                   {s.label}
                 </a>
@@ -682,7 +682,7 @@ export function ContactHeroSection({
           ) : (
             <>
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#1B7F4E15,transparent_50%),radial-gradient(circle_at_20%_80%,#1B7F4E10,transparent_40%)]" />
             </>
           )}
           <div className="absolute left-4 top-4 z-20 h-24 w-40">
@@ -706,7 +706,7 @@ export function ContactHeroSection({
             placeholder="Hero background"
           />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#1B7F4E15,transparent_50%),radial-gradient(circle_at_20%_80%,#1B7F4E10,transparent_40%)]" />
         </>
       )}
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
@@ -717,17 +717,17 @@ export function ContactHeroSection({
                 <InlineEdit
                   value={String(data.eyebrow || "")}
                   onChange={(v) => edit.onChange(patch(data, "eyebrow", v))}
-                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]"
+                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#1B7F4E]"
                   placeholder="Eyebrow"
                 />
               ) : (
                 <EditableText
                   field="hero.eyebrow"
                   defaultValue={String(data.eyebrow || "")}
-                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]"
+                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#1B7F4E]"
                 />
               )}
-              <span className="h-px w-8 bg-[#e31e24]" />
+              <span className="h-px w-8 bg-[#1B7F4E]" />
             </div>
           ) : null}
           {edit ? (

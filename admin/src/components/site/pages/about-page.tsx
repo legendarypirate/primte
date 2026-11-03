@@ -36,11 +36,11 @@ const timeline = [
 ];
 
 const galleryItems = [
-  { tag: "СУРГАЛТ", title: "ХӨГЖИЛ", color: "from-[#1a1814] via-[#101012] to-[#070707]" },
-  { tag: "ТОНОГ ТӨХӨӨРӨМЖ", title: "МЭРГЭЖИЛ", color: "from-[#1c1810] via-[#121215] to-[#070707]" },
-  { tag: "ХАМТ ОЛОН", title: "НӨХӨРЛӨЛ", color: "from-[#1a1814] via-[#101012] to-[#070707]" },
-  { tag: "ТЭМЦЭЭН", title: "АМЖИЛТ", color: "from-[#151518] via-[#0d0d0f] to-[#070707]" },
-  { tag: "ИЛҮҮ САЙН", title: "ӨНӨӨДӨР", color: "from-[#201515] via-[#121215] to-[#070707]" },
+  { tag: "СУРГАЛТ", title: "ХӨГЖИЛ", color: "from-[#1A2620] via-[#141E19] to-[#0E1612]" },
+  { tag: "ТОНОГ ТӨХӨӨРӨМЖ", title: "МЭРГЭЖИЛ", color: "from-[#1A2620] via-[#141E19] to-[#0E1612]" },
+  { tag: "ХАМТ ОЛОН", title: "НӨХӨРЛӨЛ", color: "from-[#1A2620] via-[#141E19] to-[#0E1612]" },
+  { tag: "ТЭМЦЭЭН", title: "АМЖИЛТ", color: "from-[#1A2620] via-[#141E19] to-[#0E1612]" },
+  { tag: "ИЛҮҮ САЙН", title: "ӨНӨӨДӨР", color: "from-[#1A2620] via-[#141E19] to-[#0E1612]" },
 ];
 
 const team = [
@@ -79,18 +79,18 @@ export function AboutPage() {
         aside={
           <EditableBackground
             field="hero.aside.imageUrl"
-            className="rounded-2xl border border-[#e31e24]/40 p-8 shadow-2xl"
-            fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+            className="rounded-2xl border border-[#1B7F4E]/40 p-8 shadow-2xl"
+            fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
             editMode="corner"
           >
-            <div className="absolute top-4 right-4 text-[#e31e24]/15">
+            <div className="absolute top-4 right-4 text-[#1B7F4E]/15">
               <LionIcon className="size-36" />
             </div>
             <EditableText
               field="hero.aside.eyebrow"
               defaultValue="PRIME IPSC CLUB"
               as="p"
-              className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+              className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
             />
             <EditableText
               field="hero.aside.title"
@@ -123,7 +123,7 @@ export function AboutPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <EditableBackground
             field="video.modalImageUrl"
-            className="relative w-full max-w-3xl rounded-2xl border border-[#e31e24]/40 p-6 shadow-2xl"
+            className="relative w-full max-w-3xl rounded-2xl border border-[#1B7F4E]/40 p-6 shadow-2xl"
             fallbackClassName="bg-[#0c0c0e]"
             placeholder="Video modal background"
             editMode="corner"
@@ -151,7 +151,7 @@ export function AboutPage() {
               editMode="corner"
             >
               <div className="relative z-10">
-                <Play className="mx-auto mb-2 size-12 text-[#e31e24]" />
+                <Play className="mx-auto mb-2 size-12 text-[#1B7F4E]" />
                 <EditableText
                   field="video.placeholderTitle"
                   defaultValue="PRIME Action Air Introduction Video"
@@ -178,12 +178,12 @@ export function AboutPage() {
             <EditableBackground
               key={label}
               field={`stats.${idx}.imageUrl`}
-              className="flex flex-col items-center justify-center rounded-2xl border border-[#ffffff15] p-6 text-center shadow-xl transition-all hover:border-[#e31e24]/50"
+              className="flex flex-col items-center justify-center rounded-2xl border border-[#ffffff15] p-6 text-center shadow-xl transition-all hover:border-[#1B7F4E]/50"
               fallbackClassName="bg-[#101014]"
               placeholder="Stat card background"
               editMode="corner"
             >
-              <div className="relative z-10 mb-3 flex size-12 items-center justify-center rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+              <div className="relative z-10 mb-3 flex size-12 items-center justify-center rounded-xl border border-[#1B7F4E]/40 bg-[#1B7F4E]/10 text-[#1B7F4E]">
                 <Icon className="size-6" />
               </div>
               <EditableText
@@ -218,19 +218,19 @@ export function AboutPage() {
           {/* Card 1: Purpose */}
           <EditableBackground
             field="values.purpose.imageUrl"
-            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/50"
+            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#1B7F4E]/50"
             fallbackClassName="bg-[#121215]"
             placeholder="Card background"
             editMode="corner"
           >
-            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/40 bg-[#1B7F4E]/10 text-[#1B7F4E]">
               <Target className="size-5" />
             </div>
             <EditableText
               field="values.purpose.title"
               defaultValue="БИДНИЙ ЗОРИЛГО"
               as="h4"
-              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#e31e24] block"
+              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#1B7F4E] block"
             />
             <EditableText
               field="values.purpose.body"
@@ -244,19 +244,19 @@ export function AboutPage() {
           {/* Card 2: Vision */}
           <EditableBackground
             field="values.vision.imageUrl"
-            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/50"
+            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#1B7F4E]/50"
             fallbackClassName="bg-[#121215]"
             placeholder="Card background"
             editMode="corner"
           >
-            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/40 bg-[#1B7F4E]/10 text-[#1B7F4E]">
               <Flag className="size-5" />
             </div>
             <EditableText
               field="values.vision.title"
               defaultValue="АЛСЫН ХАРАА"
               as="h4"
-              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#e31e24] block"
+              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#1B7F4E] block"
             />
             <EditableText
               field="values.vision.body"
@@ -270,19 +270,19 @@ export function AboutPage() {
           {/* Card 3: Values */}
           <EditableBackground
             field="values.values.imageUrl"
-            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#e31e24]/50"
+            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl transition-all hover:border-[#1B7F4E]/50"
             fallbackClassName="bg-[#121215]"
             placeholder="Card background"
             editMode="corner"
           >
-            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 text-[#e31e24]">
+            <div className="relative z-10 mb-4 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/40 bg-[#1B7F4E]/10 text-[#1B7F4E]">
               <Users className="size-5" />
             </div>
             <EditableText
               field="values.values.title"
               defaultValue="ҮНЭТ ЗҮЙЛС"
               as="h4"
-              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#e31e24] block"
+              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-[#1B7F4E] block"
             />
             <EditableText
               field="values.values.body"
@@ -319,7 +319,7 @@ export function AboutPage() {
                 <EditableText
                   field={`timeline.${idx}.year`}
                   defaultValue={item.year}
-                  className="font-mono text-xl font-extrabold text-[#e31e24]"
+                  className="font-mono text-xl font-extrabold text-[#1B7F4E]"
                 />
                 <EditableText
                   field={`timeline.${idx}.title`}
@@ -379,7 +379,7 @@ export function AboutPage() {
                 <EditableText
                   field={`gallery.${idx}.tag`}
                   defaultValue={g.tag}
-                  className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#e31e24]"
+                  className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#1B7F4E]"
                 />
                 <EditableText
                   field={`gallery.${idx}.title`}
@@ -417,7 +417,7 @@ export function AboutPage() {
             <EditableBackground
               key={person.name}
               field={`team.${idx}.cardImageUrl`}
-              className="group overflow-hidden rounded-2xl border border-[#ffffff15] shadow-xl transition-all hover:border-[#e31e24]/60"
+              className="group overflow-hidden rounded-2xl border border-[#ffffff15] shadow-xl transition-all hover:border-[#1B7F4E]/60"
               fallbackClassName="bg-[#101014]"
               placeholder="Team card background"
               editMode="corner"
@@ -425,10 +425,10 @@ export function AboutPage() {
               <EditableBackground
                 field={`team.${idx}.imageUrl`}
                 className="relative flex h-52 items-center justify-center"
-                fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]"
+                fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
                 editMode="cover"
               >
-                <LionIcon className="relative z-10 size-20 text-[#e31e24]/20 transition-transform group-hover:scale-110" />
+                <LionIcon className="relative z-10 size-20 text-[#1B7F4E]/20 transition-transform group-hover:scale-110" />
               </EditableBackground>
               <div className="relative z-10 p-5">
                 <EditableText
@@ -441,7 +441,7 @@ export function AboutPage() {
                   field={`team.${idx}.role`}
                   defaultValue={person.role}
                   as="p"
-                  className="mt-1 text-xs font-semibold text-[#e31e24] block"
+                  className="mt-1 text-xs font-semibold text-[#1B7F4E] block"
                 />
                 <EditableText
                   field={`team.${idx}.sub`}
@@ -459,8 +459,8 @@ export function AboutPage() {
       <ContentSection id="cta" dark>
         <EditableBackground
           field="cta.bannerImageUrl"
-          className="rounded-3xl border border-[#e31e24]/40 p-8 shadow-2xl md:p-12"
-          fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+          className="rounded-3xl border border-[#1B7F4E]/40 p-8 shadow-2xl md:p-12"
+          fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
           editMode="corner"
         >
           <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -469,7 +469,7 @@ export function AboutPage() {
                 field="cta.eyebrow"
                 defaultValue="08 —— НИЙГЭМЛЭГТ НЭГД"
                 as="p"
-                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
               />
               <EditableText
                 field="cta.title"

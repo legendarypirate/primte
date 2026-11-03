@@ -163,7 +163,7 @@ export function HomePage() {
               {line2 ? (
                 <>
                   <br />
-                  <span className="text-[#e31e24]">{line2.replace(" НИЙГЭМ", "").trim()}</span>
+                  <span className="text-[#1B7F4E]">{line2.replace(" НИЙГЭМ", "").trim()}</span>
                   {line2.includes("НИЙГЭМ") ? " НИЙГЭМ" : null}
                 </>
               ) : null}
@@ -176,12 +176,12 @@ export function HomePage() {
             {/* IPSC Info Box */}
             <EditableBackground
               field="hero.aside.ipscImageUrl"
-              className="rounded-2xl border border-[#e31e24]/40 p-6 shadow-2xl shadow-black/80"
-              fallbackClassName="bg-gradient-to-br from-[#181612] via-[#101012] to-[#08080a]"
+              className="rounded-2xl border border-[#1B7F4E]/40 p-6 shadow-2xl shadow-black/80"
+              fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
               editMode="corner"
             >
               <div className="relative z-10 flex items-center gap-3">
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-[#e31e24] bg-[#e31e24]/10 text-[#e31e24]">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-[#1B7F4E] bg-[#1B7F4E]/10 text-[#1B7F4E]">
                   <LionIcon className="size-7" />
                 </div>
                 <div>
@@ -195,7 +195,7 @@ export function HomePage() {
                     field="hero.aside.ipsc.subtitle"
                     defaultValue="International Practical Shooting Confederation"
                     as="p"
-                    className="text-[10px] uppercase tracking-widest text-[#e31e24] block"
+                    className="text-[10px] uppercase tracking-widest text-[#1B7F4E] block"
                   />
                 </div>
               </div>
@@ -208,7 +208,7 @@ export function HomePage() {
               />
               <Link
                 href="/about"
-                className="relative z-10 mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#e31e24] hover:underline"
+                className="relative z-10 mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#1B7F4E] hover:underline"
               >
                 <EditableText field="hero.aside.ipsc.link" defaultValue="Илүү ихийг мэдэх" />
                 <ArrowRight className="size-3.5" />
@@ -222,12 +222,12 @@ export function HomePage() {
               fallbackClassName="bg-[#121215]"
               editMode="corner"
             >
-              <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(circle_at_100%_0%,#e31e2420,transparent_70%)]" />
+              <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(circle_at_100%_0%,#1B7F4E20,transparent_70%)]" />
               <EditableText
                 field="hero.aside.quote.label"
                 defaultValue="PRIME IPSC ACTION AIR"
                 as="p"
-                className="relative z-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#e31e24] block"
+                className="relative z-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#1B7F4E] block"
               />
               <EditableText
                 field="hero.aside.quote.text"
@@ -263,7 +263,7 @@ export function HomePage() {
             field="safety.tagline"
             defaultValue="SAFETY FIRST"
             as="p"
-            className="text-xs uppercase tracking-widest text-[#e31e24] block"
+            className="text-xs uppercase tracking-widest text-[#1B7F4E] block"
           />
           <EditableText
             field="safety.subtitle"
@@ -280,15 +280,15 @@ export function HomePage() {
             <EditableBackground
               key={rule.n}
               field={`safety.rules.${idx}.imageUrl`}
-              className="rounded-xl border border-[#ffffff15] p-5 shadow-lg transition-all hover:border-[#e31e24]/60"
+              className="rounded-xl border border-[#ffffff15] p-5 shadow-lg transition-all hover:border-[#1B7F4E]/60"
               fallbackClassName="bg-[#101014]"
               editMode="corner"
             >
               <div className="relative z-10 mb-3 flex items-center justify-between">
-                <span className="flex size-9 items-center justify-center rounded-lg border border-[#e31e24]/40 bg-[#e31e24]/10 font-mono text-sm font-bold text-[#e31e24]">
+                <span className="flex size-9 items-center justify-center rounded-lg border border-[#1B7F4E]/40 bg-[#1B7F4E]/10 font-mono text-sm font-bold text-[#1B7F4E]">
                   <EditableText field={`safety.rules.${idx}.n`} defaultValue={rule.n} />
                 </span>
-                <Shield className="size-4 text-[#e31e24]/40" />
+                <Shield className="size-4 text-[#1B7F4E]/40" />
               </div>
               <EditableText
                 field={`safety.rules.${idx}.title`}
@@ -314,12 +314,12 @@ export function HomePage() {
             <EditableBackground
               key={title}
               field={`safety.features.${idx}.imageUrl`}
-              className="flex flex-col justify-between rounded-xl border border-[#ffffff10] p-5 transition-all hover:border-[#e31e24]/50"
+              className="flex flex-col justify-between rounded-xl border border-[#ffffff10] p-5 transition-all hover:border-[#1B7F4E]/50"
               fallbackClassName="bg-[#121215]"
               editMode="corner"
             >
               <div className="relative z-10">
-                <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/30 bg-[#e31e24]/10 text-[#e31e24]">
+                <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/30 bg-[#1B7F4E]/10 text-[#1B7F4E]">
                   <Icon className="size-5" />
                 </div>
                 <EditableText
@@ -338,7 +338,7 @@ export function HomePage() {
               </div>
               <Link
                 href={href}
-                className="relative z-10 mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#e31e24] hover:text-white"
+                className="relative z-10 mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#1B7F4E] hover:text-white"
               >
                 <EditableText field={`safety.features.${idx}.link`} defaultValue="Дэлгэрэнгүй" />
                 <ArrowRight className="size-3" />
@@ -373,11 +373,11 @@ export function HomePage() {
               <EditableBackground
                 key={lvl.n}
                 field={`safety.levels.${idx}.imageUrl`}
-                className="flex items-center gap-3 rounded-xl border border-[#ffffff10] p-3 transition-colors hover:border-[#e31e24]/50"
+                className="flex items-center gap-3 rounded-xl border border-[#ffffff10] p-3 transition-colors hover:border-[#1B7F4E]/50"
                 fallbackClassName="bg-[#141418]"
                 editMode="corner"
               >
-                <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border border-[#e31e24] bg-[#e31e24]/20 font-mono text-xs font-bold text-[#e31e24]">
+                <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border border-[#1B7F4E] bg-[#1B7F4E]/20 font-mono text-xs font-bold text-[#1B7F4E]">
                   <EditableText field={`safety.levels.${idx}.n`} defaultValue={lvl.n} />
                 </div>
                 <div className="relative z-10">
@@ -426,7 +426,7 @@ export function HomePage() {
               <EditableBackground
                 key={c.id}
                 field={`training.courses.${idx}.imageUrl`}
-                className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] p-5 shadow-xl transition-all hover:border-[#e31e24]/60"
+                className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] p-5 shadow-xl transition-all hover:border-[#1B7F4E]/60"
                 fallbackClassName="bg-[#101014]"
                 editMode="corner"
               >
@@ -435,7 +435,7 @@ export function HomePage() {
                     <EditableText
                       field={`training.courses.${idx}.title`}
                       defaultValue={c.title}
-                      className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#e31e24]"
+                      className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#1B7F4E]"
                     />
                   </div>
                   <EditableText
@@ -447,21 +447,21 @@ export function HomePage() {
 
                   <ul className="mt-4 space-y-2 text-xs text-[#a0a0a5]">
                     <li className="flex items-center gap-2">
-                      <Clock className="size-3.5 text-[#e31e24]" />
+                      <Clock className="size-3.5 text-[#1B7F4E]" />
                       <span>
                         <EditableText field={`training.courses.${idx}.durationLabel`} defaultValue="Хугацаа:" />{" "}
                         <EditableText field={`training.courses.${idx}.duration`} defaultValue={c.duration} />
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Users className="size-3.5 text-[#e31e24]" />
+                      <Users className="size-3.5 text-[#1B7F4E]" />
                       <span>
                         <EditableText field={`training.courses.${idx}.audienceLabel`} defaultValue="Хамрах хүрээ:" />{" "}
                         <EditableText field={`training.courses.${idx}.audience`} defaultValue={c.audience} />
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="size-3.5 shrink-0 text-[#e31e24] mt-0.5" />
+                      <CheckCircle2 className="size-3.5 shrink-0 text-[#1B7F4E] mt-0.5" />
                       <EditableText
                         field={`training.courses.${idx}.details`}
                         defaultValue={c.details}
@@ -484,11 +484,11 @@ export function HomePage() {
                     field={`training.courses.${idx}.price`}
                     defaultValue={c.price}
                     as="p"
-                    className="font-mono text-xl font-extrabold text-[#e31e24] block"
+                    className="font-mono text-xl font-extrabold text-[#1B7F4E] block"
                   />
                   <Link
                     href={c.href}
-                    className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#e31e24] text-xs font-bold text-white transition hover:bg-[#c91920]"
+                    className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#1B7F4E] text-xs font-bold text-white transition hover:bg-[#156B41]"
                   >
                     <EditableText field={`training.courses.${idx}.cta`} defaultValue="Бүртгүүлэх" />
                     <ArrowRight className="size-3.5" />
@@ -501,7 +501,7 @@ export function HomePage() {
           {/* Quick Registration Form */}
           <EditableBackground
             field="training.form.imageUrl"
-            className="rounded-2xl border border-[#e31e24]/40 p-6 shadow-2xl"
+            className="rounded-2xl border border-[#1B7F4E]/40 p-6 shadow-2xl"
             fallbackClassName="bg-[#121215]"
             editMode="corner"
           >
@@ -532,7 +532,7 @@ export function HomePage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Овог, нэр оруулах"
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                 />
               </div>
 
@@ -550,7 +550,7 @@ export function HomePage() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="name@domain.com"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
                 <div>
@@ -566,7 +566,7 @@ export function HomePage() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="9911-XXXX"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
               </div>
@@ -582,7 +582,7 @@ export function HomePage() {
                   <select
                     value={formData.course}
                     onChange={(e) => setFormData({ ...formData, course: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#1B7F4E]"
                   >
                     <option value="Course 1">Course 1 (Анхан шат)</option>
                     <option value="Course 2">Course 2 (Анхан дунд)</option>
@@ -599,7 +599,7 @@ export function HomePage() {
                   <select
                     value={formData.time}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#1B7F4E]"
                   >
                     <option value="19:00 - 22:00">Ажлын өдөр (19:00 - 22:00)</option>
                     <option value="18:00 - 22:00">Амралтын өдөр (18:00 - 22:00)</option>
@@ -619,13 +619,13 @@ export function HomePage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Асуулт, тэмдэглэл байвал энд бичнэ үү..."
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                 />
               </div>
 
               <button
                 type="submit"
-                className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#e31e24] text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-[#c91920]"
+                className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#1B7F4E] text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-[#156B41]"
               >
                 <EditableText field="training.form.submit" defaultValue="Бүртгэл илгээх" />
                 <ArrowRight className="size-4" />
@@ -665,7 +665,7 @@ export function HomePage() {
           {/* Adult Membership */}
           <EditableBackground
             field="membership.adult.imageUrl"
-            className="rounded-2xl border border-[#e31e24]/50 p-6 shadow-xl"
+            className="rounded-2xl border border-[#1B7F4E]/50 p-6 shadow-xl"
             fallbackClassName="bg-[#121215]"
             editMode="corner"
           >
@@ -678,10 +678,10 @@ export function HomePage() {
               <EditableText
                 field="membership.adult.badge"
                 defaultValue="ҮНДСЭН"
-                className="rounded bg-[#e31e24]/20 px-2 py-0.5 text-[10px] font-bold text-[#e31e24]"
+                className="rounded bg-[#1B7F4E]/20 px-2 py-0.5 text-[10px] font-bold text-[#1B7F4E]"
               />
             </div>
-            <p className="relative z-10 mt-4 font-mono text-2xl font-extrabold text-[#e31e24]">
+            <p className="relative z-10 mt-4 font-mono text-2xl font-extrabold text-[#1B7F4E]">
               <EditableText field="membership.adult.price" defaultValue="250,000₮" />{" "}
               <EditableText
                 field="membership.adult.period"
@@ -692,7 +692,7 @@ export function HomePage() {
             <ul className="relative z-10 mt-6 space-y-2.5 text-xs text-[#a0a0a5]">
               {adultMembershipItems.map((item, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-[#e31e24]" />
+                  <CheckCircle2 className="size-4 text-[#1B7F4E]" />
                   <EditableText field={`membership.adult.items.${idx}`} defaultValue={item} />
                 </li>
               ))}
@@ -715,7 +715,7 @@ export function HomePage() {
               <EditableText
                 field="membership.junior.badge"
                 defaultValue="12-17 НАС"
-                className="rounded bg-[#e31e24]/20 px-2 py-0.5 text-[10px] font-bold text-[#e31e24]"
+                className="rounded bg-[#1B7F4E]/20 px-2 py-0.5 text-[10px] font-bold text-[#1B7F4E]"
               />
             </div>
             <EditableText
@@ -743,7 +743,7 @@ export function HomePage() {
               field="membership.path.title"
               defaultValue="ГИШҮҮН БОЛОХ ЗАМ"
               as="h4"
-              className="relative z-10 font-heading text-xs font-bold uppercase tracking-wider text-[#e31e24] block"
+              className="relative z-10 font-heading text-xs font-bold uppercase tracking-wider text-[#1B7F4E] block"
             />
             <div className="relative z-10 mt-5 space-y-3">
               {[
@@ -753,7 +753,7 @@ export function HomePage() {
                 { n: "4", label: "Үндсэн гишүүн", sub: "Клубын гишүүн" },
               ].map((step, idx) => (
                 <div key={idx} className="flex items-center gap-3">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#e31e24] text-xs font-bold text-white">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#1B7F4E] text-xs font-bold text-white">
                     <EditableText field={`membership.path.steps.${idx}.n`} defaultValue={step.n} />
                   </div>
                   <div>
@@ -809,7 +809,7 @@ export function HomePage() {
             fallbackClassName="bg-[#121215]"
             editMode="corner"
           >
-            <BarChart3 className="relative z-10 mb-4 size-8 text-[#e31e24]" />
+            <BarChart3 className="relative z-10 mb-4 size-8 text-[#1B7F4E]" />
             <EditableText
               field="ranking.rating.title"
               defaultValue="Тамирчдын чансаа тодорхойлох журам"
@@ -826,7 +826,7 @@ export function HomePage() {
             <ul className="relative z-10 mt-4 space-y-1.5 text-[11px] text-muted-foreground">
               {ratingItems.map((item, idx) => (
                 <li key={idx} className="flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-[#e31e24]" />
+                  <span className="size-1 rounded-full bg-[#1B7F4E]" />
                   <EditableText field={`ranking.rating.items.${idx}`} defaultValue={item} />
                 </li>
               ))}
@@ -840,7 +840,7 @@ export function HomePage() {
             fallbackClassName="bg-[#121215]"
             editMode="corner"
           >
-            <FileText className="relative z-10 mb-4 size-8 text-[#e31e24]" />
+            <FileText className="relative z-10 mb-4 size-8 text-[#1B7F4E]" />
             <EditableText
               field="ranking.rules.title"
               defaultValue="МПБХ-ны тэмцээн явуулах журам"
@@ -857,7 +857,7 @@ export function HomePage() {
             <ul className="relative z-10 mt-4 space-y-1.5 text-[11px] text-muted-foreground">
               {competitionRuleItems.map((item, idx) => (
                 <li key={idx} className="flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-[#e31e24]" />
+                  <span className="size-1 rounded-full bg-[#1B7F4E]" />
                   <EditableText field={`ranking.rules.items.${idx}`} defaultValue={item} />
                 </li>
               ))}
@@ -867,18 +867,18 @@ export function HomePage() {
           {/* Card 3: Banner */}
           <EditableBackground
             field="ranking.philosophyImageUrl"
-            className="flex flex-col justify-end rounded-2xl border border-[#e31e24]/40 p-8 shadow-2xl"
-            fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+            className="flex flex-col justify-end rounded-2xl border border-[#1B7F4E]/40 p-8 shadow-2xl"
+            fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
             editMode="corner"
           >
-            <div className="absolute top-4 right-4 text-[#e31e24]/20">
+            <div className="absolute top-4 right-4 text-[#1B7F4E]/20">
               <LionIcon className="size-24" />
             </div>
             <EditableText
               field="ranking.philosophy.label"
               defaultValue="PRIME PHILOSOPHY"
               as="p"
-              className="relative z-10 font-mono text-xs font-bold uppercase tracking-widest text-[#e31e24] block"
+              className="relative z-10 font-mono text-xs font-bold uppercase tracking-widest text-[#1B7F4E] block"
             />
             <EditableText
               field="ranking.philosophy.quote"
@@ -920,7 +920,7 @@ export function HomePage() {
             <EditableBackground
               key={item.title}
               field={`news.${idx}.cardImageUrl`}
-              className="group overflow-hidden rounded-2xl border border-[#ffffff15] shadow-xl transition-all hover:border-[#e31e24]/50"
+              className="group overflow-hidden rounded-2xl border border-[#ffffff15] shadow-xl transition-all hover:border-[#1B7F4E]/50"
               fallbackClassName="bg-[#121215]"
               editMode="corner"
             >
@@ -930,7 +930,7 @@ export function HomePage() {
                 fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#121215] to-[#070707]"
                 editMode="cover"
               >
-                <span className="relative z-10 rounded bg-[#000000]/60 px-2.5 py-1 font-mono text-xs font-bold text-[#e31e24]">
+                <span className="relative z-10 rounded bg-[#000000]/60 px-2.5 py-1 font-mono text-xs font-bold text-[#1B7F4E]">
                   <EditableText field={`news.${idx}.date`} defaultValue={item.date} />
                 </span>
               </EditableBackground>
@@ -940,7 +940,7 @@ export function HomePage() {
                   defaultValue={item.title}
                   multiline
                   as="h4"
-                  className="font-heading text-sm font-bold text-white transition-colors group-hover:text-[#e31e24] block"
+                  className="font-heading text-sm font-bold text-white transition-colors group-hover:text-[#1B7F4E] block"
                 />
                 <EditableText
                   field={`news.${idx}.desc`}

@@ -50,12 +50,12 @@ function RankingChart({ points }: { points: ChartPoint[] }) {
       <svg viewBox={`0 0 ${w} ${h}`} className="w-full min-w-[320px]" aria-hidden>
         <defs>
           <linearGradient id="rankLine" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#e31e24" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#e31e24" />
+            <stop offset="0%" stopColor="#1B7F4E" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#1B7F4E" />
           </linearGradient>
           <linearGradient id="rankFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#e31e24" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#e31e24" stopOpacity="0" />
+            <stop offset="0%" stopColor="#1B7F4E" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#1B7F4E" stopOpacity="0" />
           </linearGradient>
         </defs>
         {[0, 0.25, 0.5, 0.75, 1].map((t) => {
@@ -66,7 +66,7 @@ function RankingChart({ points }: { points: ChartPoint[] }) {
         <polyline points={line} fill="none" stroke="url(#rankLine)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         {coords.map((c) => (
           <g key={c.label}>
-            <circle cx={c.x} cy={c.y} r="5" fill="#e31e24" stroke="#070707" strokeWidth="2" />
+            <circle cx={c.x} cy={c.y} r="5" fill="#1B7F4E" stroke="#070707" strokeWidth="2" />
             <text x={c.x} y={h - 8} textAnchor="middle" fill="#9a958a" fontSize="10">
               {c.label}
             </text>
@@ -99,7 +99,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
               Чансаа
             </Link>
             <ChevronRight className="size-3" />
-            <span className="text-[#e31e24]">{athlete.name}</span>
+            <span className="text-[#1B7F4E]">{athlete.name}</span>
           </nav>
           <SectionTag n="01" label="ATHLETE PROFILE" />
           <h1 className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl">
@@ -116,7 +116,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
         <div
           className={`grid gap-6 rounded-2xl border p-6 md:grid-cols-[auto_1fr_auto] md:items-center md:p-8 ${
             athlete.rank === 1
-              ? "border-[#e31e24]/60 bg-gradient-to-r from-[#1a0e10] via-[#101012] to-[#101012] shadow-[0_0_50px_#e31e2415]"
+              ? "border-[#1B7F4E]/60 bg-gradient-to-r from-[#1a0e10] via-[#101012] to-[#101012] shadow-[0_0_50px_#1B7F4E15]"
               : "border-border bg-card"
           }`}
         >
@@ -126,7 +126,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
             ) : null}
             <div
               className={`size-28 overflow-hidden rounded-full border-2 md:size-32 ${
-                athlete.rank === 1 ? "border-[#e31e24] ring-2 ring-[#e31e24]/30" : "border-border"
+                athlete.rank === 1 ? "border-[#1B7F4E] ring-2 ring-[#1B7F4E]/30" : "border-border"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -163,7 +163,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
               </p>
               <p>
                 <span className="text-muted-foreground">Нийт оноо: </span>
-                <span className="font-bold text-[#e31e24]">{athlete.totalPoints}</span>
+                <span className="font-bold text-[#1B7F4E]">{athlete.totalPoints}</span>
               </p>
               <p>
                 <span className="text-muted-foreground">Тэмцээн: </span>
@@ -188,7 +188,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
             <p className="mt-1 text-lg font-bold text-white">
               {athlete.rank} / {athlete.totalAthletes}
             </p>
-            <p className="text-xs text-[#e31e24]">{athlete.category}</p>
+            <p className="text-xs text-[#1B7F4E]">{athlete.category}</p>
           </div>
         </div>
 
@@ -199,7 +199,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
             return (
               <div key={stat.label} className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Icon className="size-4 text-[#e31e24]" />
+                  <Icon className="size-4 text-[#1B7F4E]" />
                   <p className="text-[10px] uppercase tracking-wider">{stat.label}</p>
                 </div>
                 <p className="mt-2 text-2xl font-bold">
@@ -209,7 +209,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
                   ) : null}
                 </p>
                 {stat.sub ? (
-                  <p className={`mt-1 text-xs ${stat.highlight ? "text-[#e31e24]" : "text-muted-foreground"}`}>{stat.sub}</p>
+                  <p className={`mt-1 text-xs ${stat.highlight ? "text-[#1B7F4E]" : "text-muted-foreground"}`}>{stat.sub}</p>
                 ) : null}
               </div>
             );
@@ -225,7 +225,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
             <div className="rounded-xl border border-border bg-card p-6">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-1 rounded bg-[#e31e24]" />
+                  <div className="h-5 w-1 rounded bg-[#1B7F4E]" />
                   <h3 className="font-semibold">Чансааны өсөлт</h3>
                 </div>
                 <Select defaultValue="2024-2025">
@@ -245,10 +245,10 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
             <div className="rounded-xl border border-border bg-card p-6">
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-1 rounded bg-[#e31e24]" />
+                  <div className="h-5 w-1 rounded bg-[#1B7F4E]" />
                   <h3 className="font-semibold">Сүүлийн 10 тэмцээн</h3>
                 </div>
-                <Link href="/ranking" className="text-xs text-[#e31e24] hover:underline">
+                <Link href="/ranking" className="text-xs text-[#1B7F4E] hover:underline">
                   Бүгдийг харах →
                 </Link>
               </div>
@@ -275,7 +275,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
                         <td className="py-3 pr-4 text-muted-foreground">{row.level}</td>
                         <td className="py-3 pr-4 text-muted-foreground">{row.division}</td>
                         <td className="py-3 pr-4">{row.result}</td>
-                        <td className="py-3 pr-4 font-bold text-[#e31e24]">{row.points}</td>
+                        <td className="py-3 pr-4 font-bold text-[#1B7F4E]">{row.points}</td>
                         <td className="py-3">
                           {row.change > 0 ? (
                             <span className="inline-flex items-center gap-1 text-green-500">
@@ -329,7 +329,7 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
 
             <div className="rounded-xl border border-border bg-card p-5">
               <div className="mb-4 flex items-center gap-3">
-                <div className="h-5 w-1 rounded bg-[#e31e24]" />
+                <div className="h-5 w-1 rounded bg-[#1B7F4E]" />
                 <p className="font-semibold">Top 5 үр дүн</p>
               </div>
               <div className="space-y-3">
@@ -340,21 +340,21 @@ export function AthleteDetailPage({ athlete }: { athlete: AthleteProfile }) {
                       <p className="truncate text-sm font-medium">{r.name}</p>
                       <p className="text-xs text-muted-foreground">{r.date}</p>
                     </div>
-                    <p className="text-sm font-bold text-[#e31e24]">{r.points}</p>
+                    <p className="text-sm font-bold text-[#1B7F4E]">{r.points}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-xl border border-[#e31e24]/30 bg-[#e31e24]/5 p-5">
+            <div className="rounded-xl border border-[#1B7F4E]/30 bg-[#1B7F4E]/5 p-5">
               <div className="flex items-start gap-3">
-                <Info className="mt-0.5 size-4 shrink-0 text-[#e31e24]" />
+                <Info className="mt-0.5 size-4 shrink-0 text-[#1B7F4E]" />
                 <div>
                   <p className="text-sm font-semibold">Чансаа тооцох дүрэм</p>
                   <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     Сүүлийн 10 тэмцээний онооны дундаж, тэмцээний түвшин, division-оор нэгтгэн ерөнхий чансааг тооцно.
                   </p>
-                  <Link href="/ranking/rules" className="mt-3 inline-flex text-xs font-semibold text-[#e31e24] hover:underline">
+                  <Link href="/ranking/rules" className="mt-3 inline-flex text-xs font-semibold text-[#1B7F4E] hover:underline">
                     Дэлгэрэнгүй →
                   </Link>
                 </div>

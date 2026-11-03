@@ -72,8 +72,8 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
   const primary = data.primaryCta as Cta | undefined;
   const secondary = data.secondaryCta as Cta | undefined;
   const aside = data.asideTitle || edit ? (
-    <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 shadow-2xl">
-      <div className="absolute top-4 right-4 h-36 w-36 text-[#e31e24]/15">
+    <div className="relative overflow-hidden rounded-2xl border border-[#1B7F4E]/40 bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612] p-8 shadow-2xl">
+      <div className="absolute top-4 right-4 h-36 w-36 text-[#1B7F4E]/15">
         {edit ? (
           <EditableImage
             value={String(data.asideImageUrl || "")}
@@ -94,7 +94,7 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
           <InlineEdit
             value={String(data.asideTag || "")}
             onChange={(v) => edit.onChange(patch(data, "asideTag", v))}
-            className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+            className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
             placeholder="Aside tag"
           />
           <InlineEdit
@@ -115,7 +115,7 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
       ) : (
         <>
           {data.asideTag ? (
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24]">{String(data.asideTag)}</p>
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E]">{String(data.asideTag)}</p>
           ) : null}
           {data.asideTitle ? (
             <h3 className="mt-4 font-heading text-3xl font-extrabold uppercase leading-tight text-white">{String(data.asideTitle)}</h3>
@@ -150,7 +150,7 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
       ) : (
         <>
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#e31e2415,transparent_50%),radial-gradient(circle_at_20%_80%,#e31e2410,transparent_40%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,#1B7F4E15,transparent_50%),radial-gradient(circle_at_20%_80%,#1B7F4E10,transparent_40%)]" />
         </>
       )}
       {edit ? (
@@ -172,13 +172,13 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
                 <InlineEdit
                   value={String(data.eyebrow || "")}
                   onChange={(v) => edit.onChange(patch(data, "eyebrow", v))}
-                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]"
+                  className="font-mono text-xs font-bold tracking-[0.25em] text-[#1B7F4E]"
                   placeholder="Eyebrow"
                 />
               ) : (
-                <span className="font-mono text-xs font-bold tracking-[0.25em] text-[#e31e24]">{String(data.eyebrow)}</span>
+                <span className="font-mono text-xs font-bold tracking-[0.25em] text-[#1B7F4E]">{String(data.eyebrow)}</span>
               )}
-              <span className="h-px w-8 bg-[#e31e24]" />
+              <span className="h-px w-8 bg-[#1B7F4E]" />
             </div>
           ) : null}
           {edit ? (
@@ -202,14 +202,14 @@ function HeroBlock({ data, edit }: { data: Record<string, unknown>; edit?: EditC
             <div className="mt-8 flex flex-wrap gap-4">
               {edit ? (
                 <>
-                  <span className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#e31e24] px-6 text-xs font-bold uppercase text-white">
+                  <span className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#1B7F4E] px-6 text-xs font-bold uppercase text-white">
                     <InlineEdit
                       value={primary?.text || ""}
                       onChange={(v) => edit.onChange(patch(data, "primaryCta", { ...primary, text: v }))}
                       placeholder="CTA"
                     />
                   </span>
-                  <span className="inline-flex h-11 items-center rounded-lg border border-[#e31e24]/50 px-6 text-xs font-bold uppercase text-[#e31e24]">
+                  <span className="inline-flex h-11 items-center rounded-lg border border-[#1B7F4E]/50 px-6 text-xs font-bold uppercase text-[#1B7F4E]">
                     <InlineEdit
                       value={secondary?.text || ""}
                       onChange={(v) => edit.onChange(patch(data, "secondaryCta", { ...secondary, text: v }))}
@@ -246,9 +246,9 @@ function SectionHeaderBlock({ data, edit }: { data: Record<string, unknown>; edi
             <InlineEdit
               value={String(data.number || "01")}
               onChange={(v) => edit.onChange(patch(data, "number", v))}
-              className="font-mono text-xs font-bold tracking-[0.2em] text-[#e31e24]"
+              className="font-mono text-xs font-bold tracking-[0.2em] text-[#1B7F4E]"
             />
-            <span className="h-px w-10 bg-gradient-to-r from-[#e31e24] to-transparent" />
+            <span className="h-px w-10 bg-gradient-to-r from-[#1B7F4E] to-transparent" />
             <InlineEdit
               value={String(data.label || "")}
               onChange={(v) => edit.onChange(patch(data, "label", v))}
@@ -302,13 +302,13 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((item, i) => (
               <div key={i} className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 text-center">
-                {item.icon ? <Icon name={item.icon} className="mx-auto mb-3 size-8 text-[#e31e24]" /> : null}
+                {item.icon ? <Icon name={item.icon} className="mx-auto mb-3 size-8 text-[#1B7F4E]" /> : null}
                 {edit && onChange ? (
                   <>
                     <InlineEdit
                       value={item.value}
                       onChange={(v) => onChange(patchItem(d, "items", i, { value: v }))}
-                      className={`text-2xl font-bold block ${item.highlight ? "text-[#e31e24]" : "text-white"}`}
+                      className={`text-2xl font-bold block ${item.highlight ? "text-[#1B7F4E]" : "text-white"}`}
                     />
                     <InlineEdit
                       value={item.label}
@@ -318,7 +318,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                   </>
                 ) : (
                   <>
-                    <p className={`text-2xl font-bold ${item.highlight ? "text-[#e31e24]" : "text-white"}`}>{item.value}</p>
+                    <p className={`text-2xl font-bold ${item.highlight ? "text-[#1B7F4E]" : "text-white"}`}>{item.value}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
                   </>
                 )}
@@ -336,7 +336,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((item, i) => (
               <div key={i} className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6">
-                <div className="relative mb-4 h-28 overflow-hidden rounded-xl border border-[#e31e24]/40 bg-[#e31e24]/10">
+                <div className="relative mb-4 h-28 overflow-hidden rounded-xl border border-[#1B7F4E]/40 bg-[#1B7F4E]/10">
                   {edit && onChange ? (
                     <EditableImage
                       value={item.imageUrl || ""}
@@ -350,7 +350,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={assetUrl(item.imageUrl)} alt="" className="absolute inset-0 size-full object-cover" />
                   ) : (
-                    <div className="flex size-full items-center justify-center text-[#e31e24]">
+                    <div className="flex size-full items-center justify-center text-[#1B7F4E]">
                       <Icon name={item.icon} className="size-6" />
                     </div>
                   )}
@@ -395,7 +395,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                     <InlineEdit
                       value={item.n}
                       onChange={(v) => onChange(patchItem(d, "items", i, { n: v }))}
-                      className="font-mono text-xs font-bold text-[#e31e24] block"
+                      className="font-mono text-xs font-bold text-[#1B7F4E] block"
                     />
                     <InlineEdit
                       value={item.title}
@@ -412,7 +412,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                   </>
                 ) : (
                   <>
-                    <span className="font-mono text-xs font-bold text-[#e31e24]">{item.n}</span>
+                    <span className="font-mono text-xs font-bold text-[#1B7F4E]">{item.n}</span>
                     <h3 className="mt-2 font-heading text-sm font-bold uppercase text-white">{item.title}</h3>
                     {item.body ? <p className="mt-2 text-xs leading-relaxed text-[#a0a0a5]">{item.body}</p> : null}
                   </>
@@ -462,21 +462,21 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                 <div>
                   {edit && onChange ? (
                     <>
-                      <InlineEdit value={c.title} onChange={(v) => onChange(patchItem(d, "items", i, { title: v }))} className="font-mono text-xs font-bold uppercase tracking-widest text-[#e31e24] block" />
+                      <InlineEdit value={c.title} onChange={(v) => onChange(patchItem(d, "items", i, { title: v }))} className="font-mono text-xs font-bold uppercase tracking-widest text-[#1B7F4E] block" />
                       <InlineEdit value={c.subtitle} onChange={(v) => onChange(patchItem(d, "items", i, { subtitle: v }))} as="h3" className="mt-2 font-heading text-lg font-bold text-white block" />
                       <div className="mt-4 space-y-2 border-t border-[#ffffff10] pt-4 text-xs text-[#a0a0a5]">
-                        <p className="flex items-center gap-2"><Clock className="size-4 text-[#e31e24]" /><InlineEdit value={c.duration} onChange={(v) => onChange(patchItem(d, "items", i, { duration: v }))} className="flex-1" /></p>
-                        <p className="flex items-center gap-2"><Users className="size-4 text-[#e31e24]" /><InlineEdit value={c.audience} onChange={(v) => onChange(patchItem(d, "items", i, { audience: v }))} className="flex-1" /></p>
+                        <p className="flex items-center gap-2"><Clock className="size-4 text-[#1B7F4E]" /><InlineEdit value={c.duration} onChange={(v) => onChange(patchItem(d, "items", i, { duration: v }))} className="flex-1" /></p>
+                        <p className="flex items-center gap-2"><Users className="size-4 text-[#1B7F4E]" /><InlineEdit value={c.audience} onChange={(v) => onChange(patchItem(d, "items", i, { audience: v }))} className="flex-1" /></p>
                         <InlineEdit value={c.details} onChange={(v) => onChange(patchItem(d, "items", i, { details: v }))} multiline />
                       </div>
                     </>
                   ) : (
                     <>
-                      <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#e31e24]">{c.title}</span>
+                      <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#1B7F4E]">{c.title}</span>
                       <h3 className="mt-2 font-heading text-lg font-bold text-white">{c.subtitle}</h3>
                       <div className="mt-4 space-y-2 border-t border-[#ffffff10] pt-4 text-xs text-[#a0a0a5]">
-                        <p className="flex items-center gap-2"><Clock className="size-4 text-[#e31e24]" />{c.duration}</p>
-                        <p className="flex items-center gap-2"><Users className="size-4 text-[#e31e24]" />{c.audience}</p>
+                        <p className="flex items-center gap-2"><Clock className="size-4 text-[#1B7F4E]" />{c.duration}</p>
+                        <p className="flex items-center gap-2"><Users className="size-4 text-[#1B7F4E]" />{c.audience}</p>
                         <p>{c.details}</p>
                       </div>
                     </>
@@ -484,10 +484,10 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                 </div>
                 <div className="mt-6 border-t border-[#ffffff10] pt-4">
                   {edit && onChange ? (
-                    <InlineEdit value={c.price} onChange={(v) => onChange(patchItem(d, "items", i, { price: v }))} className="font-mono text-2xl font-extrabold text-[#e31e24] block" />
+                    <InlineEdit value={c.price} onChange={(v) => onChange(patchItem(d, "items", i, { price: v }))} className="font-mono text-2xl font-extrabold text-[#1B7F4E] block" />
                   ) : (
                     <>
-                      <p className="font-mono text-2xl font-extrabold text-[#e31e24]">{c.price}</p>
+                      <p className="font-mono text-2xl font-extrabold text-[#1B7F4E]">{c.price}</p>
                       {c.href ? (
                         <RedButton href={c.href} className="mt-4 w-full">
                           Дэлгэрэнгүй
@@ -513,11 +513,11 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
             {items.map((tier, i) => {
               const features = Array.isArray(tier.features) ? tier.features : String(tier.features || "").split("\n").filter(Boolean);
               return (
-                <div key={i} className={`rounded-2xl border p-6 ${tier.highlighted ? "border-[#e31e24]/60 bg-gradient-to-b from-[#1a0e10] to-[#101012]" : "border-[#ffffff15] bg-[#121215]"}`}>
+                <div key={i} className={`rounded-2xl border p-6 ${tier.highlighted ? "border-[#1B7F4E]/60 bg-gradient-to-b from-[#1a0e10] to-[#101012]" : "border-[#ffffff15] bg-[#121215]"}`}>
                   {edit && onChange ? (
                     <>
                       <InlineEdit value={tier.title} onChange={(v) => onChange(patchItem(d, "items", i, { title: v }))} as="h3" className="font-heading text-lg font-bold text-white block" />
-                      <InlineEdit value={tier.price} onChange={(v) => onChange(patchItem(d, "items", i, { price: v }))} className="mt-2 font-mono text-2xl font-extrabold text-[#e31e24] block" />
+                      <InlineEdit value={tier.price} onChange={(v) => onChange(patchItem(d, "items", i, { price: v }))} className="mt-2 font-mono text-2xl font-extrabold text-[#1B7F4E] block" />
                       <InlineEdit
                         value={Array.isArray(tier.features) ? tier.features.join("\n") : String(tier.features || "")}
                         onChange={(v) => onChange(patchItem(d, "items", i, { features: v }))}
@@ -529,11 +529,11 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                   ) : (
                     <>
                       <h3 className="font-heading text-lg font-bold text-white">{tier.title}</h3>
-                      <p className="mt-2 font-mono text-2xl font-extrabold text-[#e31e24]">{tier.price}</p>
+                      <p className="mt-2 font-mono text-2xl font-extrabold text-[#1B7F4E]">{tier.price}</p>
                       <ul className="mt-4 space-y-2">
                         {features.map((f, j) => (
                           <li key={j} className="flex items-start gap-2 text-xs text-[#a0a0a5]">
-                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#e31e24]" />
+                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#1B7F4E]" />
                             {f}
                           </li>
                         ))}
@@ -558,13 +558,13 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
               <div key={i} className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6">
                 {edit && onChange ? (
                   <>
-                    <InlineEdit value={item.date} onChange={(v) => onChange(patchItem(d, "items", i, { date: v }))} className="font-mono text-xs text-[#e31e24] block" />
+                    <InlineEdit value={item.date} onChange={(v) => onChange(patchItem(d, "items", i, { date: v }))} className="font-mono text-xs text-[#1B7F4E] block" />
                     <InlineEdit value={item.title} onChange={(v) => onChange(patchItem(d, "items", i, { title: v }))} as="h3" className="mt-2 font-heading text-sm font-bold uppercase text-white block" />
                     <InlineEdit value={item.body} onChange={(v) => onChange(patchItem(d, "items", i, { body: v }))} multiline className="mt-2 text-xs text-[#a0a0a5]" />
                   </>
                 ) : (
                   <>
-                    <p className="font-mono text-xs text-[#e31e24]">{item.date}</p>
+                    <p className="font-mono text-xs text-[#1B7F4E]">{item.date}</p>
                     <h3 className="mt-2 font-heading text-sm font-bold uppercase text-white">{item.title}</h3>
                     <p className="mt-2 text-xs text-[#a0a0a5]">{item.body}</p>
                   </>
@@ -583,16 +583,16 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
           <div className="space-y-6 border-l border-[#ffffff15] pl-6">
             {items.map((item, i) => (
               <div key={i} className="relative">
-                <span className="absolute -left-[31px] top-1 size-3 rounded-full bg-[#e31e24]" />
+                <span className="absolute -left-[31px] top-1 size-3 rounded-full bg-[#1B7F4E]" />
                 {edit && onChange ? (
                   <>
-                    <InlineEdit value={item.year} onChange={(v) => onChange(patchItem(d, "items", i, { year: v }))} className="font-mono text-xs font-bold text-[#e31e24] block" />
+                    <InlineEdit value={item.year} onChange={(v) => onChange(patchItem(d, "items", i, { year: v }))} className="font-mono text-xs font-bold text-[#1B7F4E] block" />
                     <InlineEdit value={item.title} onChange={(v) => onChange(patchItem(d, "items", i, { title: v }))} as="h3" className="mt-1 font-heading text-sm font-bold uppercase text-white block" />
                     <InlineEdit value={item.body} onChange={(v) => onChange(patchItem(d, "items", i, { body: v }))} multiline className="mt-1 text-xs text-[#a0a0a5]" />
                   </>
                 ) : (
                   <>
-                    <p className="font-mono text-xs font-bold text-[#e31e24]">{item.year}</p>
+                    <p className="font-mono text-xs font-bold text-[#1B7F4E]">{item.year}</p>
                     <h3 className="mt-1 font-heading text-sm font-bold uppercase text-white">{item.title}</h3>
                     <p className="mt-1 text-xs text-[#a0a0a5]">{item.body}</p>
                   </>
@@ -611,7 +611,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((m, i) => (
               <div key={i} className="rounded-2xl border border-[#ffffff15] bg-[#121215] p-6 text-center">
-                <div className="relative mx-auto mb-4 size-20 overflow-hidden rounded-full border-2 border-[#e31e24]/40 bg-[#101012]">
+                <div className="relative mx-auto mb-4 size-20 overflow-hidden rounded-full border-2 border-[#1B7F4E]/40 bg-[#101012]">
                   {edit && onChange ? (
                     <EditableImage
                       value={m.imageUrl || ""}
@@ -626,20 +626,20 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                     <img src={assetUrl(m.imageUrl)} alt={m.name} className="size-full object-cover" />
                   ) : (
                     <div className="flex size-full items-center justify-center">
-                      <LionIcon className="size-10 text-[#e31e24]/40" />
+                      <LionIcon className="size-10 text-[#1B7F4E]/40" />
                     </div>
                   )}
                 </div>
                 {edit && onChange ? (
                   <>
                     <InlineEdit value={m.name} onChange={(v) => onChange(patchItem(d, "items", i, { name: v }))} as="h3" className="font-heading text-sm font-bold text-white block" />
-                    <InlineEdit value={m.role} onChange={(v) => onChange(patchItem(d, "items", i, { role: v }))} className="mt-1 text-xs text-[#e31e24] block" />
+                    <InlineEdit value={m.role} onChange={(v) => onChange(patchItem(d, "items", i, { role: v }))} className="mt-1 text-xs text-[#1B7F4E] block" />
                     <InlineEdit value={m.sub || ""} onChange={(v) => onChange(patchItem(d, "items", i, { sub: v }))} className="mt-1 text-xs text-[#a0a0a5] block" />
                   </>
                 ) : (
                   <>
                     <h3 className="font-heading text-sm font-bold text-white">{m.name}</h3>
-                    <p className="mt-1 text-xs text-[#e31e24]">{m.role}</p>
+                    <p className="mt-1 text-xs text-[#1B7F4E]">{m.role}</p>
                     {m.sub ? <p className="mt-1 text-xs text-[#a0a0a5]">{m.sub}</p> : null}
                   </>
                 )}
@@ -656,7 +656,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
         <ContentSection>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {items.map((item, i) => (
-              <div key={i} className="relative flex min-h-[160px] flex-col justify-end overflow-hidden rounded-2xl border border-[#ffffff15] bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707] p-8">
+              <div key={i} className="relative flex min-h-[160px] flex-col justify-end overflow-hidden rounded-2xl border border-[#ffffff15] bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612] p-8">
                 {edit && onChange ? (
                   <EditableImage
                     value={item.imageUrl || ""}
@@ -672,12 +672,12 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                 ) : null}
                 {edit && onChange ? (
                   <>
-                    <InlineEdit value={item.tag} onChange={(v) => onChange(patchItem(d, "items", i, { tag: v }))} className="relative font-mono text-[10px] font-bold tracking-widest text-[#e31e24] block" />
+                    <InlineEdit value={item.tag} onChange={(v) => onChange(patchItem(d, "items", i, { tag: v }))} className="relative font-mono text-[10px] font-bold tracking-widest text-[#1B7F4E] block" />
                     <InlineEdit value={item.title} onChange={(v) => onChange(patchItem(d, "items", i, { title: v }))} as="h3" className="relative font-heading text-xl font-extrabold text-white block" />
                   </>
                 ) : (
                   <>
-                    <p className="relative font-mono text-[10px] font-bold tracking-widest text-[#e31e24]">{item.tag}</p>
+                    <p className="relative font-mono text-[10px] font-bold tracking-widest text-[#1B7F4E]">{item.tag}</p>
                     <h3 className="relative font-heading text-xl font-extrabold text-white">{item.title}</h3>
                   </>
                 )}
@@ -692,7 +692,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
       const ctaBg = d.backgroundImageUrl ? assetUrl(String(d.backgroundImageUrl)) : "";
       return (
         <ContentSection dark>
-          <div className="relative overflow-hidden rounded-3xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 text-center md:p-12">
+          <div className="relative overflow-hidden rounded-3xl border border-[#1B7F4E]/40 bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612] p-8 text-center md:p-12">
             {ctaBg ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -717,7 +717,7 @@ export function BlockRenderer({ block, edit }: { block: SiteBlock; edit?: EditCt
                 <InlineEdit value={String(d.title || "")} onChange={(v) => onChange(patch(d, "title", v))} as="h2" className="font-heading text-3xl font-extrabold uppercase text-white block" />
                 <InlineEdit value={String(d.description || "")} onChange={(v) => onChange(patch(d, "description", v))} multiline className="mx-auto mt-4 max-w-2xl text-sm text-[#a0a0a5]" />
                 <div className="mt-8 flex justify-center">
-                  <span className="inline-flex h-11 items-center rounded-lg bg-[#e31e24] px-6 text-xs font-bold uppercase text-white">
+                  <span className="inline-flex h-11 items-center rounded-lg bg-[#1B7F4E] px-6 text-xs font-bold uppercase text-white">
                     <InlineEdit value={String(d.ctaText || "")} onChange={(v) => onChange(patch(d, "ctaText", v))} placeholder="Button" />
                   </span>
                 </div>

@@ -111,6 +111,8 @@ const emptyForm: CompetitionForm = {
 
 const defaultFact = (): FactRow => ({ icon: "group", title: "", body: "" });
 
+const CATEGORY_OPTIONS = ["Overall", "Lady", "Junior", "Senior"] as const;
+
 function toLocalInput(value?: string | null) {
   if (!value) return "";
   const d = new Date(value);
@@ -258,12 +260,26 @@ export default function CompetitionDetailPage() {
     }));
   }
 
-  function listField(key: "categories" | "requirements" | "refundPolicy", value: string) {
+  function toggleCategory(name: string) {
+    setForm((f) => ({
+      ...f,
+      categories: f.categories.includes(name)
+        ? f.categories.filter((c) => c !== name)
+        : [...f.categories, name],
+    }));
+  }
+
+  function listField(key: "requirements" | "refundPolicy", value: string) {
     setForm((f) => ({
       ...f,
       [key]: value.split("\n").map((s) => s.trim()).filter(Boolean),
     }));
   }
+
+  const categoryChoices = useMemo(() => {
+    const extras = form.categories.filter((c) => !CATEGORY_OPTIONS.includes(c as (typeof CATEGORY_OPTIONS)[number]));
+    return [...CATEGORY_OPTIONS, ...extras];
+  }, [form.categories]);
 
   const filteredRegistrations = useMemo(() => {
     return registrations.filter((r) => {
@@ -402,9 +418,24 @@ export default function CompetitionDetailPage() {
                 ))}
                 {!divisions.length && <p className="text-sm text-muted-foreground"><Link href="/divisions" className="text-primary underline">Division</Link> нэмнэ үү.</p>}
               </div>
-              <div className="space-y-1">
-                <Label>Категори (мөр бүрт нэг)</Label>
-                <Textarea rows={5} value={form.categories.join("\n")} onChange={(e) => listField("categories", e.target.value)} />
+              <div className="space-y-2">
+                <Label>Категори</Label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {categoryChoices.map((name) => (
+                    <label
+                      key={name}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.categories.includes(name)}
+                        onChange={() => toggleCategory(name)}
+                        className="size-4 accent-primary"
+                      />
+                      {name}
+                    </label>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -20,7 +20,7 @@ export function SiteShell({
   edit?: LayoutEdit;
 }) {
   return (
-    <div className="dark min-h-screen bg-[#070707] text-foreground">
+    <div className="min-h-screen bg-[#F6FBF8] text-foreground">
       <SiteHeader
         header={layout.header}
         edit={

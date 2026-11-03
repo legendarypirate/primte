@@ -64,19 +64,19 @@ export function RankingPage() {
               field="hero.aside.line1"
               defaultValue="DISCIPLINE"
               as="p"
-              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#1B7F4E]/80 uppercase"
             />
             <EditableText
               field="hero.aside.line2"
               defaultValue="SKILL"
               as="p"
-              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#1B7F4E]/80 uppercase"
             />
             <EditableText
               field="hero.aside.line3"
               defaultValue="COMMUNITY"
               as="p"
-              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#e31e24]/80 uppercase"
+              className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#1B7F4E]/80 uppercase"
             />
             <EditableText
               field="hero.aside.tagline"
@@ -150,7 +150,7 @@ export function RankingPage() {
                   field={`stats.${idx}.sub`}
                   defaultValue={stat.sub}
                   as="p"
-                  className={`relative z-10 mt-1 text-xs ${stat.highlight ? "text-[#e31e24]" : "text-muted-foreground"}`}
+                  className={`relative z-10 mt-1 text-xs ${stat.highlight ? "text-[#1B7F4E]" : "text-muted-foreground"}`}
                 />
               )}
             </EditableBackground>
@@ -165,9 +165,9 @@ export function RankingPage() {
             const Card = (
             <EditableBackground
               field={`podium.${idx}.imageUrl`}
-              className={`flex w-full flex-col items-center rounded-2xl border px-6 py-8 text-center transition-all hover:border-[#e31e24]/50 ${
+              className={`flex w-full flex-col items-center rounded-2xl border px-6 py-8 text-center transition-all hover:border-[#1B7F4E]/50 ${
                 athlete.featured
-                  ? "border-[#e31e24]/60 shadow-[0_0_40px_#e31e2418] sm:-mt-8 sm:py-10"
+                  ? "border-[#1B7F4E]/60 shadow-[0_0_40px_#1B7F4E18] sm:-mt-8 sm:py-10"
                   : "border-border sm:mt-4"
               }`}
               fallbackClassName={athlete.featured ? "bg-gradient-to-b from-[#1a0e10] to-[#101012]" : "bg-card"}
@@ -176,7 +176,7 @@ export function RankingPage() {
               <div
                 className={`mb-4 flex size-8 items-center justify-center rounded-full text-sm font-bold ${
                   athlete.rank === 1
-                    ? "bg-[#e31e24] text-white"
+                    ? "bg-[#1B7F4E] text-white"
                     : athlete.rank === 2
                       ? "bg-[#c0c0c0] text-black"
                       : "bg-[#b91419] text-white"
@@ -187,7 +187,7 @@ export function RankingPage() {
 
               <div
                 className={`mb-4 size-24 overflow-hidden rounded-full border-2 bg-[#101012] md:size-28 ${
-                  athlete.featured ? "border-[#e31e24] ring-2 ring-[#e31e24]/30" : "border-border"
+                  athlete.featured ? "border-[#1B7F4E] ring-2 ring-[#1B7F4E]/30" : "border-border"
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -200,7 +200,7 @@ export function RankingPage() {
 
               <p className="text-lg font-semibold">{athlete.name}</p>
               <p className="mt-1 text-xs text-muted-foreground">{athlete.divisionLabel}</p>
-              <p className={`mt-4 text-3xl font-bold ${athlete.featured ? "text-[#e31e24]" : "text-white"}`}>
+              <p className={`mt-4 text-3xl font-bold ${athlete.featured ? "text-[#1B7F4E]" : "text-white"}`}>
                 {athlete.score}
               </p>
               <p
@@ -227,7 +227,7 @@ export function RankingPage() {
       {/* ── Ranking Table ── */}
       <ContentSection>
         <div className="flex items-center gap-3">
-          <div className="h-6 w-1 rounded bg-[#e31e24]" />
+          <div className="h-6 w-1 rounded bg-[#1B7F4E]" />
           <EditableText field="table.title" defaultValue="Ерөнхий чансаа" as="h2" className="font-heading text-xl font-bold" />
         </div>
         <EditableBackground
@@ -272,7 +272,7 @@ export function RankingPage() {
                   <td className="p-4 font-semibold">
                     {row.rank <= 3 ? (
                       <span className={`inline-flex size-7 items-center justify-center rounded-full text-xs font-bold ${
-                        row.rank === 1 ? "bg-[#e31e24] text-white" : row.rank === 2 ? "bg-[#c0c0c0] text-black" : "bg-[#b91419] text-white"
+                        row.rank === 1 ? "bg-[#1B7F4E] text-white" : row.rank === 2 ? "bg-[#c0c0c0] text-black" : "bg-[#b91419] text-white"
                       }`}>
                         {row.rank}
                       </span>
@@ -287,12 +287,12 @@ export function RankingPage() {
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={row.avatar} alt="" className="size-full object-cover" />
                         </div>
-                        <span className="font-medium group-hover:text-[#e31e24]">{row.name}</span>
+                        <span className="font-medium group-hover:text-[#1B7F4E]">{row.name}</span>
                       </Link>
                     ) : (
                       <div className="flex items-center gap-3">
                         <div className="flex size-8 items-center justify-center rounded-full border border-border bg-[#101012]">
-                          <LionIcon className="size-4 text-[#e31e24]/40" />
+                          <LionIcon className="size-4 text-[#1B7F4E]/40" />
                         </div>
                         <span className="font-medium">{row.name}</span>
                       </div>
@@ -302,7 +302,7 @@ export function RankingPage() {
                   <td className="p-4 text-muted-foreground">{row.category}</td>
                   <td className="p-4">{row.comps}</td>
                   <td className="p-4">{row.best10}</td>
-                  <td className="p-4 font-bold text-[#e31e24]">{row.total}</td>
+                  <td className="p-4 font-bold text-[#1B7F4E]">{row.total}</td>
                   <td className="p-4">
                     {row.change > 0 && (
                       <span className="inline-flex items-center gap-1 text-green-500">
@@ -336,23 +336,23 @@ export function RankingPage() {
           >
             <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-5 w-1 rounded bg-[#e31e24]" />
+                <div className="h-5 w-1 rounded bg-[#1B7F4E]" />
                 <EditableText field="updates.title" defaultValue="Сүүлийн шинэчлэлт" as="p" className="font-semibold" />
               </div>
-              <Link href="#" className="text-xs text-[#e31e24] hover:underline">
+              <Link href="#" className="text-xs text-[#1B7F4E] hover:underline">
                 <EditableText field="updates.link" defaultValue="Бүгдийг харах →" />
               </Link>
             </div>
             <div className="relative z-10 mt-4 space-y-4">
               {recentUpdates.map((update, idx) => (
                 <div key={idx} className="flex items-start gap-3 border-l-2 border-[#ffffff15] pl-4">
-                  <div className={`mt-0.5 size-2 shrink-0 rounded-full ${idx === 0 ? "bg-[#e31e24]" : "bg-[#ffffff30]"}`} />
+                  <div className={`mt-0.5 size-2 shrink-0 rounded-full ${idx === 0 ? "bg-[#1B7F4E]" : "bg-[#ffffff30]"}`} />
                   <div>
                     <p className="text-xs text-muted-foreground">
                       <EditableText
                         field={`updates.${idx}.date`}
                         defaultValue={update.date}
-                        className={idx === 0 ? "text-[#e31e24]" : ""}
+                        className={idx === 0 ? "text-[#1B7F4E]" : ""}
                       />{" "}
                       <EditableText field={`updates.${idx}.time`} defaultValue={update.time} />
                     </p>
@@ -377,7 +377,7 @@ export function RankingPage() {
             editMode="corner"
           >
             <div className="relative z-10 flex items-center gap-3">
-              <div className="h-5 w-1 rounded bg-[#e31e24]" />
+              <div className="h-5 w-1 rounded bg-[#1B7F4E]" />
               <EditableText field="movers.title" defaultValue="Top movers" as="p" className="font-semibold" />
             </div>
             <EditableText
@@ -390,7 +390,7 @@ export function RankingPage() {
               {topMovers.map((m) => (
                 <div key={m.name} className="flex items-center gap-3 text-sm">
                   <span className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
-                    m.rank <= 3 ? "bg-[#e31e24]/20 text-[#e31e24]" : "bg-[#ffffff10] text-muted-foreground"
+                    m.rank <= 3 ? "bg-[#1B7F4E]/20 text-[#1B7F4E]" : "bg-[#ffffff10] text-muted-foreground"
                   }`}>
                     {m.rank}
                   </span>
@@ -414,7 +414,7 @@ export function RankingPage() {
           >
             <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-5 w-1 rounded bg-[#e31e24]" />
+                <div className="h-5 w-1 rounded bg-[#1B7F4E]" />
                 <EditableText field="chart.title" defaultValue="Өсөлтийн хандлага" as="p" className="font-semibold" />
               </div>
               <div className="flex items-center gap-2 rounded border border-border px-2 py-1 text-xs text-muted-foreground">
@@ -434,8 +434,8 @@ export function RankingPage() {
               ].map((month, idx) => (
                 <div key={month.label} className="flex flex-1 flex-col items-center gap-1">
                   <div className="flex w-full items-end justify-center gap-0.5">
-                    <div className="w-2 rounded-t bg-[#e31e24]/80" style={{ height: `${month.values[0]}%` }} />
-                    <div className="w-2 rounded-t bg-[#e31e24]/60" style={{ height: `${month.values[1]}%` }} />
+                    <div className="w-2 rounded-t bg-[#1B7F4E]/80" style={{ height: `${month.values[0]}%` }} />
+                    <div className="w-2 rounded-t bg-[#1B7F4E]/60" style={{ height: `${month.values[1]}%` }} />
                     <div className="w-2 rounded-t bg-[#4ade80]/50" style={{ height: `${month.values[2]}%` }} />
                   </div>
                   <EditableText
@@ -450,11 +450,11 @@ export function RankingPage() {
             {/* Legend */}
             <div className="relative z-10 mt-4 flex flex-wrap gap-4 text-[10px]">
               <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#e31e24]" />{" "}
+                <span className="size-2 rounded-full bg-[#1B7F4E]" />{" "}
                 <EditableText field="chart.legend.0" defaultValue="О.Анхбаяр" />
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#e31e24]" />{" "}
+                <span className="size-2 rounded-full bg-[#1B7F4E]" />{" "}
                 <EditableText field="chart.legend.1" defaultValue="Б.Эрдэнэбат" />
               </span>
               <span className="flex items-center gap-1.5">

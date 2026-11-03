@@ -101,7 +101,7 @@ export function JuniorPage() {
             <p className="font-serif text-xl italic text-muted-foreground">
               <EditableText field="hero.aside.line1" defaultValue="A Safer" />
               <br />
-              <EditableText field="hero.aside.line2" defaultValue="Brighter" className="text-[#e31e24]" />
+              <EditableText field="hero.aside.line2" defaultValue="Brighter" className="text-[#1B7F4E]" />
               <br />
               <EditableText field="hero.aside.line3" defaultValue="Stronger" />
               <br />
@@ -135,8 +135,8 @@ export function JuniorPage() {
               placeholder="Stat card background"
               editMode="corner"
             >
-              <div className="relative z-10 flex size-10 items-center justify-center rounded-lg border border-[#e31e24]/30 bg-[#e31e24]/10">
-                <stat.icon className="size-5 text-[#e31e24]" />
+              <div className="relative z-10 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/30 bg-[#1B7F4E]/10">
+                <stat.icon className="size-5 text-[#1B7F4E]" />
               </div>
               <div className="relative z-10">
                 <EditableText
@@ -188,8 +188,8 @@ export function JuniorPage() {
                   placeholder="Highlight card background"
                   editMode="corner"
                 >
-                  <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#e31e24]/10">
-                    <Icon className="size-4 text-[#e31e24]" />
+                  <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#1B7F4E]/10">
+                    <Icon className="size-4 text-[#1B7F4E]" />
                   </div>
                   <div className="relative z-10">
                     <EditableText
@@ -234,12 +234,12 @@ export function JuniorPage() {
                   <EditableText
                     field="register.steps.0.n"
                     defaultValue="1"
-                    className="flex size-6 items-center justify-center rounded-full bg-[#e31e24] text-white text-[10px] font-bold"
+                    className="flex size-6 items-center justify-center rounded-full bg-[#1B7F4E] text-white text-[10px] font-bold"
                   />
                   <EditableText
                     field="register.steps.0.label"
                     defaultValue="Мэдээлэл"
-                    className="text-[#e31e24] font-semibold"
+                    className="text-[#1B7F4E] font-semibold"
                   />
                   <span className="h-px flex-1 bg-[#ffffff20]" />
                   <EditableText
@@ -372,8 +372,8 @@ export function JuniorPage() {
               placeholder="Feature card background"
               editMode="corner"
             >
-              <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#e31e24]/10">
-                <Icon className="size-5 text-[#e31e24]" />
+              <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#1B7F4E]/10">
+                <Icon className="size-5 text-[#1B7F4E]" />
               </div>
               <div className="relative z-10">
                 <EditableText
@@ -402,7 +402,7 @@ export function JuniorPage() {
           placeholder="Quote background"
           editMode="corner"
         >
-          <LionIcon className="relative z-10 size-12 shrink-0 text-[#e31e24]/30" />
+          <LionIcon className="relative z-10 size-12 shrink-0 text-[#1B7F4E]/30" />
           <div className="relative z-10">
             <EditableText
               field="features.quote"
@@ -415,7 +415,7 @@ export function JuniorPage() {
               field="features.quoteBrand"
               defaultValue="PRIME"
               as="p"
-              className="mt-2 text-xs font-bold tracking-[0.15em] text-[#e31e24] block"
+              className="mt-2 text-xs font-bold tracking-[0.15em] text-[#1B7F4E] block"
             />
             <EditableText
               field="features.quoteSubtitle"
@@ -528,8 +528,8 @@ export function JuniorPage() {
               placeholder="Document card background"
               editMode="corner"
             >
-              <div className="relative z-10 flex size-9 items-center justify-center rounded-lg bg-[#e31e24]/10">
-                <Icon className="size-4 text-[#e31e24]" />
+              <div className="relative z-10 flex size-9 items-center justify-center rounded-lg bg-[#1B7F4E]/10">
+                <Icon className="size-4 text-[#1B7F4E]" />
               </div>
               <EditableText
                 field={`documents.${idx}.title`}
@@ -546,18 +546,18 @@ export function JuniorPage() {
       <ContentSection dark>
         <EditableBackground
           field="cta.bannerImageUrl"
-          className="relative overflow-hidden rounded-2xl border border-[#e31e24]/30 p-10 md:p-14"
-          fallbackClassName="bg-gradient-to-r from-[#14080a] via-[#0d0d0f] to-[#14080a]"
+          className="relative overflow-hidden rounded-2xl border border-[#1B7F4E]/30 p-10 md:p-14"
+          fallbackClassName="bg-gradient-to-r from-[#1A2620] via-[#0E1612] to-[#1A2620]"
           placeholder="CTA banner background"
           editMode="corner"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#e31e2410,transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#1B7F4E10,transparent_50%)]" />
           <div className="relative z-10">
             <EditableText
               field="cta.eyebrow"
               defaultValue="START THEIR JOURNEY"
               as="p"
-              className="mb-2 text-xs font-bold tracking-[0.2em] text-[#e31e24] block"
+              className="mb-2 text-xs font-bold tracking-[0.2em] text-[#1B7F4E] block"
             />
             <EditableText
               field="cta.title"
@@ -590,7 +590,7 @@ export function JuniorPage() {
               field="cta.aside.line2"
               defaultValue="BRIGHTER"
               as="p"
-              className="font-serif text-lg italic text-[#e31e24] block"
+              className="font-serif text-lg italic text-[#1B7F4E] block"
             />
             <EditableText
               field="cta.aside.line3"
@@ -666,11 +666,11 @@ export function JuniorPage() {
                 />
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <Phone className="size-4 text-[#e31e24]" />
+                    <Phone className="size-4 text-[#1B7F4E]" />
                     <EditableText field="faq.contact.phone" defaultValue="9088-0200" />
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Mail className="size-4 text-[#e31e24]" />
+                    <Mail className="size-4 text-[#1B7F4E]" />
                     <EditableText field="faq.contact.email" defaultValue="info@prime.mn" />
                   </div>
                 </div>

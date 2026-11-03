@@ -88,13 +88,13 @@ export function PrivacyPage() {
         description="Prime Club-ийн вэб сайт, гишүүний апп болон клубын үйл ажиллагаатай холбоотой хувийн мэдээллийн хамгаалалт."
         fieldPrefix="hero"
         aside={
-          <div className="rounded-2xl border border-[#e31e24]/40 bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707] p-8 shadow-2xl">
-            <Shield className="size-10 text-[#e31e24]" />
+          <div className="rounded-2xl border border-[#1B7F4E]/40 bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612] p-8 shadow-2xl">
+            <Shield className="size-10 text-[#1B7F4E]" />
             <EditableText
               field="hero.aside.title"
               defaultValue="PRIME CLUB"
               as="p"
-              className="mt-4 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+              className="mt-4 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
             />
             <EditableText
               field="hero.aside.body"
@@ -150,7 +150,7 @@ export function PrivacyPage() {
               className="mt-2 text-sm text-[#a0a0a5] block"
             />
             <p className="mt-4 flex items-center gap-2 text-sm text-white">
-              <Mail className="size-4 text-[#e31e24]" />
+              <Mail className="size-4 text-[#1B7F4E]" />
               <EditableText field="contact.email" defaultValue="registration@prime.mn" as="span" />
             </p>
           </div>

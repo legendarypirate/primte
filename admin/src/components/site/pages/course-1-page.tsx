@@ -81,7 +81,7 @@ export function Course1Page() {
                 field="hero.eyebrow"
                 defaultValue="TRAIN. COMPETE. BELONG."
                 as="p"
-                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
               />
               <EditableText
                 field="hero.title"
@@ -93,7 +93,7 @@ export function Course1Page() {
                 field="hero.subtitle"
                 defaultValue="ГИШҮҮНЧЛЭЛИЙН АНХАН ШАТНЫ СУРГАЛТ"
                 as="h2"
-                className="mt-2 font-heading text-xl font-bold uppercase text-[#e31e24] md:text-2xl block"
+                className="mt-2 font-heading text-xl font-bold uppercase text-[#1B7F4E] md:text-2xl block"
               />
               <EditableText
                 field="hero.description"
@@ -107,7 +107,7 @@ export function Course1Page() {
                   <EditableText field="hero.ctaPrimary" defaultValue="БҮРТГҮҮЛЭХ" /> <ArrowRight className="size-4" />
                 </RedButton>
                 <OutlineButton href="#video">
-                  <Play className="size-3.5 fill-current text-[#e31e24]" />
+                  <Play className="size-3.5 fill-current text-[#1B7F4E]" />
                   <EditableText field="hero.ctaSecondary" defaultValue="Сургалтын тухай видео үзэх" />
                 </OutlineButton>
               </div>
@@ -116,17 +116,17 @@ export function Course1Page() {
             {/* Same Rules A Brighter Generation Graphic Card */}
             <EditableBackground
               field="hero.cardImageUrl"
-              className="relative overflow-hidden rounded-2xl border border-[#e31e24]/40 p-8 text-right shadow-2xl"
-              fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+              className="relative overflow-hidden rounded-2xl border border-[#1B7F4E]/40 p-8 text-right shadow-2xl"
+              fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
               placeholder="Hero card background"
               editMode="corner"
             >
-              <LionIcon className="absolute top-4 left-4 size-24 text-[#e31e24]/15" />
+              <LionIcon className="absolute top-4 left-4 size-24 text-[#1B7F4E]/15" />
               <EditableText
                 field="hero.cardEyebrow"
                 defaultValue="DISCIPLINE SKILL"
                 as="p"
-                className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+                className="relative z-10 font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
               />
               <EditableText
                 field="hero.cardTitle"
@@ -139,7 +139,7 @@ export function Course1Page() {
                 defaultValue={'"Same Rules, A Brighter Generation"'}
                 multiline
                 as="p"
-                className="relative z-10 mt-4 font-serif text-lg italic text-[#e31e24] block"
+                className="relative z-10 mt-4 font-serif text-lg italic text-[#1B7F4E] block"
               />
             </EditableBackground>
           </div>
@@ -153,7 +153,7 @@ export function Course1Page() {
               placeholder="Info tile background"
               editMode="corner"
             >
-              <User className="relative z-10 size-5 text-[#e31e24]" />
+              <User className="relative z-10 size-5 text-[#1B7F4E]" />
               <div className="relative z-10">
                 <EditableText field="quickInfo.age.label" defaultValue="Насны шаардлага" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
                 <EditableText field="quickInfo.age.value" defaultValue="18+ нас" as="p" className="text-xs font-bold text-white block" />
@@ -166,7 +166,7 @@ export function Course1Page() {
               placeholder="Info tile background"
               editMode="corner"
             >
-              <Clock className="relative z-10 size-5 text-[#e31e24]" />
+              <Clock className="relative z-10 size-5 text-[#1B7F4E]" />
               <div className="relative z-10">
                 <EditableText field="quickInfo.duration.label" defaultValue="Нийт хугацаа" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
                 <EditableText field="quickInfo.duration.value" defaultValue="3 өдөр / 9 цаг (эсвэл 2 өдөр)" as="p" className="text-xs font-bold text-white block" />
@@ -179,7 +179,7 @@ export function Course1Page() {
               placeholder="Info tile background"
               editMode="corner"
             >
-              <Users className="relative z-10 size-5 text-[#e31e24]" />
+              <Users className="relative z-10 size-5 text-[#1B7F4E]" />
               <div className="relative z-10">
                 <EditableText field="quickInfo.group.label" defaultValue="Жижиг бүлэг" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
                 <EditableText field="quickInfo.group.value" defaultValue="4-6 суралцагч" as="p" className="text-xs font-bold text-white block" />
@@ -187,15 +187,15 @@ export function Course1Page() {
             </EditableBackground>
             <EditableBackground
               field="quickInfo.price.imageUrl"
-              className="flex items-center gap-3 rounded-xl border border-[#e31e24]/40 p-4"
+              className="flex items-center gap-3 rounded-xl border border-[#1B7F4E]/40 p-4"
               fallbackClassName="bg-[#181612]"
               placeholder="Info tile background"
               editMode="corner"
             >
-              <CreditCard className="relative z-10 size-5 text-[#e31e24]" />
+              <CreditCard className="relative z-10 size-5 text-[#1B7F4E]" />
               <div className="relative z-10">
                 <EditableText field="quickInfo.price.label" defaultValue="Сургалтын төлбөр" as="p" className="text-[10px] uppercase text-[#a0a0a5] block" />
-                <EditableText field="quickInfo.price.value" defaultValue="370,000₮" as="p" className="font-mono text-sm font-extrabold text-[#e31e24] block" />
+                <EditableText field="quickInfo.price.value" defaultValue="370,000₮" as="p" className="font-mono text-sm font-extrabold text-[#1B7F4E] block" />
               </div>
             </EditableBackground>
           </div>
@@ -216,7 +216,7 @@ export function Course1Page() {
           <EditableText
             field="breadcrumb.current"
             defaultValue="Гишүүнчлэлийн анхан шатны сургалт [Course 1]"
-            className="font-semibold text-[#e31e24]"
+            className="font-semibold text-[#1B7F4E]"
           />
         </div>
       </div>
@@ -231,7 +231,7 @@ export function Course1Page() {
               <EditableText
                 field="overview.eyebrow"
                 defaultValue="IPSC ACTION AIR"
-                className="font-mono text-xs font-bold uppercase tracking-widest text-[#e31e24]"
+                className="font-mono text-xs font-bold uppercase tracking-widest text-[#1B7F4E]"
               />
               <EditableText
                 field="overview.title"
@@ -252,7 +252,7 @@ export function Course1Page() {
                 <EditableBackground
                   field="video.imageUrl"
                   className="relative flex h-52 items-center justify-center"
-                  fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]"
+                  fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
                   placeholder="Video thumbnail"
                   editMode="corner"
                 >
@@ -261,11 +261,11 @@ export function Course1Page() {
                     onClick={() => toast.info("Видео тоглуулж байна...")}
                     className="group relative z-10 flex flex-col items-center gap-2"
                   >
-                    <div className="flex size-14 items-center justify-center rounded-full bg-[#e31e24] text-white shadow-lg shadow-[#e31e24]/40 transition-transform group-hover:scale-110">
+                    <div className="flex size-14 items-center justify-center rounded-full bg-[#1B7F4E] text-white shadow-lg shadow-[#1B7F4E]/40 transition-transform group-hover:scale-110">
                       <Play className="size-6 fill-current ml-0.5" />
                     </div>
                     <EditableText field="video.title" defaultValue="Сургалтын танилцуулга видео" className="text-xs font-bold text-white" />
-                    <EditableText field="video.duration" defaultValue="02:36" className="font-mono text-[10px] text-[#e31e24]" />
+                    <EditableText field="video.duration" defaultValue="02:36" className="font-mono text-[10px] text-[#1B7F4E]" />
                   </button>
                 </EditableBackground>
               </div>
@@ -286,7 +286,7 @@ export function Course1Page() {
                     placeholder="Badge background"
                     editMode="corner"
                   >
-                    <b.icon className="relative z-10 mb-2 size-5 text-[#e31e24]" />
+                    <b.icon className="relative z-10 mb-2 size-5 text-[#1B7F4E]" />
                     <EditableText field={`badges.${i}.text`} defaultValue={b.text} className="relative z-10 text-xs font-bold text-white" />
                   </EditableBackground>
                 ))}
@@ -305,7 +305,7 @@ export function Course1Page() {
                 field="general.title"
                 defaultValue="СУРГАЛТЫН ЕРӨНХИЙ МЭДЭЭЛЭЛ"
                 as="h3"
-                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24] block"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#1B7F4E] block"
               />
               <div className="relative z-10 grid gap-3 sm:grid-cols-2 text-xs text-[#a0a0a5]">
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
@@ -330,7 +330,7 @@ export function Course1Page() {
                 </div>
                 <div className="flex items-center justify-between border-b border-[#ffffff10] pb-2">
                   <EditableText field="general.price.label" defaultValue="Сургалтын төлбөр" />
-                  <EditableText field="general.price.value" defaultValue="370,000₮" className="font-mono font-bold text-[#e31e24]" />
+                  <EditableText field="general.price.value" defaultValue="370,000₮" className="font-mono font-bold text-[#1B7F4E]" />
                 </div>
               </div>
             </EditableBackground>
@@ -357,7 +357,7 @@ export function Course1Page() {
                   placeholder="Schedule card background"
                   editMode="corner"
                 >
-                  <EditableText field="schedule.threeDay.title" defaultValue="3 өдрийн анги (9 цаг)" as="h4" className="relative z-10 font-bold text-[#e31e24] block" />
+                  <EditableText field="schedule.threeDay.title" defaultValue="3 өдрийн анги (9 цаг)" as="h4" className="relative z-10 font-bold text-[#1B7F4E] block" />
                   <p className="relative z-10 text-[#a0a0a5]">
                     <EditableText field="schedule.threeDay.session.label" defaultValue="Нэг удаагийн оролт:" />{" "}
                     <EditableText field="schedule.threeDay.session.value" defaultValue="3 цаг" className="font-bold" />
@@ -387,7 +387,7 @@ export function Course1Page() {
                   placeholder="Schedule card background"
                   editMode="corner"
                 >
-                  <EditableText field="schedule.twoDay.title" defaultValue="2 өдрийн анги (8 цаг)" as="h4" className="relative z-10 font-bold text-[#e31e24] block" />
+                  <EditableText field="schedule.twoDay.title" defaultValue="2 өдрийн анги (8 цаг)" as="h4" className="relative z-10 font-bold text-[#1B7F4E] block" />
                   <p className="relative z-10 text-[#a0a0a5]">
                     <EditableText field="schedule.twoDay.session.label" defaultValue="Нэг удаагийн оролт:" />{" "}
                     <EditableText field="schedule.twoDay.session.value" defaultValue="4 цаг" className="font-bold" />
@@ -431,7 +431,7 @@ export function Course1Page() {
                 field="materials.title"
                 defaultValue="БҮРДҮҮЛЭХ МАТЕРИАЛ"
                 as="h3"
-                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24] block"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#1B7F4E] block"
               />
               <div className="relative z-10 grid gap-3 sm:grid-cols-2">
                 {[
@@ -448,14 +448,14 @@ export function Course1Page() {
                     placeholder="Item background"
                     editMode="corner"
                   >
-                    <FileCheck className="relative z-10 size-4 shrink-0 text-[#e31e24] mt-0.5" />
+                    <FileCheck className="relative z-10 size-4 shrink-0 text-[#1B7F4E] mt-0.5" />
                     <EditableText field={`materials.items.${i}.text`} defaultValue={mat} multiline as="p" className="relative z-10 block" />
                   </EditableBackground>
                 ))}
               </div>
               <p className="relative z-10 text-[11px] text-[#8a8a90]">
                 <EditableText field="materials.note.prefix" defaultValue="Санамж: Дээрх материалыг" />{" "}
-                <EditableText field="materials.note.email" defaultValue="registration@prime.mn" className="font-bold text-[#e31e24]" />{" "}
+                <EditableText field="materials.note.email" defaultValue="registration@prime.mn" className="font-bold text-[#1B7F4E]" />{" "}
                 <EditableText field="materials.note.middle" defaultValue="хаягаар илгээх эсвэл" />{" "}
                 <EditableText field="materials.note.phone" defaultValue="9088-0200" className="font-bold text-white" />{" "}
                 <EditableText field="materials.note.suffix" defaultValue="утасаар мэдэгдэнэ үү." />
@@ -479,7 +479,7 @@ export function Course1Page() {
               <div className="relative z-10 grid gap-4 sm:grid-cols-2 text-xs">
                 <EditableBackground
                   field="payment.bank.imageUrl"
-                  className="rounded-xl border border-[#e31e24]/30 p-4 space-y-1 text-[#a0a0a5]"
+                  className="rounded-xl border border-[#1B7F4E]/30 p-4 space-y-1 text-[#a0a0a5]"
                   fallbackClassName="bg-[#161412]"
                   placeholder="Bank card background"
                   editMode="corner"
@@ -494,7 +494,7 @@ export function Course1Page() {
                   </p>
                   <p className="relative z-10">
                     <EditableText field="payment.bank.iban.label" defaultValue="IBAN:" />{" "}
-                    <EditableText field="payment.bank.iban.value" defaultValue="40000 4000 8000 96500" className="font-bold text-[#e31e24]" />
+                    <EditableText field="payment.bank.iban.value" defaultValue="40000 4000 8000 96500" className="font-bold text-[#1B7F4E]" />
                   </p>
                   <p className="relative z-10">
                     <EditableText field="payment.bank.reference.label" defaultValue="Гүйцэтгэх утга:" />{" "}
@@ -508,7 +508,7 @@ export function Course1Page() {
                   placeholder="Refund card background"
                   editMode="corner"
                 >
-                  <EditableText field="payment.refund.title" defaultValue="Төлбөрийн буцаалт (торгууль)" as="h4" className="relative z-10 font-bold text-[#e31e24] block" />
+                  <EditableText field="payment.refund.title" defaultValue="Төлбөрийн буцаалт (торгууль)" as="h4" className="relative z-10 font-bold text-[#1B7F4E] block" />
                   <p className="relative z-10">
                     <EditableText field="payment.refund.early.label" defaultValue="• 24-48 цагийн өмнө мэдэгдсэн бол:" />{" "}
                     <EditableText field="payment.refund.early.value" defaultValue="10%" className="font-bold text-white" />
@@ -533,7 +533,7 @@ export function Course1Page() {
                 field="outcomes.title"
                 defaultValue="СУРГАЛТЫГ ТӨГССӨНӨӨР"
                 as="h3"
-                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#e31e24] block"
+                className="relative z-10 font-heading text-sm font-bold uppercase tracking-wider text-[#1B7F4E] block"
               />
               <div className="relative z-10 grid gap-3 sm:grid-cols-2 text-xs text-white font-semibold">
                 <EditableBackground
@@ -543,7 +543,7 @@ export function Course1Page() {
                   placeholder="Item background"
                   editMode="corner"
                 >
-                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <CheckCircle2 className="relative z-10 size-4 text-[#1B7F4E]" />
                   <EditableText field="outcomes.items.0.text" defaultValue="Course 2-д хамрагдах эрх" className="relative z-10" />
                 </EditableBackground>
                 <EditableBackground
@@ -553,7 +553,7 @@ export function Course1Page() {
                   placeholder="Item background"
                   editMode="corner"
                 >
-                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <CheckCircle2 className="relative z-10 size-4 text-[#1B7F4E]" />
                   <EditableText field="outcomes.items.1.text" defaultValue="Баталгаа, суурь техниктэй болно" className="relative z-10" />
                 </EditableBackground>
                 <EditableBackground
@@ -563,7 +563,7 @@ export function Course1Page() {
                   placeholder="Item background"
                   editMode="corner"
                 >
-                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <CheckCircle2 className="relative z-10 size-4 text-[#1B7F4E]" />
                   <EditableText field="outcomes.items.2.text" defaultValue="Аюулгүй ажиллагааны суурь эзэмшинэ" className="relative z-10" />
                 </EditableBackground>
                 <EditableBackground
@@ -573,7 +573,7 @@ export function Course1Page() {
                   placeholder="Item background"
                   editMode="corner"
                 >
-                  <CheckCircle2 className="relative z-10 size-4 text-[#e31e24]" />
+                  <CheckCircle2 className="relative z-10 size-4 text-[#1B7F4E]" />
                   <EditableText field="outcomes.items.3.text" defaultValue="Клубын үйл ажиллагаатай танилцана" className="relative z-10" />
                 </EditableBackground>
               </div>
@@ -584,7 +584,7 @@ export function Course1Page() {
           <div id="register" className="sticky top-24">
             <EditableBackground
               field="form.imageUrl"
-              className="rounded-2xl border border-[#e31e24]/50 p-6 shadow-2xl"
+              className="rounded-2xl border border-[#1B7F4E]/50 p-6 shadow-2xl"
               fallbackClassName="bg-[#121215]"
               placeholder="Form background"
               editMode="corner"
@@ -598,8 +598,8 @@ export function Course1Page() {
 
               {/* 3 Step Indicator Header */}
               <div className="relative z-10 mt-4 flex items-center justify-between border-b border-[#ffffff15] pb-3 text-[11px] font-bold">
-                <span className="flex items-center gap-1.5 text-[#e31e24]">
-                  <EditableText field="form.steps.0.number" defaultValue="1" className="flex size-5 items-center justify-center rounded-full bg-[#e31e24] text-[10px] text-white" />
+                <span className="flex items-center gap-1.5 text-[#1B7F4E]">
+                  <EditableText field="form.steps.0.number" defaultValue="1" className="flex size-5 items-center justify-center rounded-full bg-[#1B7F4E] text-[10px] text-white" />
                   <EditableText field="form.steps.0.label" defaultValue="Мэдээлэл" />
                 </span>
                 <span className="flex items-center gap-1.5 text-[#a0a0a5]">
@@ -621,7 +621,7 @@ export function Course1Page() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Жишээ: Батзориг"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
 
@@ -635,7 +635,7 @@ export function Course1Page() {
                         value="male"
                         checked={formData.gender === "male"}
                         onChange={() => setFormData({ ...formData, gender: "male" })}
-                        className="accent-[#e31e24]"
+                        className="accent-[#1B7F4E]"
                       />
                       <EditableText field="form.gender.male" defaultValue="Эрэгтэй" />
                     </label>
@@ -646,7 +646,7 @@ export function Course1Page() {
                         value="female"
                         checked={formData.gender === "female"}
                         onChange={() => setFormData({ ...formData, gender: "female" })}
-                        className="accent-[#e31e24]"
+                        className="accent-[#1B7F4E]"
                       />
                       <EditableText field="form.gender.female" defaultValue="Эмэгтэй" />
                     </label>
@@ -663,7 +663,7 @@ export function Course1Page() {
                         value="right"
                         checked={formData.hand === "right"}
                         onChange={() => setFormData({ ...formData, hand: "right" })}
-                        className="accent-[#e31e24]"
+                        className="accent-[#1B7F4E]"
                       />
                       <EditableText field="form.hand.right" defaultValue="Баруун" />
                     </label>
@@ -674,7 +674,7 @@ export function Course1Page() {
                         value="left"
                         checked={formData.hand === "left"}
                         onChange={() => setFormData({ ...formData, hand: "left" })}
-                        className="accent-[#e31e24]"
+                        className="accent-[#1B7F4E]"
                       />
                       <EditableText field="form.hand.left" defaultValue="Солой" />
                     </label>
@@ -693,7 +693,7 @@ export function Course1Page() {
                     value={formData.medical}
                     onChange={(e) => setFormData({ ...formData, medical: e.target.value })}
                     placeholder="Жишээ: Харшилгүй"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
 
@@ -705,7 +705,7 @@ export function Course1Page() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="example@email.com"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
 
@@ -717,7 +717,7 @@ export function Course1Page() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="9988-1234"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
 
@@ -731,7 +731,7 @@ export function Course1Page() {
                   <select
                     value={formData.schedule}
                     onChange={(e) => setFormData({ ...formData, schedule: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#1B7F4E]"
                   >
                     <option value="Ажлын өдрийн анги (Дав, Лха, Баа 19:00-22:00)">Ажлын өдрийн анги (Дав, Лха, Баа 19:00-22:00)</option>
                     <option value="Амралтын өдрийн анги (Бям, Ням 18:00-22:00)">Амралтын өдрийн анги (Бям, Ням 18:00-22:00)</option>
@@ -750,13 +750,13 @@ export function Course1Page() {
                     value={formData.purpose}
                     onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                     placeholder="Жишээ: Хобби, өөрийгөө хөгжүүлэх, тэмцээнд оролцох..."
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#e31e24]"
+                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#e31e24] text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-[#c91920]"
+                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1B7F4E] text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-[#156B41]"
                 >
                   <EditableText field="form.submit" defaultValue="БҮРТГҮҮЛЭХ" />
                   <ArrowRight className="size-4" />
@@ -778,8 +778,8 @@ export function Course1Page() {
       <ContentSection id="offer" dark>
         <EditableBackground
           field="offer.imageUrl"
-          className="relative overflow-hidden rounded-3xl border border-[#e31e24]/50 p-8 md:p-10 shadow-2xl"
-          fallbackClassName="bg-gradient-to-br from-[#1c1810] via-[#121215] to-[#070707]"
+          className="relative overflow-hidden rounded-3xl border border-[#1B7F4E]/50 p-8 md:p-10 shadow-2xl"
+          fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
           placeholder="Offer banner background"
           editMode="corner"
         >
@@ -789,11 +789,11 @@ export function Course1Page() {
                 field="offer.eyebrow"
                 defaultValue="SPECIAL OFFER ——"
                 as="p"
-                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#e31e24] block"
+                className="font-mono text-xs font-bold uppercase tracking-[0.25em] text-[#1B7F4E] block"
               />
               <h2 className="mt-1 font-heading text-2xl font-extrabold uppercase text-white md:text-3xl">
                 <EditableText field="offer.title" defaultValue="Course 1 + Course 2 хамт бүртгүүлбэл" />{" "}
-                <EditableText field="offer.price" defaultValue="650,000₮" className="text-[#e31e24]" />
+                <EditableText field="offer.price" defaultValue="650,000₮" className="text-[#1B7F4E]" />
               </h2>
             </div>
             <RedButton href="#register">
@@ -828,10 +828,10 @@ export function Course1Page() {
                 <button
                   type="button"
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="relative z-10 flex w-full items-center justify-between p-5 text-left text-xs font-bold text-white transition hover:text-[#e31e24]"
+                  className="relative z-10 flex w-full items-center justify-between p-5 text-left text-xs font-bold text-white transition hover:text-[#1B7F4E]"
                 >
                   <EditableText field={`faq.${idx}.q`} defaultValue={faq.q} />
-                  <ChevronDown className={`size-4 text-[#e31e24] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`size-4 text-[#1B7F4E] transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 {isOpen && (
                   <div className="relative z-10 border-t border-[#ffffff10] p-5 text-xs leading-relaxed text-[#a0a0a5] bg-[#0c0c0e]">
@@ -851,7 +851,7 @@ export function Course1Page() {
           placeholder="Help card background"
           editMode="corner"
         >
-          <Headphones className="relative z-10 mx-auto size-8 text-[#e31e24]" />
+          <Headphones className="relative z-10 mx-auto size-8 text-[#1B7F4E]" />
           <EditableText
             field="help.title"
             defaultValue="НЭМЭЛТ АСУУЛТ БАЙНА УУ?"
@@ -860,8 +860,8 @@ export function Course1Page() {
           />
           <EditableText field="help.body" defaultValue="Бидэнтэй холбогдон уу." as="p" className="relative z-10 text-xs text-[#a0a0a5] block" />
           <div className="relative z-10 flex flex-wrap justify-center gap-6 pt-2 text-xs font-mono font-bold text-white">
-            <span className="flex items-center gap-2"><Phone className="size-4 text-[#e31e24]" /> <EditableText field="help.phone" defaultValue="9088-0200" /></span>
-            <span className="flex items-center gap-2"><Mail className="size-4 text-[#e31e24]" /> <EditableText field="help.email" defaultValue="registration@prime.mn" /></span>
+            <span className="flex items-center gap-2"><Phone className="size-4 text-[#1B7F4E]" /> <EditableText field="help.phone" defaultValue="9088-0200" /></span>
+            <span className="flex items-center gap-2"><Mail className="size-4 text-[#1B7F4E]" /> <EditableText field="help.email" defaultValue="registration@prime.mn" /></span>
           </div>
         </EditableBackground>
       </ContentSection>

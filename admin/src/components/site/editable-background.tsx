@@ -11,9 +11,9 @@ import { usePageContent } from "./page-content-context";
 export function EditableBackground({
   field,
   className,
-  fallbackClassName = "bg-gradient-to-br from-[#1a1814] via-[#101012] to-[#070707]",
+  fallbackClassName = "bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]",
   imageClassName = "object-cover opacity-50",
-  overlayClassName = "bg-gradient-to-t from-[#0d0d0f]/95 via-[#0d0d0f]/50 to-[#0d0d0f]/20",
+  overlayClassName = "bg-gradient-to-t from-[#0E1612]/95 via-[#0E1612]/50 to-[#0E1612]/20",
   placeholder = "Background зураг",
   editMode = "cover",
   children,
@@ -39,7 +39,7 @@ export function EditableBackground({
         "relative overflow-hidden",
         className,
         !src && fallbackClassName,
-        editing && editMode === "corner" && "group/bg outline-1 outline-dashed outline-transparent hover:outline-[#e31e24]/40"
+        editing && editMode === "corner" && "group/bg outline-1 outline-dashed outline-transparent hover:outline-[#1B7F4E]/40"
       )}
     >
       {src ? (
@@ -109,7 +109,7 @@ function CornerImageControl({
         aria-label={placeholder}
         disabled={busy}
         onClick={() => inputRef.current?.click()}
-        className="flex size-7 items-center justify-center rounded-md border border-[#e31e24]/60 bg-black/70 text-[#e31e24] shadow-md backdrop-blur hover:bg-[#e31e24] hover:text-white"
+        className="flex size-7 items-center justify-center rounded-md border border-[#1B7F4E]/60 bg-black/70 text-[#1B7F4E] shadow-md backdrop-blur hover:bg-[#1B7F4E] hover:text-white"
       >
         {busy ? <Loader2 className="size-3.5 animate-spin" /> : <ImagePlus className="size-3.5" />}
       </button>
