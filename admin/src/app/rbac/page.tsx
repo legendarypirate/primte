@@ -10,41 +10,67 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { FormDrawer } from "@/components/form-drawer";
+import { cn } from "@/lib/utils";
 
 type Permission = { key: string; group: string; label: string };
+type Catalog = {
+  key: string;
+  label: string;
+  description: string;
+  grouped: Record<string, Permission[]>;
+};
 type Role = {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  kind: "admin" | "member" | "judge";
   permissions: string[];
   isSuper: boolean;
   isSystem: boolean;
 };
 
+const KINDS: Array<Role["kind"]> = ["admin", "member", "judge"];
+
 export default function RbacPage() {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [grouped, setGrouped] = useState<Record<string, Permission[]>>({});
+  const [catalogs, setCatalogs] = useState<Record<string, Catalog>>({});
+  const [kind, setKind] = useState<Role["kind"]>("admin");
   const [selectedId, setSelectedId] = useState<string>("");
   const [newName, setNewName] = useState("");
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const selected = useMemo(() => roles.find((r) => r.id === selectedId) || null, [roles, selectedId]);
+  const visibleRoles = useMemo(() => roles.filter((role) => role.kind === kind), [roles, kind]);
+  const selected = useMemo(
+    () => visibleRoles.find((r) => r.id === selectedId) || null,
+    [visibleRoles, selectedId]
+  );
+  const catalog = catalogs[kind];
 
   async function load() {
     const [roleData, permData] = await Promise.all([
       api<{ roles: Role[] }>("/api/admin/roles"),
-      api<{ grouped: Record<string, Permission[]> }>("/api/admin/permissions"),
+      api<{ catalogs: Record<string, Catalog> }>("/api/admin/permissions"),
     ]);
     setRoles(roleData.roles);
-    setGrouped(permData.grouped);
-    setSelectedId((id) => id || roleData.roles[0]?.id || "");
+    setCatalogs(permData.catalogs || {});
+    setSelectedId((id) => {
+      const current = roleData.roles.find((r) => r.id === id);
+      if (current) return id;
+      return roleData.roles.find((r) => r.kind === kind)?.id || roleData.roles[0]?.id || "";
+    });
   }
 
   useEffect(() => {
     load().catch((e) => toast.error(e.message));
   }, []);
+
+  useEffect(() => {
+    if (!visibleRoles.some((role) => role.id === selectedId)) {
+      setSelectedId(visibleRoles[0]?.id || "");
+    }
+  }, [kind, visibleRoles, selectedId]);
 
   async function savePermissions(next: string[]) {
     if (!selected) return;
@@ -71,22 +97,42 @@ export default function RbacPage() {
     <Shell>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading text-3xl text-primary">RBAC / Role</h1>
+          <h1 className="font-heading text-3xl text-primary">Эрх, үүрэг</h1>
           <p className="text-sm text-muted-foreground">
-            Head / Senior / Admin / Assistant эрхийг эндээс өөрчилнө. Шинэ role нэмж permission-оор хязгаарлаж болно.
+            Админ вэб, Prime апп, Score апп тус бүрийн 4 төрлийн эрхийг эндээс тохируулна.
           </p>
         </div>
         <Button onClick={() => { setNewName(""); setOpen(true); }}>
-          <Plus className="size-4" /> Шинэ role
+          <Plus className="size-4" /> Шинэ төрөл
         </Button>
       </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {KINDS.map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => setKind(item)}
+            className={cn(
+              "rounded-full border px-4 py-1.5 text-sm",
+              kind === item ? "border-primary bg-primary text-primary-foreground" : "border-border"
+            )}
+          >
+            {catalogs[item]?.label || item}
+          </button>
+        ))}
+      </div>
+      {catalog?.description && (
+        <p className="mb-4 text-sm text-muted-foreground">{catalog.description}</p>
+      )}
+
       <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Admin type</CardTitle>
+            <CardTitle>Төрөл</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {roles.map((role) => (
+            {visibleRoles.map((role) => (
               <button
                 key={role.id}
                 type="button"
@@ -103,15 +149,15 @@ export default function RbacPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{selected?.name || "Permission"}</CardTitle>
+            <CardTitle>{selected?.name || "Эрх"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {selected?.isSuper && (
               <p className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
-                Head admin нь бүх эрхтэй (super). Permission матриц автоматаар нээлттэй.
+                Ерөнхий админ нь бүх эрхтэй. Эрхийн матриц автоматаар нээлттэй.
               </p>
             )}
-            {Object.entries(grouped).map(([group, items]) => (
+            {Object.entries(catalog?.grouped || {}).map(([group, items]) => (
               <div key={group}>
                 <h3 className="mb-2 text-sm font-semibold text-primary">{group}</h3>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -136,7 +182,7 @@ export default function RbacPage() {
               <Button
                 variant="destructive"
                 onClick={async () => {
-                  if (!confirm("Role устгах уу?")) return;
+                  if (!confirm("Төрөл устгах уу?")) return;
                   try {
                     await api(`/api/admin/roles/${selected.id}`, { method: "DELETE" });
                     setSelectedId("");
@@ -146,7 +192,7 @@ export default function RbacPage() {
                   }
                 }}
               >
-                Role устгах
+                Төрөл устгах
               </Button>
             )}
           </CardContent>
@@ -156,7 +202,7 @@ export default function RbacPage() {
       <FormDrawer
         open={open}
         onOpenChange={(next) => { if (!next) { setOpen(false); setNewName(""); } else setOpen(true); }}
-        title="Шинэ role"
+        title="Шинэ төрөл"
         footer={
           <>
             <Button variant="outline" onClick={() => { setOpen(false); setNewName(""); }}>Болих</Button>
@@ -168,13 +214,13 @@ export default function RbacPage() {
                 try {
                   const data = await api<{ role: Role }>("/api/admin/roles", {
                     method: "POST",
-                    body: JSON.stringify({ name: newName.trim(), permissions: [] }),
+                    body: JSON.stringify({ name: newName.trim(), kind, permissions: [] }),
                   });
                   setNewName("");
                   setOpen(false);
                   await load();
                   setSelectedId(data.role.id);
-                  toast.success("Role нэмлээ");
+                  toast.success("Төрөл нэмлээ");
                 } catch (e) {
                   toast.error(e instanceof Error ? e.message : "Алдаа");
                 } finally {
@@ -189,7 +235,10 @@ export default function RbacPage() {
       >
         <div className="space-y-1">
           <Label>Нэр</Label>
-          <Input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Custom admin" />
+          <Input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Тухайн аппын нэмэлт төрөл" />
+          <p className="text-xs text-muted-foreground">
+            {catalog?.label || "Админ вэб"} хэсэгт нэмэгдэнэ.
+          </p>
         </div>
       </FormDrawer>
     </Shell>

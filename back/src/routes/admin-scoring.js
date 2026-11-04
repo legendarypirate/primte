@@ -44,8 +44,9 @@ function requireAny(...keys) {
 
 const canView = requireAny('scoring.view', 'competitions.view');
 const canManage = requireAny('scoring.manage', 'competitions.manage');
-const canViewJudges = requireAny('scoring.view', 'competitions.view', 'members.view');
-const canManageJudges = requireAny('scoring.manage', 'competitions.manage', 'members.update');
+const canEnter = requireAny('scoring.enter', 'scoring.manage', 'competitions.manage');
+const canViewJudges = requireAny('judges.view', 'scoring.view', 'competitions.view', 'members.view');
+const canManageJudges = requireAny('judges.manage', 'scoring.manage', 'competitions.manage', 'members.update');
 
 const num = (value) => Number(value || 0);
 const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
@@ -539,7 +540,7 @@ router.post('/scoring/scores/:scoreId/invalidate', canManage, async (req, res) =
   return res.json({ ok: true });
 });
 
-router.post('/scoring/scores/:scoreId/sign', canManage, async (req, res) => {
+router.post('/scoring/scores/:scoreId/sign', canEnter, async (req, res) => {
   const reason = String(req.body?.reason || '').trim();
   const score = await Score.findByPk(req.params.scoreId, { include: [Competitor] });
   if (!score) return res.status(404).json({ message: 'Оноо олдсонгүй.' });

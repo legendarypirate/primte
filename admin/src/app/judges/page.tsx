@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FieldSelect } from "@/components/field-select";
 import { api } from "@/lib/api";
-import { can } from "@/lib/auth";
+import { canAny } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
@@ -48,7 +48,7 @@ const JUDGE_CERT_LEVELS = [
   { value: "NROI", label: "NROI" },
 ];
 
-const canManage = () => can("scoring.manage") || can("competitions.manage") || can("members.update");
+const canManage = () => canAny("judges.manage", "scoring.manage", "competitions.manage", "members.update");
 
 export default function JudgesPage() {
   const [judges, setJudges] = useState<JudgeRow[]>([]);

@@ -115,7 +115,7 @@ export default function StaffPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-heading text-3xl text-primary">Админ хэрэглэгч</h1>
-          <p className="text-sm text-muted-foreground">Админд Head / Senior / Admin / Assistant role онооно.</p>
+          <p className="text-sm text-muted-foreground">Админд Ерөнхий / Ахлах / Админ / Туслах төрөл онооно.</p>
         </div>
         <Button onClick={openCreate}><Plus className="size-4" /> Шинэ админ</Button>
       </div>
@@ -136,9 +136,9 @@ export default function StaffPage() {
           setQuery("");
         }}
         filters={
-          <FilterField label="Role" className="w-40">
+          <FilterField label="Төрөл" className="w-40">
             <FieldSelect value={roleFilter} onChange={setRoleFilter}>
-              <option value="">Бүх role</option>
+              <option value="">Бүх төрөл</option>
               {roles.map((role) => (
                 <option key={role.id} value={role.id}>{role.name}</option>
               ))}
@@ -151,7 +151,7 @@ export default function StaffPage() {
             <TableRow>
               <TableHead>Нэр</TableHead>
               <TableHead>Имэйл</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Төрөл</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>

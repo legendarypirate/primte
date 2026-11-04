@@ -34,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { can, saveSession } from "@/lib/auth";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; permission: string };
+type NavItem = { href: string; label: string; icon: LucideIcon; permission: string; fallback?: string };
 type NavGroup = { id: string; label: string; items: NavItem[] };
 
 const navGroups: NavGroup[] = [
@@ -48,8 +48,8 @@ const navGroups: NavGroup[] = [
     label: "Гишүүд",
     items: [
       { href: "/members", label: "Гишүүд", icon: Users, permission: "members.view" },
-      { href: "/judges", label: "Шүүгчид", icon: Gavel, permission: "members.view" },
-      { href: "/parents", label: "Эцэг эх", icon: HeartHandshake, permission: "members.view" },
+      { href: "/judges", label: "Шүүгчид", icon: Gavel, permission: "judges.view", fallback: "members.view" },
+      { href: "/parents", label: "Эцэг эх", icon: HeartHandshake, permission: "parents.view", fallback: "members.view" },
       { href: "/attendance", label: "Ирц / QR", icon: QrCode, permission: "attendance.view" },
       { href: "/member-types", label: "Гишүүний төрөл", icon: Tags, permission: "member_types.manage" },
       { href: "/activities", label: "Хөгжлийн хөтөлбөр", icon: Briefcase, permission: "activities.manage" },
@@ -61,8 +61,8 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/competitions", label: "Тэмцээн", icon: Trophy, permission: "competitions.view" },
       { href: "/trainings", label: "Сургалт", icon: GraduationCap, permission: "trainings.view" },
-      { href: "/match-types", label: "Match type", icon: Swords, permission: "match_types.manage" },
-      { href: "/divisions", label: "Division", icon: Layers, permission: "divisions.manage" },
+      { href: "/match-types", label: "Тоглолтын төрөл", icon: Swords, permission: "match_types.manage" },
+      { href: "/divisions", label: "Ангилал", icon: Layers, permission: "divisions.manage" },
     ],
   },
   {
@@ -86,7 +86,7 @@ const navGroups: NavGroup[] = [
     id: "system",
     label: "Систем",
     items: [
-      { href: "/rbac", label: "RBAC / Role", icon: Shield, permission: "roles.manage" },
+      { href: "/rbac", label: "Эрх, үүрэг", icon: Shield, permission: "roles.manage" },
       { href: "/staff", label: "Админ хэрэглэгч", icon: UserCog, permission: "staff.manage" },
       { href: "/settings", label: "Тохиргоо", icon: Settings, permission: "settings.manage" },
     ],
@@ -153,7 +153,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
   }
 
   const groups = navGroups
-    .map((group) => ({ ...group, items: group.items.filter((item) => can(item.permission)) }))
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => can(item.permission) || (item.fallback ? can(item.fallback) : false)),
+    }))
     .filter((group) => group.items.length > 0);
 
   return (

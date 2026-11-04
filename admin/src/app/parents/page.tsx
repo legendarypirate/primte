@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/file-upload";
 import { api } from "@/lib/api";
-import { can } from "@/lib/auth";
+import { canAny } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { MPassword } from "@/components/custom/fields";
 import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
@@ -81,7 +81,7 @@ export default function ParentsPage() {
     <Shell>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-3xl text-primary">Эцэг эх</h1>
-        {can("members.create") && (
+        {canAny("parents.manage", "members.create") && (
           <Button
             onClick={() => {
               setEditing(null);
@@ -140,7 +140,7 @@ export default function ParentsPage() {
                   </TableCell>
                   <TableCell>
                     <ActionCell>
-                      {can("members.update") && (
+                      {canAny("parents.manage", "members.update") && (
                         <IconActionButton
                           action="edit"
                           onClick={() => {
@@ -149,7 +149,7 @@ export default function ParentsPage() {
                           }}
                         />
                       )}
-                      {can("members.delete") && (
+                      {canAny("parents.manage", "members.delete") && (
                         <IconActionButton
                           action="delete"
                           onClick={async () => {
@@ -300,7 +300,7 @@ function ParentDrawer({
       </div>
       <SheetFooter className="flex-row justify-end border-t border-border">
         <Button variant="outline" onClick={onCancel}>Болих</Button>
-        {(parent ? can("members.update") : can("members.create")) && (
+        {(parent ? canAny("parents.manage", "members.update") : canAny("parents.manage", "members.create")) && (
           <Button onClick={save} disabled={saving}>{saving ? "Хадгалж байна..." : parent ? "Шинэчлэх" : "Үүсгэх"}</Button>
         )}
       </SheetFooter>

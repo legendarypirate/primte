@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const { Parent, Member, MemberType, Payment } = require('../models');
-const { requireAdmin, requirePermission, serializeParent } = require('../middleware/auth');
+const { requireAdmin, requireAnyPermission, serializeParent } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -43,7 +43,7 @@ async function parentPayload(parent) {
   };
 }
 
-router.get('/', requireAdmin, requirePermission('members.view'), async (_req, res) => {
+router.get('/', requireAdmin, requireAnyPermission('parents.view', 'members.view'), async (_req, res) => {
   const parents = await Parent.findAll({ order: [['name', 'ASC']] });
   const children = await Member.findAll({
     where: { parentAccountId: parents.map((p) => p.id) },
@@ -65,7 +65,7 @@ router.get('/', requireAdmin, requirePermission('members.view'), async (_req, re
   });
 });
 
-router.post('/', requireAdmin, requirePermission('members.create'), async (req, res) => {
+router.post('/', requireAdmin, requireAnyPermission('parents.manage', 'members.create'), async (req, res) => {
   const { name, phone, email, avatarUrl, password, code } = req.body || {};
   const secret = String(password || code || '').trim();
   if (!name || !phone || !secret) {
@@ -87,7 +87,7 @@ router.post('/', requireAdmin, requirePermission('members.create'), async (req, 
   res.status(201).json({ parent: await parentPayload(parent) });
 });
 
-router.put('/:id', requireAdmin, requirePermission('members.update'), async (req, res) => {
+router.put('/:id', requireAdmin, requireAnyPermission('parents.manage', 'members.update'), async (req, res) => {
   const parent = await Parent.findByPk(req.params.id);
   if (!parent) return res.status(404).json({ message: 'Эцэг эх олдсонгүй.' });
   const { name, phone, email, avatarUrl, password, code } = req.body || {};
@@ -115,7 +115,7 @@ router.put('/:id', requireAdmin, requirePermission('members.update'), async (req
   res.json({ parent: await parentPayload(parent) });
 });
 
-router.delete('/:id', requireAdmin, requirePermission('members.delete'), async (req, res) => {
+router.delete('/:id', requireAdmin, requireAnyPermission('parents.manage', 'members.delete'), async (req, res) => {
   const parent = await Parent.findByPk(req.params.id);
   if (!parent) return res.status(404).json({ message: 'Эцэг эх олдсонгүй.' });
   await Payment.destroy({ where: { parentId: parent.id } });

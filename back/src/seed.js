@@ -23,12 +23,19 @@ const { uploadLocal } = require('./utils/media');
 async function run() {
   await sequelize.sync({ force: true });
 
-  const roles = await Role.bulkCreate([
-    { name: 'Head admin', slug: 'head-admin', description: 'Full access, including RBAC', isSuper: true, isSystem: true, sortOrder: 1, permissions: ROLE_PRESETS['head-admin'] },
-    { name: 'Senior admin', slug: 'senior-admin', description: 'All operations except role matrix', isSuper: false, isSystem: true, sortOrder: 2, permissions: ROLE_PRESETS['senior-admin'] },
-    { name: 'Admin', slug: 'admin', description: 'Day-to-day club operations', isSuper: false, isSystem: true, sortOrder: 3, permissions: ROLE_PRESETS.admin },
-    { name: 'Assistant admin', slug: 'assistant-admin', description: 'View and limited write', isSuper: false, isSystem: true, sortOrder: 4, permissions: ROLE_PRESETS['assistant-admin'] },
-  ]);
+  const { SYSTEM_ROLES } = require('./rbac/catalog');
+  const roles = await Role.bulkCreate(
+    SYSTEM_ROLES.filter((role) => role.kind === 'admin').map((role) => ({
+      ...role,
+      permissions: ROLE_PRESETS[role.slug] || [],
+    }))
+  );
+  await Role.bulkCreate(
+    SYSTEM_ROLES.filter((role) => role.kind !== 'admin').map((role) => ({
+      ...role,
+      permissions: ROLE_PRESETS[role.slug] || [],
+    }))
+  );
   const headRole = roles.find((r) => r.slug === 'head-admin');
 
   const memberTypes = await MemberType.bulkCreate([

@@ -83,7 +83,7 @@ router.use(requireAdmin);
 
 router.get('/lookups', async (_req, res) => {
   const [roles, memberTypes, activities, divisions, matchTypes] = await Promise.all([
-    Role.findAll({ order: [['sortOrder', 'ASC']] }),
+    Role.findAll({ where: { kind: 'admin' }, order: [['sortOrder', 'ASC']] }),
     MemberType.findAll({ order: [['sortOrder', 'ASC']] }),
     DevelopmentActivity.findAll({ order: [['sortOrder', 'ASC']] }),
     Division.findAll({ order: [['abbreviation', 'ASC']] }),

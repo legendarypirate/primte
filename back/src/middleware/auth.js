@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { Admin, Judge, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
 const { serializeJudgeLevel } = require('../domain/judge-levels');
+const { judgeRoleSlug } = require('../rbac/catalog');
+const { permissionsForJudge, permissionsForMember } = require('../services/rbacService');
 
 function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -62,6 +64,13 @@ function requirePermission(key) {
   };
 }
 
+function requireAnyPermission(...keys) {
+  return (req, res, next) => {
+    if (keys.some((key) => hasPermission(req.admin, key))) return next();
+    return res.status(403).json({ message: 'Энэ үйлдэл хийх эрхгүй.' });
+  };
+}
+
 function serializeParent(parent) {
   return {
     id: parent.id,
@@ -93,6 +102,8 @@ function serializeJudge(judge) {
     competitionId: judge.competitionId,
     memberId: judge.memberId || null,
     active: judge.active,
+    roleSlug: judgeRoleSlug(judge),
+    permissions: permissionsForJudge(judge),
     ...serializeJudgeLevel(judge),
   };
 }
@@ -152,6 +163,7 @@ async function requireMember(req, res, next) {
   const blocked = member.status !== 'active' || (type && type.hasAppAccess === false);
   if (blocked) return res.status(401).json({ message: 'Гишүүн идэвхгүй байна.' });
   req.member = member;
+  req.memberPermissions = permissionsForMember(member);
   return next();
 }
 
@@ -164,6 +176,7 @@ module.exports = {
   requireMember,
   requireParent,
   requirePermission,
+  requireAnyPermission,
   serializeAdmin,
   serializeJudge,
   serializeParent,

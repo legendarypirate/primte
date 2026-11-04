@@ -15,6 +15,8 @@ const {
   MatchType,
 } = require('../models');
 const { requireMember } = require('../middleware/auth');
+const { matchPermissionForCompetition } = require('../rbac/catalog');
+const { memberHasPermission } = require('../services/rbacService');
 const { loadClubStatus } = require('../services/clubStatus');
 const { awardCompetitionXp, listPointHistory } = require('../services/pointLedger');
 const { parseGatePayload } = require('../domain/attendance');
@@ -49,11 +51,14 @@ async function serializeCompetitionForMember(competition, req, memberId, extra =
         })
       : null,
   ]);
+  const requiredPermission = matchPermissionForCompetition(competition);
   return serializeCompetition(competition, req, {
     ...extra,
     joined,
     registered: Boolean(registration),
     registration,
+    requiredPermission,
+    canRegister: Boolean(registration) || memberHasPermission(req.member, requiredPermission),
     divisions: divisions.map((d) => ({
       id: d.id,
       abbreviation: d.abbreviation,
@@ -171,6 +176,10 @@ router.post('/competitions/:id/register', async (req, res) => {
   }
   if (competition.status === 'past') {
     return res.status(400).json({ message: 'Бүртгэл хаагдсан.' });
+  }
+  const requiredPermission = matchPermissionForCompetition(competition);
+  if (!memberHasPermission(req.member, requiredPermission)) {
+    return res.status(403).json({ message: 'Таны гишүүнчлэлийн түвшинд энэ тэмцээнд бүртгүүлэх эрхгүй.' });
   }
   const { divisionId, divisionAbbreviation, category, squadLabel, payNow = true } = req.body || {};
 
@@ -534,6 +543,9 @@ router.get('/attendance/status', async (req, res) => {
 });
 
 router.post('/attendance/scan', async (req, res) => {
+  if (!memberHasPermission(req.member, 'app.attendance')) {
+    return res.status(403).json({ message: 'Таны гишүүнчлэлийн түвшинд өдөр тутмын бэлтгэл / QR эрхгүй.' });
+  }
   const direction = parseGatePayload(req.body?.payload);
   if (!direction) {
     return res.status(400).json({ message: 'Клубын ирцийн QR буруу эсвэл хугацаа дууссан. Дахин уншуулна уу.' });

@@ -36,6 +36,7 @@ const { formatHitFactor } = require('../domain/scoring/scoring-engine');
 const { calculateScore } = require('../domain/scoring/scoring-engine');
 const { getScoringProfile, PROFILES } = require('../domain/scoring/scoring-profile');
 const { resolveCompetitionTier, grantsFor, formatGrants, canEnterScores } = require('../domain/judge-levels');
+const { judgeCanEnterScores } = require('../services/rbacService');
 
 const router = express.Router();
 
@@ -92,8 +93,34 @@ function serializeMatchForJudge(m, judge) {
   return {
     ...base,
     allowedPositions: formatGrants(grants),
-    canEnterScores: canEnterScores(judge.certificationLevel, base.competitionTier, judge.role),
+    canEnterScores: judgeCanEnterScores(
+      judge,
+      base.competitionTier,
+      canEnterScores(judge.certificationLevel, base.competitionTier, judge.role)
+    ),
   };
+}
+
+async function judgeAllowedToEnterMatch(judge, matchId) {
+  const match = await Match.findByPk(matchId, { include: [{ model: Competition, include: [MatchType] }] });
+  if (!match) return { ok: false, missing: true };
+  const tier = resolveCompetitionTier(match.Competition || { title: match.name, subtitle: match.discipline });
+  const domainOk = canEnterScores(judge.certificationLevel, tier, judge.role);
+  return { ok: judgeCanEnterScores(judge, tier, domainOk), missing: false };
+}
+
+async function assertJudgeCanEnterScores(req, res, matchId) {
+  if (req.admin) return true;
+  const check = await judgeAllowedToEnterMatch(req.judge, matchId);
+  if (check.missing) {
+    res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+    return false;
+  }
+  if (!check.ok) {
+    res.status(403).json({ message: 'Таны шүүгчийн түвшинд энэ тэмцээнд оноо оруулах эрхгүй.' });
+    return false;
+  }
+  return true;
 }
 
 function serializeScore(s) {
@@ -294,6 +321,7 @@ router.post('/scores/preview', async (req, res) => {
 router.post('/scores', async (req, res) => {
   try {
     if (!(await assertJudgeCanAccessMatch(req, res, req.body?.matchId))) return;
+    if (!(await assertJudgeCanEnterScores(req, res, req.body?.matchId))) return;
     const deviceId = req.headers['x-device-id'] || null;
     const score = await createOrUpdateScore(req.body, scoringActorId(req), deviceId);
     res.json({ score: serializeScore(score) });
@@ -310,6 +338,8 @@ router.post('/scores', async (req, res) => {
 
 router.post('/scores/:scoreId/confirm', async (req, res) => {
   try {
+    const existing = await Score.findByPk(req.params.scoreId);
+    if (existing && !(await assertJudgeCanEnterScores(req, res, existing.matchId))) return;
     const { pin, competitorId } = req.body || {};
     const deviceId = req.headers['x-device-id'] || null;
     const score = await confirmScore(req.params.scoreId, pin, competitorId, scoringActorId(req), deviceId);
@@ -445,6 +475,19 @@ router.post('/sync', async (req, res) => {
         if (!(await assertJudgeCanAccessMatch(req, res, op.payload?.matchId))) {
           results.push({ id: op.id, status: 'FAILED', message: 'Энэ тэмцэнд оноо оруулах эрхгүй.' });
           continue;
+        }
+        if (req.judge) {
+          const check = await judgeAllowedToEnterMatch(req.judge, op.payload?.matchId);
+          if (!check.ok) {
+            results.push({
+              id: op.id,
+              status: 'FAILED',
+              message: check.missing
+                ? 'Тэмцээн олдсонгүй.'
+                : 'Таны шүүгчийн түвшинд энэ тэмцээнд оноо оруулах эрхгүй.',
+            });
+            continue;
+          }
         }
         const score = await createOrUpdateScore(
           { ...op.payload, expectedVersion: op.payload.expectedVersion },

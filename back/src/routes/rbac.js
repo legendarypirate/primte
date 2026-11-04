@@ -2,61 +2,78 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { Role, Admin, MemberType, DevelopmentActivity, MatchType, Division } = require('../models');
 const { requireAdmin, requirePermission, serializeAdmin } = require('../middleware/auth');
-const { PERMISSIONS, groupedPermissions } = require('../rbac/catalog');
+const { PERMISSIONS, groupedPermissions, catalogs, sanitizePermissions, KIND_META } = require('../rbac/catalog');
+const { refreshCache } = require('../services/rbacService');
 
 const router = express.Router();
 router.use(requireAdmin);
 
 function slugify(value) {
-  return String(value || '')
+  const base = String(value || '')
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[^a-z0-9\u0400-\u04ff]+/gi, '-')
     .replace(/^-|-$/g, '');
+  return base || `role-${Date.now()}`;
 }
 
 router.get('/permissions', requirePermission('roles.manage'), (_req, res) => {
-  res.json({ permissions: PERMISSIONS, grouped: groupedPermissions() });
+  res.json({
+    permissions: PERMISSIONS,
+    grouped: groupedPermissions(),
+    catalogs: catalogs(),
+    kinds: KIND_META,
+  });
 });
 
-router.get('/roles', requirePermission('roles.manage'), async (_req, res) => {
-  const roles = await Role.findAll({ order: [['sortOrder', 'ASC']] });
+router.get('/roles', requirePermission('roles.manage'), async (req, res) => {
+  const kind = String(req.query.kind || '').trim();
+  const where = KIND_META[kind] ? { kind } : {};
+  const roles = await Role.findAll({ where, order: [['sortOrder', 'ASC']] });
   res.json({ roles });
 });
 
 router.post('/roles', requirePermission('roles.manage'), async (req, res) => {
-  const { name, description, permissions, isSuper } = req.body || {};
+  const { name, description, permissions, isSuper, kind } = req.body || {};
   if (!name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
+  const roleKind = KIND_META[kind] ? kind : 'admin';
   const role = await Role.create({
     name,
     slug: slugify(name),
     description,
-    permissions: permissions || [],
-    isSuper: Boolean(isSuper),
+    kind: roleKind,
+    permissions: sanitizePermissions(roleKind, permissions || []),
+    isSuper: roleKind === 'admin' ? Boolean(isSuper) : false,
     isSystem: false,
     sortOrder: 99,
   });
+  await refreshCache();
   res.status(201).json({ role });
 });
 
 router.put('/roles/:id', requirePermission('roles.manage'), async (req, res) => {
   const role = await Role.findByPk(req.params.id);
-  if (!role) return res.status(404).json({ message: 'Role олдсонгүй.' });
+  if (!role) return res.status(404).json({ message: 'Төрөл олдсонгүй.' });
   const data = {};
   if (req.body.name !== undefined) data.name = req.body.name;
   if (req.body.description !== undefined) data.description = req.body.description;
-  if (req.body.permissions !== undefined) data.permissions = req.body.permissions;
-  if (req.body.isSuper !== undefined && !role.isSystem) data.isSuper = req.body.isSuper;
+  if (req.body.permissions !== undefined) {
+    data.permissions = sanitizePermissions(role.kind, req.body.permissions);
+  }
+  if (req.body.isSuper !== undefined && !role.isSystem && role.kind === 'admin') {
+    data.isSuper = req.body.isSuper;
+  }
   await role.update(data);
+  await refreshCache();
   res.json({ role });
 });
 
 router.delete('/roles/:id', requirePermission('roles.manage'), async (req, res) => {
   const role = await Role.findByPk(req.params.id);
-  if (!role) return res.status(404).json({ message: 'Role олдсонгүй.' });
-  if (role.isSystem) return res.status(400).json({ message: 'Системийн role устгах боломжгүй.' });
+  if (!role) return res.status(404).json({ message: 'Төрөл олдсонгүй.' });
+  if (role.isSystem) return res.status(400).json({ message: 'Системийн төрөл устгах боломжгүй.' });
   const used = await Admin.count({ where: { roleId: role.id } });
-  if (used) return res.status(400).json({ message: 'Энэ role-д админ холбогдсон байна.' });
+  if (used) return res.status(400).json({ message: 'Энэ төрөлд админ холбогдсон байна.' });
   await role.destroy();
   res.json({ ok: true });
 });
@@ -209,7 +226,11 @@ router.get('/staff', requirePermission('staff.manage'), async (_req, res) => {
 router.post('/staff', requirePermission('staff.manage'), async (req, res) => {
   const { name, email, password, roleId } = req.body || {};
   if (!name || !email || !password || !roleId) {
-    return res.status(400).json({ message: 'Нэр, имэйл, нууц үг, role шаардлагатай.' });
+    return res.status(400).json({ message: 'Нэр, имэйл, нууц үг, төрөл шаардлагатай.' });
+  }
+  const assigned = await Role.findByPk(roleId);
+  if (!assigned || assigned.kind !== 'admin') {
+    return res.status(400).json({ message: 'Зөвхөн админ төрөл онооно.' });
   }
   const exists = await Admin.findOne({ where: { email } });
   if (exists) return res.status(400).json({ message: 'Имэйл бүртгэлтэй.' });
@@ -229,7 +250,13 @@ router.put('/staff/:id', requirePermission('staff.manage'), async (req, res) => 
   const data = {};
   if (req.body.name) data.name = req.body.name;
   if (req.body.email) data.email = req.body.email;
-  if (req.body.roleId) data.roleId = req.body.roleId;
+  if (req.body.roleId) {
+    const assigned = await Role.findByPk(req.body.roleId);
+    if (!assigned || assigned.kind !== 'admin') {
+      return res.status(400).json({ message: 'Зөвхөн админ төрөл онооно.' });
+    }
+    data.roleId = req.body.roleId;
+  }
   if (req.body.password) data.passwordHash = await bcrypt.hash(req.body.password, 10);
   await admin.update(data);
   const updated = await Admin.findByPk(admin.id, { include: [Role] });

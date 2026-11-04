@@ -1,4 +1,6 @@
 const { computeMembershipLevel, membershipLabel } = require('../domain/membership');
+const { memberRoleSlug, matchPermissionForCompetition } = require('../rbac/catalog');
+const { permissionsForMember, memberHasPermission } = require('../services/rbacService');
 
 function publicUrl(req, path) {
   if (!path) return null;
@@ -179,6 +181,8 @@ function serializeCompetition(competition, req, extra = {}) {
     status,
     registered: isRegistered,
     registration: registration ? serializeRegistration(registration) : null,
+    requiredPermission: extra.requiredPermission || matchPermissionForCompetition(competition),
+    canRegister: extra.canRegister,
   };
 }
 
@@ -353,6 +357,8 @@ function serializeMember(member, req) {
     developmentActivity: activity
       ? { id: activity.id, name: activity.name, slug: activity.slug }
       : null,
+    roleSlug: memberRoleSlug(member),
+    permissions: req?.memberPermissions || permissionsForMember(member),
   };
 }
 
@@ -372,4 +378,5 @@ module.exports = {
   serializeAttendance,
   serializeProgress,
   serializePurchase,
+  memberHasPermission,
 };

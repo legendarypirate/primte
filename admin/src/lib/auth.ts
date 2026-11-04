@@ -12,6 +12,10 @@ export function can(key: string) {
   return perms.includes("*") || perms.includes(key);
 }
 
+export function canAny(...keys: string[]) {
+  return keys.some((key) => can(key));
+}
+
 export function saveSession(admin: { name: string; permissions?: string[]; role?: { name: string } | null }, token?: string) {
   if (token) localStorage.setItem("prime_admin_token", token);
   localStorage.setItem("prime_admin_name", admin.name);

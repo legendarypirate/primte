@@ -41,10 +41,18 @@ const port = Number(process.env.PORT || 3151);
 
 sequelize
   .authenticate()
-  .then(() => sequelize.sync({ alter: true }))
+  .then(async () => {
+    try {
+      await sequelize.query('ALTER TABLE roles ALTER COLUMN kind TYPE VARCHAR(32) USING kind::text');
+    } catch {
+      // first boot or already varchar
+    }
+    return sequelize.sync({ alter: true });
+  })
   .then(() => require('./services/productCategoryService').ensureProductCategories())
   .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
   .then(() => require('./services/memberProgression').ensureStudentDefaults())
+  .then(() => require('./services/rbacService').ensureSystemRoles())
   .then(() => {
     const server = http.createServer(app);
     attachRealtime(server);
