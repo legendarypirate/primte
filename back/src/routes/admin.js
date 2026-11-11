@@ -41,6 +41,7 @@ const {
   applyMemberProgression,
 } = require('../services/memberProgression');
 const { toDelta } = require('../domain/membership');
+const { toDateOnly, membershipDates } = require('../domain/dates');
 const {
   grantMembersExperience: grantPoints,
   recordAbsoluteChange,
@@ -279,6 +280,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
   }
   const parentAccount = parentAccountId ? await Parent.findByPk(parentAccountId) : null;
   if (parentAccountId && !parentAccount) return res.status(400).json({ message: 'Эцэг/эх олдсонгүй.' });
+  const dates = membershipDates(validFrom, validTo);
   const progression = await applyMemberProgression({
     xp,
     rp,
@@ -295,7 +297,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     passwordHash: password ? await bcrypt.hash(String(password), 10) : null,
     phone,
     email: email || null,
-    birthday: birthday || null,
+    birthday: toDateOnly(birthday, null),
     gender: gender || null,
     classification: classification || null,
     motto,
@@ -304,8 +306,8 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     level: progression.level,
     rank: rank ?? 0,
     competitionCount: competitionCount ?? 0,
-    validFrom,
-    validTo,
+    validFrom: dates.validFrom,
+    validTo: dates.validTo,
     status: type?.isInactive ? 'inactive' : status || 'active',
     walletBalance: walletBalance ?? 0,
     memberTypeId: progression.memberTypeId,
@@ -409,6 +411,15 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     'parentPhone',
     'parentEmail',
   ]);
+  if ('birthday' in data) data.birthday = toDateOnly(data.birthday, null);
+  if ('validFrom' in data || 'validTo' in data) {
+    const dates = membershipDates(
+      'validFrom' in data ? data.validFrom : member.validFrom,
+      'validTo' in data ? data.validTo : member.validTo
+    );
+    data.validFrom = dates.validFrom;
+    data.validTo = dates.validTo;
+  }
   if (data.memberTypeId) {
     const type = await MemberType.findByPk(data.memberTypeId);
     if (type?.isInactive) data.status = 'inactive';

@@ -116,9 +116,34 @@ const empty: MemberForm = {
   avatarUrl: "",
 };
 
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function todayIso(now = new Date()) {
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+}
+
+function addMonthsIso(iso: string, months: number) {
+  const [year, month, day] = iso.split("-").map(Number);
+  const date = new Date(year, month - 1 + months, day);
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
 function dateValue(value?: string | null) {
   if (!value) return "";
-  return String(value).slice(0, 10);
+  const raw = String(value).trim();
+  if (!raw || /^invalid date$/i.test(raw)) return "";
+  const match = raw.match(/^(\d{4})[.\-/](\d{2})[.\-/](\d{2})/);
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : "";
+}
+
+function membershipDates(from?: string | null, to?: string | null) {
+  const validFrom = dateValue(from) || todayIso();
+  return {
+    validFrom,
+    validTo: dateValue(to) || addMonthsIso(validFrom, 3),
+  };
 }
 
 function num(value: number | "") {
@@ -864,33 +889,34 @@ function MemberFormDrawer({
 }) {
   const kindTypes = useMemo(() => typesForKind(memberTypes, kind), [memberTypes, kind]);
   const fallbackTypeId = defaultTypeId(memberTypes, kind);
-  const [form, setForm] = useState<MemberForm>(
-    member
-      ? {
-          ...empty,
-          name: member.name,
-          username: member.username || "",
-          memberCode: member.memberCode,
-          phone: member.phone || "",
-          email: member.email || "",
-          birthday: dateValue(member.birthday),
-          gender: member.gender || "",
-          classification: member.classification || "",
-          xp: member.xp ?? 0,
-          rp: member.rp ?? 0,
-          level: member.level,
-          rank: member.rank,
-          walletBalance: member.walletBalance,
-          validFrom: dateValue(member.validFrom),
-          validTo: dateValue(member.validTo),
-          status: member.status,
-          memberTypeId: member.memberTypeId || "",
-          developmentActivityId: member.developmentActivityId || "",
-          parentAccountId: member.parentAccountId || "",
-          avatarUrl: member.avatarUrl || "",
-        }
-      : { ...empty, memberCode: nextMemberCode, memberTypeId: fallbackTypeId }
-  );
+  const [form, setForm] = useState<MemberForm>(() => {
+    const dates = membershipDates(member?.validFrom, member?.validTo);
+    if (!member) {
+      return { ...empty, memberCode: nextMemberCode, memberTypeId: fallbackTypeId, ...dates };
+    }
+    return {
+      ...empty,
+      name: member.name,
+      username: member.username || "",
+      memberCode: member.memberCode,
+      phone: member.phone || "",
+      email: member.email || "",
+      birthday: dateValue(member.birthday),
+      gender: member.gender || "",
+      classification: member.classification || "",
+      xp: member.xp ?? 0,
+      rp: member.rp ?? 0,
+      level: member.level,
+      rank: member.rank,
+      walletBalance: member.walletBalance,
+      ...dates,
+      status: member.status,
+      memberTypeId: member.memberTypeId || "",
+      developmentActivityId: member.developmentActivityId || "",
+      parentAccountId: member.parentAccountId || "",
+      avatarUrl: member.avatarUrl || "",
+    };
+  });
   const [parentMode, setParentMode] = useState<"existing" | "new">(parents.length ? "existing" : "new");
   const [newParent, setNewParent] = useState({ name: "", phone: "", email: "", password: "" });
   const [saving, setSaving] = useState(false);
@@ -934,8 +960,11 @@ function MemberFormDrawer({
         setSaving(false);
         return;
       }
+      const dates = membershipDates(form.validFrom, form.validTo);
       const body = {
         ...form,
+        ...dates,
+        birthday: form.birthday || null,
         xp: num(form.xp),
         rp: num(form.rp),
         level: membershipLevel(num(form.xp), num(form.rp)),
@@ -977,8 +1006,8 @@ function MemberFormDrawer({
             <Input value={form.memberCode} placeholder="S0001" onChange={(e) => set("memberCode", e.target.value)} />
             {!member && <p className="text-xs text-muted-foreground">Шинэ гишүүний код S-ээр эхэлнэ.</p>}
           </Field>
-          <Field label="Эхлэх огноо">
-            <Input type="date" value={form.validFrom} onChange={(e) => set("validFrom", e.target.value)} />
+          <Field label="Эхлэх огноо" required>
+            <Input type="date" required value={form.validFrom} onChange={(e) => set("validFrom", e.target.value)} />
           </Field>
           <Field label="Нэр" required>
             <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
@@ -993,7 +1022,7 @@ function MemberFormDrawer({
             <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
           </Field>
           <Field label="Төрсөн өдөр" required={isJunior}>
-            <Input type="date" value={form.birthday} onChange={(e) => set("birthday", e.target.value)} />
+            <Input type="date" required={isJunior} value={form.birthday} onChange={(e) => set("birthday", e.target.value)} />
           </Field>
           <Field label="Хүйс">
             <FieldSelect value={form.gender} onChange={(gender) => set("gender", gender)}>
@@ -1093,8 +1122,8 @@ function MemberFormDrawer({
             />
             <p className="text-xs text-muted-foreground">Хоосон бол гишүүний кодоор нэвтэрнэ. Оноо баталгаажуулахад код хэвээр хэрэглэнэ.</p>
           </Field>
-          <Field label="Дуусах огноо">
-            <Input type="date" value={form.validTo} onChange={(e) => set("validTo", e.target.value)} />
+          <Field label="Дуусах огноо" required>
+            <Input type="date" required value={form.validTo} onChange={(e) => set("validTo", e.target.value)} />
           </Field>
           <Field label="XP">
             <Input type="number" min={0} value={form.xp} onChange={(e) => set("xp", e.target.value === "" ? "" : Number(e.target.value))} />
