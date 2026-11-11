@@ -12,6 +12,8 @@ const {
   serializeParent,
 } = require('../middleware/auth');
 const { serializeMember } = require('../utils/helpers');
+const { resolveMemberNames } = require('../domain/names');
+const { nextStudentCode } = require('../services/memberProgression');
 
 const router = express.Router();
 
@@ -148,6 +150,47 @@ router.get('/parent/me', async (req, res, next) => {
 router.get('/member/me', async (req, res, next) => {
   const { requireMember } = require('../middleware/auth');
   return requireMember(req, res, () => res.json({ member: serializeMember(req.member, req) }));
+});
+
+router.post('/member/forgot-password', async (req, res) => {
+  const { username, phone } = req.body || {};
+  if (!String(username || '').trim() && !String(phone || '').trim()) {
+    return res.status(400).json({ message: 'Нэвтрэх нэр эсвэл утасны дугаар оруулна уу.' });
+  }
+  return res.json({ message: 'Хүсэлт хүлээн авлаа. Админ тантай холбогдоно.' });
+});
+
+router.post('/member/register', async (req, res) => {
+  const { firstName, lastName, username, phone, password } = req.body || {};
+  const names = resolveMemberNames({ firstName, lastName });
+  if (!names.name) return res.status(400).json({ message: 'Овог, нэр оруулна уу.' });
+  const loginName = String(username || '').trim().toLowerCase();
+  if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
+  const phoneValue = String(phone || '').trim();
+  if (phoneValue.replace(/\D/g, '').length < 8) {
+    return res.status(400).json({ message: 'Утасны дугаар оруулна уу.' });
+  }
+  if (!password || String(password).trim().length < 4) {
+    return res.status(400).json({ message: 'Нууц үг хамгийн багадаа 4 тэмдэгт байна.' });
+  }
+  const usernameTaken = await Member.findOne({ where: { username: loginName } });
+  if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
+  const studentType = await MemberType.findOne({ where: { slug: 'student-member' } });
+  const code = await nextStudentCode();
+  const hash = await bcrypt.hash(String(password).trim(), 10);
+  await Member.create({
+    name: names.name,
+    firstName: names.firstName,
+    lastName: names.lastName,
+    username: loginName,
+    memberCode: code,
+    pinHash: hash,
+    passwordHash: hash,
+    phone: phoneValue,
+    status: 'inactive',
+    memberTypeId: studentType?.id || null,
+  });
+  return res.status(201).json({ message: 'Бүртгэл амжилттай. Админ баталгаажуулсны дараа нэвтэрнэ.' });
 });
 
 module.exports = router;
