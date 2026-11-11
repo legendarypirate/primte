@@ -42,7 +42,21 @@ const {
 } = require('../services/memberProgression');
 const { toDelta } = require('../domain/membership');
 const { toDateOnly, membershipDates } = require('../domain/dates');
+const { resolveMemberNames } = require('../domain/names');
 const { deleteMember } = require('../services/memberDelete');
+const {
+  developmentActivitiesInclude,
+  normalizeActivityIds,
+  setMemberActivities,
+} = require('../services/memberActivities');
+
+const memberIncludes = [
+  MemberType,
+  DevelopmentActivity,
+  developmentActivitiesInclude(),
+  { model: Member, as: 'parent' },
+  { model: Parent, as: 'parentAccount' },
+];
 const {
   grantMembersExperience: grantPoints,
   recordAbsoluteChange,
@@ -216,6 +230,8 @@ router.get('/members', requirePermission('members.view'), async (req, res) => {
     ? {
         [Op.or]: [
           { name: { [Op.iLike]: `%${q}%` } },
+          { firstName: { [Op.iLike]: `%${q}%` } },
+          { lastName: { [Op.iLike]: `%${q}%` } },
           { username: { [Op.iLike]: `%${q}%` } },
           { memberCode: { [Op.iLike]: `%${q}%` } },
           { phone: { [Op.iLike]: `%${q}%` } },
@@ -224,12 +240,7 @@ router.get('/members', requirePermission('members.view'), async (req, res) => {
     : undefined;
   const members = await Member.findAll({
     where,
-    include: [
-      MemberType,
-      DevelopmentActivity,
-      { model: Member, as: 'parent' },
-      { model: Parent, as: 'parentAccount' },
-    ],
+    include: memberIncludes,
     order: [['createdAt', 'DESC']],
   });
   res.json({ members: members.map((m) => serializeMember(m, req)) });
@@ -238,6 +249,8 @@ router.get('/members', requirePermission('members.view'), async (req, res) => {
 router.post('/members', requirePermission('members.create'), async (req, res) => {
   const {
     name,
+    firstName,
+    lastName,
     username,
     memberCode,
     phone,
@@ -246,9 +259,6 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     gender,
     classification,
     motto,
-    xp,
-    rp,
-    level,
     rank,
     competitionCount,
     validFrom,
@@ -265,12 +275,13 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     avatarUrl,
     password,
   } = req.body || {};
-  if (!name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
+  const names = resolveMemberNames({ firstName, lastName, name });
+  if (!names.name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
   const loginName = String(username || '').trim().toLowerCase();
   if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
   const code = String(memberCode || '').trim() || await nextStudentCode();
   const exists = await Member.findOne({ where: { memberCode: code } });
-  if (exists) return res.status(400).json({ message: 'Энэ гишүүний код бүртгэлтэй.' });
+  if (exists) return res.status(400).json({ message: 'Энэ гишүүний ID бүртгэлтэй.' });
   const usernameTaken = await Member.findOne({ where: { username: loginName } });
   if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
   const studentType = await MemberType.findOne({ where: { slug: 'student-member' } });
@@ -282,16 +293,18 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
   const parentAccount = parentAccountId ? await Parent.findByPk(parentAccountId) : null;
   if (parentAccountId && !parentAccount) return res.status(400).json({ message: 'Эцэг/эх олдсонгүй.' });
   const dates = membershipDates(validFrom, validTo);
+  const activityIds = normalizeActivityIds(req.body?.developmentActivityIds, developmentActivityId);
   const progression = await applyMemberProgression({
-    xp,
-    rp,
-    level,
+    xp: 0,
+    rp: 0,
     memberTypeId: resolvedTypeId,
     parentAccountId: parentAccount?.id || parentAccountId || null,
     parentId: parentId || null,
-  }, { syncType: true });
+  }, { syncType: false });
   const member = await Member.create({
-    name,
+    name: names.name,
+    firstName: names.firstName,
+    lastName: names.lastName,
     username: loginName,
     memberCode: code,
     pinHash: await bcrypt.hash(code, 10),
@@ -312,7 +325,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     status: type?.isInactive ? 'inactive' : status || 'active',
     walletBalance: walletBalance ?? 0,
     memberTypeId: progression.memberTypeId,
-    developmentActivityId,
+    developmentActivityId: activityIds[0] || null,
     parentId: null,
     parentAccountId: parentAccount?.id || null,
     parentName: parentAccount?.name || parentName || null,
@@ -320,8 +333,9 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     parentEmail: parentAccount?.email || parentEmail || null,
     avatarUrl,
   });
+  await setMemberActivities(member, activityIds);
   const created = await Member.findByPk(member.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
+    include: memberIncludes,
   });
   await recordAbsoluteChange(created, {
     prevXp: 0,
@@ -352,7 +366,7 @@ router.post('/members/add-xp', requirePermission('members.update'), async (req, 
     if (!members.length) return [];
     return Member.findAll({
       where: { id: members.map((m) => m.id) },
-      include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
+      include: memberIncludes,
       transaction: t,
     });
   });
@@ -362,7 +376,7 @@ router.post('/members/add-xp', requirePermission('members.update'), async (req, 
 
 router.get('/members/:id', requirePermission('members.view'), async (req, res) => {
   const member = await Member.findByPk(req.params.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
+    include: memberIncludes,
   });
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
   const [transactions, orders, registrations, attendance, points] = await Promise.all([
@@ -386,6 +400,8 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
   const data = pick(req.body, [
     'name',
+    'firstName',
+    'lastName',
     'username',
     'memberCode',
     'phone',
@@ -394,9 +410,6 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     'gender',
     'classification',
     'motto',
-    'xp',
-    'rp',
-    'level',
     'rank',
     'competitionCount',
     'validFrom',
@@ -412,6 +425,17 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     'parentPhone',
     'parentEmail',
   ]);
+  if ('firstName' in data || 'lastName' in data || 'name' in data) {
+    const names = resolveMemberNames({
+      firstName: 'firstName' in data ? data.firstName : member.firstName,
+      lastName: 'lastName' in data ? data.lastName : member.lastName,
+      name: 'name' in data ? data.name : member.name,
+    });
+    if (!names.name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
+    data.firstName = names.firstName;
+    data.lastName = names.lastName;
+    data.name = names.name;
+  }
   if ('birthday' in data) data.birthday = toDateOnly(data.birthday, null);
   if ('validFrom' in data || 'validTo' in data) {
     const dates = membershipDates(
@@ -461,13 +485,10 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   }
   const password = String(req.body?.password || '').trim();
   if (password) data.passwordHash = await bcrypt.hash(password, 10);
-  const current = await Member.findByPk(member.id, { include: [MemberType] });
-  const prevXp = current.xp || 0;
-  const prevRp = current.rp || 0;
-  await applyMemberProgression(data, {
-    current,
-    syncType: req.body?.xp !== undefined || req.body?.rp !== undefined,
-  });
+  const activityIds = req.body?.developmentActivityIds !== undefined || 'developmentActivityId' in data
+    ? normalizeActivityIds(req.body?.developmentActivityIds, data.developmentActivityId)
+    : null;
+  if (activityIds) data.developmentActivityId = activityIds[0] || null;
   if (data.memberTypeId) {
     const nextType = await MemberType.findByPk(data.memberTypeId);
     if (nextType?.isInactive) data.status = 'inactive';
@@ -476,17 +497,10 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     }
   }
   await member.update(data);
+  if (activityIds) await setMemberActivities(member, activityIds);
   const updated = await Member.findByPk(member.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }, { model: Parent, as: 'parentAccount' }],
+    include: memberIncludes,
   });
-  if (req.body?.xp !== undefined || req.body?.rp !== undefined) {
-    await recordAbsoluteChange(updated, {
-      prevXp,
-      prevRp,
-      source: 'admin',
-      title: 'Админ шинэчлэл',
-    });
-  }
   res.json({ member: serializeMember(updated, req) });
 });
 

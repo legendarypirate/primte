@@ -818,6 +818,8 @@ router.get('/scoring/judge-candidates', canViewJudges, async (req, res) => {
     where: {
       [Op.or]: [
         { name: { [Op.iLike]: `%${q}%` } },
+        { firstName: { [Op.iLike]: `%${q}%` } },
+        { lastName: { [Op.iLike]: `%${q}%` } },
         { username: { [Op.iLike]: `%${q}%` } },
         { memberCode: { [Op.iLike]: `%${q}%` } },
         { phone: { [Op.iLike]: `%${q}%` } },

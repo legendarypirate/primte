@@ -662,7 +662,7 @@ export default function CompetitionDetailPage() {
               <DataTable
                 search={regSearch}
                 onSearchChange={setRegSearch}
-                searchPlaceholder="Хайх (нэр, код, скуад)..."
+                searchPlaceholder="Хайх (нэр, ID, скуад)..."
                 unit="оролцогч"
                 total={registrationTable.total}
                 page={registrationTable.page}

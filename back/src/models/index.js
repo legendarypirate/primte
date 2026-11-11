@@ -5,6 +5,7 @@ const Parent = require('./parent');
 const Member = require('./member');
 const MemberType = require('./memberType');
 const DevelopmentActivity = require('./developmentActivity');
+const MemberDevelopmentActivity = require('./memberDevelopmentActivity');
 const MatchType = require('./matchType');
 const Division = require('./division');
 
@@ -51,6 +52,18 @@ Member.belongsTo(MemberType, { foreignKey: 'memberTypeId' });
 MemberType.hasMany(Member, { foreignKey: 'memberTypeId' });
 Member.belongsTo(DevelopmentActivity, { foreignKey: 'developmentActivityId' });
 DevelopmentActivity.hasMany(Member, { foreignKey: 'developmentActivityId' });
+Member.belongsToMany(DevelopmentActivity, {
+  through: MemberDevelopmentActivity,
+  foreignKey: 'memberId',
+  otherKey: 'developmentActivityId',
+  as: 'developmentActivities',
+});
+DevelopmentActivity.belongsToMany(Member, {
+  through: MemberDevelopmentActivity,
+  foreignKey: 'developmentActivityId',
+  otherKey: 'memberId',
+  as: 'members',
+});
 Member.belongsTo(Member, { as: 'parent', foreignKey: 'parentId' });
 Member.hasMany(Member, { as: 'legacyChildren', foreignKey: 'parentId' });
 
@@ -141,6 +154,7 @@ module.exports = {
   Member,
   MemberType,
   DevelopmentActivity,
+  MemberDevelopmentActivity,
   MatchType,
   Division,
   Product,

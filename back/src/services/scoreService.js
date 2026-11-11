@@ -167,7 +167,7 @@ async function confirmScore(scoreId, pin, competitorId, officialId, deviceId) {
   if (!member) throw new Error(MESSAGES.COMPETITOR_NOT_FOUND);
 
   const ok = await memberCodeUnlocks(member, pin, pinHashMatches);
-  if (!ok) throw new Error('Гишүүний код буруу байна.');
+  if (!ok) throw new Error('Гишүүний ID буруу байна.');
 
   const liveCode = normalizeMemberCode(member.memberCode);
   if (liveCode && !(await pinHashMatches(liveCode, member.pinHash))) {

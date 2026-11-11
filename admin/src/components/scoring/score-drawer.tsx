@@ -161,7 +161,7 @@ export function ScoreDrawer({
               )}
 
               <section className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <span className="text-muted-foreground">Гишүүний код</span>
+                <span className="text-muted-foreground">Гишүүний ID</span>
                 <span className="text-right font-mono">{s.competitor?.memberCode || "—"}</span>
                 <span className="text-muted-foreground">Bib</span>
                 <span className="text-right">{s.competitor?.bibNumber || "—"}</span>

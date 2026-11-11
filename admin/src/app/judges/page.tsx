@@ -134,7 +134,7 @@ export default function JudgesPage() {
         <div className="mb-6 space-y-3 rounded-lg border bg-muted/30 p-3">
           <div className="relative">
             <Input
-              placeholder="Гишүүн хайх (нэр, username, код)"
+              placeholder="Гишүүн хайх (нэр, username, ID)"
               value={selected ? `${selected.name} · ${selected.username || selected.memberCode}` : memberQuery}
               onChange={(e) => {
                 setSelected(null);
@@ -212,7 +212,6 @@ export default function JudgesPage() {
             <TableRow>
               <TableHead>Гишүүн</TableHead>
               <TableHead>Нэвтрэх нэр</TableHead>
-              <TableHead>Эрх</TableHead>
               <TableHead>Түвшин</TableHead>
               <TableHead>Төлөв</TableHead>
               {manage && <TableHead />}
@@ -226,27 +225,6 @@ export default function JudgesPage() {
                   <div className="text-xs text-muted-foreground">{j.memberCode || j.phone || "—"}</div>
                 </TableCell>
                 <TableCell className="font-mono text-sm">{j.username}</TableCell>
-                <TableCell className="w-44">
-                  {manage ? (
-                    <FieldSelect
-                      value={j.role}
-                      onChange={async (role) => {
-                        try {
-                          await api(`/api/admin/judges/${j.id}`, { method: "PATCH", body: JSON.stringify({ role }) });
-                          setJudges((prev) => prev.map((row) => (row.id === j.id ? { ...row, role } : row)));
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Алдаа");
-                        }
-                      }}
-                    >
-                      {JUDGE_ROLES.map((r) => (
-                        <option key={r.value} value={r.value}>{r.label}</option>
-                      ))}
-                    </FieldSelect>
-                  ) : (
-                    j.role
-                  )}
-                </TableCell>
                 <TableCell className="w-44">
                   {manage ? (
                     <FieldSelect
@@ -305,7 +283,7 @@ export default function JudgesPage() {
                 )}
               </TableRow>
             ))}
-            {table.visible.length === 0 && <TableEmpty colSpan={manage ? 6 : 5}>Шүүгч алга. Гишүүнээс нэмнэ үү.</TableEmpty>}
+            {table.visible.length === 0 && <TableEmpty colSpan={manage ? 5 : 4}>Шүүгч алга. Гишүүнээс нэмнэ үү.</TableEmpty>}
           </TableBody>
         </Table>
       </DataTable>

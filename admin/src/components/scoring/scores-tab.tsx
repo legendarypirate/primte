@@ -89,7 +89,7 @@ export function ScoresTab({
 
   function exportCsv() {
     downloadCsv(`${competitionTitle || "scores"}-оноо.csv`, [
-      ["Стейж", "Тамирчин", "Гишүүний код", "Bib", "Ангилал", "Скуад", "A", "C", "D", "M", "NS", "Proc", "Хугацаа", "Оноо", "HF", "Төлөв", "Оруулсан", "Баталгаажсан", "Баталгаажсан огноо"],
+      ["Стейж", "Тамирчин", "Гишүүний ID", "Bib", "Ангилал", "Скуад", "A", "C", "D", "M", "NS", "Proc", "Хугацаа", "Оноо", "HF", "Төлөв", "Оруулсан", "Баталгаажсан", "Баталгаажсан огноо"],
       ...rows.map((r) => [
         r.stageNumber,
         r.competitor?.name,
@@ -135,7 +135,7 @@ export function ScoresTab({
         <CardContent className="grid gap-3 pt-6 md:grid-cols-5">
           <div className="relative md:col-span-2">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="pl-8" placeholder="Нэр, гишүүний код, bib…" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input className="pl-8" placeholder="Нэр, гишүүний ID, bib…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <FieldSelect value={filters.stageId} onChange={(stageId) => setFilters({ ...filters, stageId })}>
             <option value="">Бүх стейж</option>

@@ -49,7 +49,7 @@ export function ResultsTab({
     const rows: (string | number | null | undefined)[][] = [];
     for (const d of data!.divisions) {
       rows.push([`${d.code} — ${d.name}`]);
-      rows.push(["Байр", "Тамирчин", "Гишүүний код", "Скуад", "Оноо", "%", ...stages.flatMap((s) => [`S${s.number} HF`, `S${s.number} оноо`])]);
+      rows.push(["Байр", "Тамирчин", "Гишүүний ID", "Скуад", "Оноо", "%", ...stages.flatMap((s) => [`S${s.number} HF`, `S${s.number} оноо`])]);
       for (const r of d.rows) {
         rows.push([
           r.rank,

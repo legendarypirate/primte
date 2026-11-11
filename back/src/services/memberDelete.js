@@ -1,6 +1,7 @@
 const {
   sequelize,
   Member,
+  MemberDevelopmentActivity,
   Registration,
   Attendance,
   MemberPointEvent,
@@ -58,6 +59,7 @@ async function ensureMemberCascadeFks() {
 async function deleteMember(member) {
   await sequelize.transaction(async (t) => {
     await removeCompetitorsByMemberId(member.id, { transaction: t });
+    await MemberDevelopmentActivity.destroy({ where: { memberId: member.id }, transaction: t });
     await Registration.destroy({ where: { memberId: member.id }, transaction: t });
     await Attendance.destroy({ where: { memberId: member.id }, transaction: t });
     await MemberPointEvent.destroy({ where: { memberId: member.id }, transaction: t });

@@ -52,6 +52,8 @@ sequelize
   .then(() => require('./services/memberDelete').ensureMemberCascadeFks())
   .then(() => require('./services/productCategoryService').ensureProductCategories())
   .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
+  .then(() => require('./services/memberUsernameService').backfillMemberNames())
+  .then(() => require('./services/memberActivities').backfillMemberActivities())
   .then(() => require('./services/memberProgression').ensureStudentDefaults())
   .then(() => require('./services/rbacService').ensureSystemRoles())
   .then(() => {

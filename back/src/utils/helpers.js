@@ -226,6 +226,8 @@ function serializeChildSummary(member, req, extra = {}) {
   return {
     id: member.id,
     name: member.name,
+    firstName: member.firstName || null,
+    lastName: member.lastName || null,
     memberCode: member.memberCode,
     avatarUrl: publicUrl(req, member.avatarUrl),
     xp: member.xp || 0,
@@ -300,9 +302,25 @@ function serializePurchase(item, order, req) {
   };
 }
 
+function memberActivityList(member) {
+  const many = member.developmentActivities || member.DevelopmentActivities;
+  if (Array.isArray(many) && many.length) {
+    return [...many].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0) || String(a.name).localeCompare(String(b.name)));
+  }
+  if (member.DevelopmentActivity) return [member.DevelopmentActivity];
+  return [];
+}
+
+function serializeActivity(activity) {
+  if (!activity) return null;
+  return { id: activity.id, name: activity.name, slug: activity.slug };
+}
+
 function serializeMember(member, req) {
   const type = member.MemberType;
-  const activity = member.DevelopmentActivity;
+  const activities = memberActivityList(member);
+  const activity = activities[0] || member.DevelopmentActivity || null;
+  const activityNames = activities.map((row) => row.name).filter(Boolean);
   const parent = member.parent;
   const parentAccount = member.parentAccount;
   const category = type?.category || null;
@@ -311,6 +329,8 @@ function serializeMember(member, req) {
   return {
     id: member.id,
     name: member.name,
+    firstName: member.firstName || null,
+    lastName: member.lastName || null,
     username: member.username || null,
     memberCode: member.memberCode,
     hasPassword: Boolean(member.passwordHash),
@@ -336,7 +356,9 @@ function serializeMember(member, req) {
     category,
     memberTypeLevel: type?.level ?? null,
     memberTypeId: member.memberTypeId,
-    developmentActivityId: member.developmentActivityId,
+    developmentActivityId: activity?.id || member.developmentActivityId || null,
+    developmentActivityIds: activities.map((row) => row.id),
+    developmentActivityName: activityNames.join(', '),
     parentId: member.parentId,
     parentAccountId: member.parentAccountId,
     parentName: parentAccount?.name || member.parentName || parent?.name || null,
@@ -354,8 +376,9 @@ function serializeMember(member, req) {
           isInactive: type.isInactive,
         }
       : null,
+    developmentActivities: activities.map(serializeActivity),
     developmentActivity: activity
-      ? { id: activity.id, name: activity.name, slug: activity.slug }
+      ? { id: activity.id, name: activityNames.join(', ') || activity.name, slug: activity.slug }
       : null,
     roleSlug: memberRoleSlug(member),
     permissions: req?.memberPermissions || permissionsForMember(member),

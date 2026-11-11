@@ -4,6 +4,8 @@ const sequelize = require('../config/database');
 const Member = sequelize.define('Member', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   name: { type: DataTypes.STRING, allowNull: false },
+  firstName: { type: DataTypes.STRING, allowNull: true, field: 'first_name' },
+  lastName: { type: DataTypes.STRING, allowNull: true, field: 'last_name' },
   username: { type: DataTypes.STRING, allowNull: true, unique: true },
   memberCode: { type: DataTypes.STRING, allowNull: false, unique: true, field: 'member_code' },
   pinHash: { type: DataTypes.STRING, allowNull: false, field: 'pin_hash' },

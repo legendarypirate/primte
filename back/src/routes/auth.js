@@ -42,7 +42,7 @@ router.post('/member/login', async (req, res) => {
   }
   const typed = login.toLowerCase();
   const secret = String(code).trim();
-  const include = [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }];
+  const include = [MemberType, DevelopmentActivity, { model: DevelopmentActivity, as: 'developmentActivities' }, { model: Member, as: 'parent' }];
   const matchesLogin = (member) =>
     (member.username && member.username.toLowerCase() === typed) ||
     member.name.trim().toLowerCase() === typed;

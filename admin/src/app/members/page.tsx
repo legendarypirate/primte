@@ -41,6 +41,8 @@ type RegistrationKind = "adult" | "junior" | "parent";
 type Member = {
   id: string;
   name: string;
+  firstName?: string | null;
+  lastName?: string | null;
   username?: string | null;
   memberCode: string;
   hasPassword?: boolean;
@@ -60,16 +62,20 @@ type Member = {
   validTo?: string;
   memberTypeId?: string | null;
   developmentActivityId?: string | null;
+  developmentActivityIds?: string[];
   parentAccountId?: string | null;
   parentName?: string | null;
   avatarUrl?: string | null;
   category?: string | null;
   memberType?: { name: string; requiresParent?: boolean; category?: string } | null;
   developmentActivity?: { name: string } | null;
+  developmentActivities?: { id: string; name: string }[];
 };
 
 type MemberForm = {
   name: string;
+  firstName: string;
+  lastName: string;
   username: string;
   memberCode: string;
   phone: string;
@@ -87,13 +93,15 @@ type MemberForm = {
   validTo: string;
   status: string;
   memberTypeId: string;
-  developmentActivityId: string;
+  developmentActivityIds: string[];
   parentAccountId: string;
   avatarUrl: string;
 };
 
 const empty: MemberForm = {
   name: "",
+  firstName: "",
+  lastName: "",
   username: "",
   memberCode: "",
   phone: "",
@@ -111,7 +119,7 @@ const empty: MemberForm = {
   validTo: "",
   status: "active",
   memberTypeId: "",
-  developmentActivityId: "",
+  developmentActivityIds: [],
   parentAccountId: "",
   avatarUrl: "",
 };
@@ -146,6 +154,41 @@ function membershipDates(from?: string | null, to?: string | null) {
   };
 }
 
+function splitName(name?: string | null) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return { firstName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: parts[0], lastName: "" };
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
+function memberNames(member?: Member | null) {
+  if (member?.firstName || member?.lastName) {
+    return { firstName: member.firstName || "", lastName: member.lastName || "" };
+  }
+  return splitName(member?.name);
+}
+
+function selectedActivityIds(member?: Member | null) {
+  if (member?.developmentActivityIds?.length) return member.developmentActivityIds;
+  if (member?.developmentActivityId) return [member.developmentActivityId];
+  return [];
+}
+
+function groupActivities(items: Named[]) {
+  const sections = [
+    { id: "rodp", label: "RODP", items: [] as Named[] },
+    { id: "program", label: "Хөтөлбөр", items: [] as Named[] },
+    { id: "staff", label: "Ажилтан", items: [] as Named[] },
+  ];
+  for (const item of items) {
+    const hay = `${item.slug || ""} ${item.name || ""}`.toLowerCase();
+    if (/employee|ажилтан/.test(hay)) sections[2].items.push(item);
+    else if (/rodp/.test(hay)) sections[0].items.push(item);
+    else sections[1].items.push(item);
+  }
+  return sections.filter((section) => section.items.length);
+}
+
 function num(value: number | "") {
   return value === "" ? 0 : Number(value);
 }
@@ -164,7 +207,7 @@ type SortKey = "name" | "code" | "email" | "birthday" | "gender" | "classificati
 function sortValue(member: Member, key: SortKey) {
   switch (key) {
     case "name":
-      return member.name || "";
+      return [member.lastName, member.firstName, member.name].filter(Boolean).join(" ");
     case "code":
       return member.memberCode || "";
     case "email":
@@ -184,7 +227,7 @@ function sortValue(member: Member, key: SortKey) {
     case "parent":
       return member.parentName || "";
     case "program":
-      return member.developmentActivity?.name || "";
+      return member.developmentActivities?.map((a) => a.name).join(", ") || member.developmentActivity?.name || "";
     case "wallet":
       return member.walletBalance ?? 0;
     case "status":
@@ -261,10 +304,10 @@ export default function MembersPage() {
         if (String(level) !== filters.level) return false;
       }
       if (filters.gender && (m.gender || "") !== filters.gender) return false;
-      if (filters.programId && m.developmentActivityId !== filters.programId) return false;
+      if (filters.programId && !(m.developmentActivityIds || []).includes(filters.programId) && m.developmentActivityId !== filters.programId) return false;
       if (filters.classification && (m.classification || "") !== filters.classification) return false;
       if (!q) return true;
-      return [m.name, m.username, m.memberCode, m.email, m.phone, m.parentName]
+      return [m.name, m.firstName, m.lastName, m.username, m.memberCode, m.email, m.phone, m.parentName, m.developmentActivity?.name, ...(m.developmentActivities || []).map((a) => a.name)]
         .some((v) => String(v || "").toLowerCase().includes(q));
     });
     const next = [...rows].sort((a, b) => {
@@ -385,7 +428,7 @@ export default function MembersPage() {
       <DataTable
             search={query}
             onSearchChange={setQuery}
-            searchPlaceholder="Овог, нэр, код, утас, имэйл…"
+            searchPlaceholder="Овог, нэр, ID, утас, имэйл…"
             unit="гишүүн"
             total={table.total}
             page={table.page}
@@ -482,7 +525,7 @@ export default function MembersPage() {
                   />
                 </TableHead>
                 <SortHead label="Нэр" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
-                <SortHead label="Код" active={sortKey === "code"} dir={sortDir} onClick={() => toggleSort("code")} />
+                <SortHead label="Гишүүний ID" active={sortKey === "code"} dir={sortDir} onClick={() => toggleSort("code")} />
                 <SortHead label="Имэйл" active={sortKey === "email"} dir={sortDir} onClick={() => toggleSort("email")} />
                 <SortHead label="Төрсөн" active={sortKey === "birthday"} dir={sortDir} onClick={() => toggleSort("birthday")} />
                 <SortHead label="Хүйс" active={sortKey === "gender"} dir={sortDir} onClick={() => toggleSort("gender")} />
@@ -530,7 +573,7 @@ export default function MembersPage() {
                   <TableCell>{m.xp ?? 0}</TableCell>
                   <TableCell>{m.rp ?? 0}</TableCell>
                   <TableCell>{m.parentName || "—"}</TableCell>
-                  <TableCell>{m.developmentActivity?.name || "—"}</TableCell>
+                  <TableCell>{m.developmentActivities?.map((a) => a.name).join(", ") || m.developmentActivity?.name || "—"}</TableCell>
                   <TableCell>{tugrik(m.walletBalance)}</TableCell>
                   <TableCell>
                     <StatusBadge active={m.status === "active"} inactiveLabel={m.status} />
@@ -901,6 +944,7 @@ function MemberFormDrawer({
     }
     return {
       ...empty,
+      ...memberNames(member),
       name: member.name,
       username: member.username || "",
       memberCode: member.memberCode,
@@ -917,7 +961,7 @@ function MemberFormDrawer({
       ...dates,
       status: member.status,
       memberTypeId: member.memberTypeId || "",
-      developmentActivityId: member.developmentActivityId || "",
+      developmentActivityIds: selectedActivityIds(member),
       parentAccountId: member.parentAccountId || "",
       avatarUrl: member.avatarUrl || "",
     };
@@ -932,8 +976,8 @@ function MemberFormDrawer({
   }
 
   async function save() {
-    if (!form.name.trim() || !form.username.trim() || !form.memberCode.trim()) {
-      toast.error("Нэр, нэвтрэх нэр, код оруулна уу");
+    if (!form.firstName.trim() || !form.username.trim() || !form.memberCode.trim()) {
+      toast.error("Нэр, нэвтрэх нэр, гишүүний ID оруулна уу");
       return;
     }
     if (isJunior && !form.birthday) {
@@ -969,17 +1013,20 @@ function MemberFormDrawer({
       const body = {
         ...form,
         ...dates,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        name: [form.firstName, form.lastName].map((part) => part.trim()).filter(Boolean).join(" "),
         birthday: form.birthday || null,
-        xp: num(form.xp),
-        rp: num(form.rp),
-        level: membershipLevel(num(form.xp), num(form.rp)),
         rank: num(form.rank),
         memberTypeId: form.memberTypeId || fallbackTypeId || null,
-        developmentActivityId: form.developmentActivityId || null,
+        developmentActivityIds: form.developmentActivityIds,
         parentAccountId: isJunior ? parentAccountId : member ? form.parentAccountId || null : null,
         parentId: null,
         password: form.password.trim() || undefined,
       };
+      delete body.xp;
+      delete body.rp;
+      delete body.level;
       if (member) await api(`/api/admin/members/${member.id}`, { method: "PUT", body: JSON.stringify(body) });
       else await api("/api/admin/members", { method: "POST", body: JSON.stringify(body) });
       toast.success(isJunior ? "Жуниор бүртгэлээ" : "Гишүүн бүртгэлээ");
@@ -1007,15 +1054,18 @@ function MemberFormDrawer({
       </SheetHeader>
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Код" required>
+          <Field label="Гишүүний ID" required>
             <Input value={form.memberCode} placeholder="S0001" onChange={(e) => set("memberCode", e.target.value)} />
-            {!member && <p className="text-xs text-muted-foreground">Шинэ гишүүний код S-ээр эхэлнэ.</p>}
+            {!member && <p className="text-xs text-muted-foreground">Шинэ гишүүний ID S-ээр эхэлнэ.</p>}
           </Field>
-          <Field label="Эхлэх огноо" required>
+          <Field label="Гишүүнчлэл үүссэн огноо" required>
             <Input type="date" required value={form.validFrom} onChange={(e) => set("validFrom", e.target.value)} />
           </Field>
+          <Field label="Овог">
+            <Input value={form.lastName} placeholder="Бат" onChange={(e) => set("lastName", e.target.value)} />
+          </Field>
           <Field label="Нэр" required>
-            <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
+            <Input value={form.firstName} placeholder="Тэмүүлэн" onChange={(e) => set("firstName", e.target.value)} />
           </Field>
           <Field label="Нэвтрэх нэр" required>
             <Input value={form.username} placeholder="j.temuulen" onChange={(e) => set("username", e.target.value)} autoComplete="off" />
@@ -1047,14 +1097,43 @@ function MemberFormDrawer({
               ))}
             </FieldSelect>
           </Field>
-          <Field label="Хөгжлийн хөтөлбөр">
-            <FieldSelect value={form.developmentActivityId} onChange={(developmentActivityId) => set("developmentActivityId", developmentActivityId)}>
-              <option value="">Сонгох</option>
-              {activities.map((activity) => (
-                <option key={activity.id} value={activity.id}>{activity.name}</option>
-              ))}
-            </FieldSelect>
-          </Field>
+          <div className="md:col-span-2">
+            <Field label="Хөгжлийн хөтөлбөр">
+              <div className="space-y-3 rounded-lg border border-border p-3">
+                {groupActivities(activities).map((section) => (
+                  <div key={section.id}>
+                    <div className="mb-1.5 text-xs font-medium text-muted-foreground">{section.label}</div>
+                    <div className="grid gap-1 sm:grid-cols-2">
+                      {section.items.map((activity) => {
+                        const checked = form.developmentActivityIds.includes(activity.id);
+                        return (
+                          <label key={activity.id} className="flex cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-sm hover:bg-muted/50">
+                            <input
+                              type="checkbox"
+                              className="size-4 accent-primary"
+                              checked={checked}
+                              onChange={() => {
+                                set(
+                                  "developmentActivityIds",
+                                  checked
+                                    ? form.developmentActivityIds.filter((id) => id !== activity.id)
+                                    : [...form.developmentActivityIds, activity.id]
+                                );
+                              }}
+                            />
+                            {activity.name}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                {activities.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Хөтөлбөр алга.</p>
+                )}
+              </div>
+            </Field>
+          </div>
           {isJunior && (
             <div className="space-y-3 rounded-lg border border-border p-3 md:col-span-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1125,16 +1204,10 @@ function MemberFormDrawer({
               onChange={(e) => set("password", e.target.value)}
               autoComplete="new-password"
             />
-            <p className="text-xs text-muted-foreground">Хоосон бол гишүүний кодоор нэвтэрнэ. Оноо баталгаажуулахад код хэвээр хэрэглэнэ.</p>
+            <p className="text-xs text-muted-foreground">Хоосон бол гишүүний ID-аар нэвтэрнэ. Оноо баталгаажуулахад ID хэвээр хэрэглэнэ.</p>
           </Field>
           <Field label="Дуусах огноо" required>
             <Input type="date" required value={form.validTo} onChange={(e) => set("validTo", e.target.value)} />
-          </Field>
-          <Field label="XP">
-            <Input type="number" min={0} value={form.xp} onChange={(e) => set("xp", e.target.value === "" ? "" : Number(e.target.value))} />
-          </Field>
-          <Field label="RP">
-            <Input type="number" min={0} value={form.rp} onChange={(e) => set("rp", e.target.value === "" ? "" : Number(e.target.value))} />
           </Field>
           <Field label="Гишүүнчлэлийн түвшин">
             <div className="rounded-lg border border-border px-3 py-2">
@@ -1143,6 +1216,9 @@ function MemberFormDrawer({
                   ? membershipLabel(juniorLevel, "junior")
                   : membershipLabel(membershipLevel(num(form.xp), num(form.rp)))}
               </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                XP {num(form.xp)} · RP {num(form.rp)} · зөвхөн ирц, тэмцээн, XP нэмэхээр өөрчлөгдөнө
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {isJunior
                   ? "Жуниор түвшин нь хөтөлбөрийн анги. 18 нас хүртлээ насанд хүрэгчдийн системд шилжинэ."

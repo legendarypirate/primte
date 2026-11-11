@@ -136,7 +136,7 @@ export default function AttendancePage() {
       <DataTable
         search={query}
         onSearchChange={setQuery}
-        searchPlaceholder="Гишүүн, код..."
+        searchPlaceholder="Гишүүн, ID..."
         unit="ирц"
         total={table.total}
         page={table.page}
@@ -149,7 +149,7 @@ export default function AttendancePage() {
           <TableHeader>
             <TableRow>
               <TableHead>Гишүүн</TableHead>
-              <TableHead>Код</TableHead>
+              <TableHead>Гишүүний ID</TableHead>
               <TableHead>Ирсэн</TableHead>
               <TableHead>Явсан</TableHead>
               <TableHead>Цаг</TableHead>

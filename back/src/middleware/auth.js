@@ -156,7 +156,7 @@ async function requireMember(req, res, next) {
     return res.status(401).json({ message: 'Нэвтэрнэ үү.' });
   }
   const member = await Member.findByPk(payload.id, {
-    include: [MemberType, DevelopmentActivity, { model: Member, as: 'parent' }],
+    include: [MemberType, DevelopmentActivity, { model: DevelopmentActivity, as: 'developmentActivities' }, { model: Member, as: 'parent' }],
   });
   if (!member) return res.status(401).json({ message: 'Гишүүн олдсонгүй.' });
   const type = member.MemberType;

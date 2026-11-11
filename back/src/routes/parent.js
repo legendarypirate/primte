@@ -33,7 +33,7 @@ router.use(requireParent);
 async function getChildForParent(parentId, childId) {
   return Member.findOne({
     where: { id: childId, parentAccountId: parentId },
-    include: [MemberType, DevelopmentActivity, { model: MemberProgress, as: 'progress' }],
+    include: [MemberType, DevelopmentActivity, { model: DevelopmentActivity, as: 'developmentActivities' }, { model: MemberProgress, as: 'progress' }],
   });
 }
 

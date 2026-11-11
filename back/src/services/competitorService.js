@@ -117,9 +117,8 @@ async function ensureCompetitorFromRegistration(registrationId, options = {}) {
     const matchDivision = await findOrCreateMatchDivision(match.id, registration.Division, t);
     const matchCategory = await findOrCreateMatchCategory(match.id, registration.category, t);
 
-    const nameParts = (member.name || 'Unknown').trim().split(/\s+/);
-    const firstName = nameParts[0] || 'Unknown';
-    const lastName = nameParts.slice(1).join(' ') || '';
+    const firstName = String(member.firstName || '').trim() || (member.name || 'Unknown').trim().split(/\s+/)[0] || 'Unknown';
+    const lastName = String(member.lastName || '').trim() || (member.name || '').trim().split(/\s+/).slice(1).join(' ');
 
     const competitor = await Competitor.create(
       {
