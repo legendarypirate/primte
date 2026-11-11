@@ -555,8 +555,13 @@ export default function MembersPage() {
                           action="delete"
                           onClick={async () => {
                             if (!confirm("Устгах уу?")) return;
-                            await api(`/api/admin/members/${m.id}`, { method: "DELETE" });
-                            load();
+                            try {
+                              await api(`/api/admin/members/${m.id}`, { method: "DELETE" });
+                              toast.success("Гишүүнийг устгалаа");
+                              load();
+                            } catch (e) {
+                              toast.error(e instanceof Error ? e.message : "Устгаж чадсангүй");
+                            }
                           }}
                         />
                       )}

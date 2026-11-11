@@ -104,7 +104,8 @@ Stage.belongsTo(Match, { foreignKey: 'matchId' });
 
 Competitor.belongsTo(Match, { foreignKey: 'matchId' });
 Competitor.belongsTo(Registration, { foreignKey: 'registrationId' });
-Competitor.belongsTo(Member, { foreignKey: 'memberId' });
+Competitor.belongsTo(Member, { foreignKey: 'memberId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+Member.hasMany(Competitor, { foreignKey: 'memberId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Competitor.belongsTo(Squad, { foreignKey: 'squadId' });
 Competitor.belongsTo(MatchDivision, { foreignKey: 'matchDivisionId' });
 Competitor.belongsTo(MatchCategory, { foreignKey: 'categoryId' });
@@ -112,17 +113,17 @@ Squad.hasMany(Competitor, { foreignKey: 'squadId' });
 
 Score.belongsTo(Match, { foreignKey: 'matchId' });
 Score.belongsTo(Stage, { foreignKey: 'stageId' });
-Score.belongsTo(Competitor, { foreignKey: 'competitorId' });
-Score.hasMany(ScoreRevision, { foreignKey: 'scoreId' });
+Score.belongsTo(Competitor, { foreignKey: 'competitorId', onDelete: 'CASCADE' });
+Score.hasMany(ScoreRevision, { foreignKey: 'scoreId', onDelete: 'CASCADE' });
 
 StageResult.belongsTo(Match, { foreignKey: 'matchId' });
 StageResult.belongsTo(Stage, { foreignKey: 'stageId' });
-StageResult.belongsTo(Competitor, { foreignKey: 'competitorId' });
+StageResult.belongsTo(Competitor, { foreignKey: 'competitorId', onDelete: 'CASCADE' });
 
 MatchResult.belongsTo(Match, { foreignKey: 'matchId' });
-MatchResult.belongsTo(Competitor, { foreignKey: 'competitorId' });
+MatchResult.belongsTo(Competitor, { foreignKey: 'competitorId', onDelete: 'CASCADE' });
 
-ScoreRevision.belongsTo(Score, { foreignKey: 'scoreId' });
+ScoreRevision.belongsTo(Score, { foreignKey: 'scoreId', onDelete: 'CASCADE' });
 
 Official.belongsTo(Admin, { foreignKey: 'adminId' });
 Admin.hasOne(Official, { foreignKey: 'adminId' });

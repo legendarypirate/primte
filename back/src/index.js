@@ -49,6 +49,7 @@ sequelize
     }
     return sequelize.sync({ alter: true });
   })
+  .then(() => require('./services/memberDelete').ensureMemberCascadeFks())
   .then(() => require('./services/productCategoryService').ensureProductCategories())
   .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
   .then(() => require('./services/memberProgression').ensureStudentDefaults())

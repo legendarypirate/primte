@@ -42,6 +42,7 @@ const {
 } = require('../services/memberProgression');
 const { toDelta } = require('../domain/membership');
 const { toDateOnly, membershipDates } = require('../domain/dates');
+const { deleteMember } = require('../services/memberDelete');
 const {
   grantMembersExperience: grantPoints,
   recordAbsoluteChange,
@@ -492,7 +493,7 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
 router.delete('/members/:id', requirePermission('members.delete'), async (req, res) => {
   const member = await Member.findByPk(req.params.id);
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
-  await member.destroy();
+  await deleteMember(member);
   res.json({ ok: true });
 });
 

@@ -183,10 +183,8 @@ async function getNextCompetitor(squadId, stageId, currentCompetitorId) {
   return idx >= 0 ? queue[idx + 1] || null : queue[0] || null;
 }
 
-async function removeCompetitorByRegistrationId(registrationId, { transaction } = {}) {
-  const competitor = await Competitor.findOne({ where: { registrationId }, transaction });
+async function removeCompetitorRecord(competitor, { transaction } = {}) {
   if (!competitor) return null;
-
   const scores = await Score.findAll({
     where: { competitorId: competitor.id },
     attributes: ['id'],
@@ -203,6 +201,21 @@ async function removeCompetitorByRegistrationId(registrationId, { transaction } 
   return competitor.matchId;
 }
 
+async function removeCompetitorByRegistrationId(registrationId, { transaction } = {}) {
+  const competitor = await Competitor.findOne({ where: { registrationId }, transaction });
+  return removeCompetitorRecord(competitor, { transaction });
+}
+
+async function removeCompetitorsByMemberId(memberId, { transaction } = {}) {
+  const competitors = await Competitor.findAll({ where: { memberId }, transaction });
+  const matchIds = [];
+  for (const competitor of competitors) {
+    const matchId = await removeCompetitorRecord(competitor, { transaction });
+    if (matchId) matchIds.push(matchId);
+  }
+  return matchIds;
+}
+
 module.exports = {
   ensureCompetitorFromRegistration,
   ensureMatchForCompetition,
@@ -211,5 +224,7 @@ module.exports = {
   getCurrentCompetitor,
   getNextCompetitor,
   findOrCreateSquad,
+  removeCompetitorRecord,
   removeCompetitorByRegistrationId,
+  removeCompetitorsByMemberId,
 };
