@@ -1010,8 +1010,9 @@ function MemberFormDrawer({
         return;
       }
       const dates = membershipDates(form.validFrom, form.validTo);
+      const { xp: _xp, rp: _rp, level: _level, ...formFields } = form;
       const body = {
-        ...form,
+        ...formFields,
         ...dates,
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -1024,9 +1025,6 @@ function MemberFormDrawer({
         parentId: null,
         password: form.password.trim() || undefined,
       };
-      delete body.xp;
-      delete body.rp;
-      delete body.level;
       if (member) await api(`/api/admin/members/${member.id}`, { method: "PUT", body: JSON.stringify(body) });
       else await api("/api/admin/members", { method: "POST", body: JSON.stringify(body) });
       toast.success(isJunior ? "Жуниор бүртгэлээ" : "Гишүүн бүртгэлээ");
