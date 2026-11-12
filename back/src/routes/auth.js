@@ -41,7 +41,11 @@ function fcmFields(body) {
 
 async function persistFcm(record, body) {
   const fields = fcmFields(body);
-  if (!record || !fields) return;
+  if (!record) return;
+  if (!fields) {
+    console.log(`FCM: login had no device token for ${record.constructor?.name || 'user'} ${record.id} (iOS Simulator cannot provide one)`);
+    return;
+  }
   await record.update(fields);
   console.log(`FCM: saved token for ${record.constructor?.name || 'user'} ${record.id}`);
 }
