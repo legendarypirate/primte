@@ -1,7 +1,14 @@
 const fs = require('node:fs');
+const path = require('node:path');
 const admin = require('firebase-admin');
 
 let messaging = null;
+const BACK_ROOT = path.resolve(__dirname, '../..');
+
+function readJsonIfExists(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
 
 function loadServiceAccount() {
   const inline = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
@@ -9,9 +16,25 @@ function loadServiceAccount() {
     return JSON.parse(inline);
   }
 
-  const path = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (path && fs.existsSync(path)) {
-    return JSON.parse(fs.readFileSync(path, 'utf8'));
+  const configured = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const candidates = [
+    configured,
+    configured ? path.resolve(process.cwd(), configured) : null,
+    configured ? path.resolve(BACK_ROOT, configured) : null,
+    path.join(BACK_ROOT, 'firebase-service-account.json'),
+    path.join(process.cwd(), 'firebase-service-account.json'),
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const parsed = readJsonIfExists(candidate);
+    if (parsed) {
+      console.log(`FCM: loaded service account from ${candidate}`);
+      return parsed;
+    }
+  }
+
+  if (configured) {
+    console.warn(`FCM: FIREBASE_SERVICE_ACCOUNT_PATH=${configured} but the file was not found.`);
   }
 
   return null;
@@ -23,7 +46,7 @@ function initPushNotifications() {
   const serviceAccount = loadServiceAccount();
   if (!serviceAccount) {
     console.warn(
-      'FCM: Firebase service account not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH.',
+      'FCM: Firebase service account not configured. Put firebase-service-account.json in the back folder, or set FIREBASE_SERVICE_ACCOUNT_JSON / FIREBASE_SERVICE_ACCOUNT_PATH.',
     );
     return false;
   }
