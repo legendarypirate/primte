@@ -14,6 +14,22 @@ const {
 const { serializeMember } = require('../utils/helpers');
 const { resolveMemberNames } = require('../domain/names');
 const { nextStudentCode } = require('../services/memberProgression');
+const { formatPhone, isValidMnPhone, normalizePhone } = require('../utils/phone');
+const {
+  consumeVerifySession,
+  createVerifyMnSession,
+  getRememberedSession,
+  getVerifyMnSession,
+  pruneVerifySessions,
+  rememberVerifySession,
+} = require('../services/verifyMn');
+
+const memberAuthInclude = [
+  MemberType,
+  DevelopmentActivity,
+  { model: DevelopmentActivity, as: 'developmentActivities' },
+  { model: Member, as: 'parent' },
+];
 
 const router = express.Router();
 
@@ -160,37 +176,141 @@ router.post('/member/forgot-password', async (req, res) => {
   return res.json({ message: 'Хүсэлт хүлээн авлаа. Админ тантай холбогдоно.' });
 });
 
-router.post('/member/register', async (req, res) => {
-  const { firstName, lastName, username, phone, password } = req.body || {};
-  const names = resolveMemberNames({ firstName, lastName });
-  if (!names.name) return res.status(400).json({ message: 'Овог, нэр оруулна уу.' });
-  const loginName = String(username || '').trim().toLowerCase();
-  if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
-  const phoneValue = String(phone || '').trim();
-  if (phoneValue.replace(/\D/g, '').length < 8) {
-    return res.status(400).json({ message: 'Утасны дугаар оруулна уу.' });
+function sendAuthError(res, err) {
+  const status = err.statusCode || 500;
+  return res.status(status).json({ message: err.message || 'Алдаа гарлаа' });
+}
+
+async function findMemberByPhone(phone) {
+  const digits = normalizePhone(phone);
+  const members = await Member.findAll({
+    where: { phone: { [Op.ne]: null } },
+    attributes: ['id', 'phone'],
+  });
+  return members.find((member) => normalizePhone(member.phone) === digits) || null;
+}
+
+async function createVerifiedMember(pending) {
+  const usernameTaken = await Member.findOne({ where: { username: pending.username } });
+  if (usernameTaken) {
+    const err = new Error('Энэ нэвтрэх нэр бүртгэлтэй.');
+    err.statusCode = 400;
+    throw err;
   }
-  if (!password || String(password).trim().length < 4) {
-    return res.status(400).json({ message: 'Нууц үг хамгийн багадаа 4 тэмдэгт байна.' });
+  const phoneTaken = await findMemberByPhone(pending.phone);
+  if (phoneTaken) {
+    const err = new Error('Энэ утас өөр бүртгэлд холбогдсон байна.');
+    err.statusCode = 409;
+    throw err;
   }
-  const usernameTaken = await Member.findOne({ where: { username: loginName } });
-  if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
+
   const studentType = await MemberType.findOne({ where: { slug: 'student-member' } });
   const code = await nextStudentCode();
-  const hash = await bcrypt.hash(String(password).trim(), 10);
-  await Member.create({
-    name: names.name,
-    firstName: names.firstName,
-    lastName: names.lastName,
-    username: loginName,
+  const created = await Member.create({
+    name: pending.name,
+    firstName: pending.firstName,
+    lastName: pending.lastName,
+    username: pending.username,
     memberCode: code,
-    pinHash: hash,
-    passwordHash: hash,
-    phone: phoneValue,
-    status: 'inactive',
+    pinHash: pending.passwordHash,
+    passwordHash: pending.passwordHash,
+    phone: formatPhone(pending.phone),
+    status: 'active',
     memberTypeId: studentType?.id || null,
   });
-  return res.status(201).json({ message: 'Бүртгэл амжилттай. Админ баталгаажуулсны дараа нэвтэрнэ.' });
+  return Member.findByPk(created.id, { include: memberAuthInclude });
+}
+
+router.post('/member/register', async (req, res) => {
+  try {
+    pruneVerifySessions();
+    const { firstName, lastName, username, phone, password } = req.body || {};
+    const names = resolveMemberNames({ firstName, lastName });
+    if (!names.name) return res.status(400).json({ message: 'Овог, нэр оруулна уу.' });
+    const loginName = String(username || '').trim().toLowerCase();
+    if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
+    if (!isValidMnPhone(phone)) {
+      return res.status(400).json({ message: 'Монгол утасны дугаар буруу (8 орон, 6-9-өөр эхэлнэ).' });
+    }
+    if (!password || String(password).trim().length < 4) {
+      return res.status(400).json({ message: 'Нууц үг хамгийн багадаа 4 тэмдэгт байна.' });
+    }
+    const usernameTaken = await Member.findOne({ where: { username: loginName } });
+    if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
+    const phoneTaken = await findMemberByPhone(phone);
+    if (phoneTaken) return res.status(409).json({ message: 'Энэ утас өөр бүртгэлд холбогдсон байна.' });
+
+    const digits = normalizePhone(phone);
+    const session = await createVerifyMnSession(digits);
+    rememberVerifySession(session.sessionId, {
+      phone: digits,
+      username: loginName,
+      firstName: names.firstName,
+      lastName: names.lastName,
+      name: names.name,
+      passwordHash: await bcrypt.hash(String(password).trim(), 10),
+    });
+
+    const displayInstruction =
+      session.displayInstruction ||
+      `Та өөрийн ${digits} дугаараас 144773 дугаарт "${session.text}" гэж SMS илгээнэ үү. 2 SIM-тэй бол зөв SIM-ээ сонгоно уу.`;
+
+    return res.json({
+      sessionId: session.sessionId,
+      phone: session.phone,
+      shortcode: session.shortcode,
+      text: session.text,
+      smsUri: session.smsUri,
+      displayInstruction,
+      expiresAt: session.expiresAt,
+    });
+  } catch (err) {
+    return sendAuthError(res, err);
+  }
+});
+
+router.get('/member/verify/:sessionId', async (req, res) => {
+  try {
+    const sessionId = String(req.params.sessionId || '');
+    const local = getRememberedSession(sessionId);
+    if (!local) {
+      return res.status(404).json({ message: 'SESSION олдсонгүй' });
+    }
+    if (local.consumed) {
+      return res.status(409).json({ message: 'Энэ баталгаажуулалт аль хэдийн ашиглагдсан.' });
+    }
+
+    const remote = await getVerifyMnSession(sessionId);
+    const sessionStatus = remote.sessionStatus || 'PENDING';
+    if (sessionStatus !== 'VERIFIED') {
+      return res.json({
+        sessionId,
+        sessionStatus,
+        expiresAt: remote.expiresAt || null,
+      });
+    }
+
+    if (local.creating) {
+      return res.json({ sessionId, sessionStatus: 'PENDING', expiresAt: remote.expiresAt || null });
+    }
+    local.creating = true;
+    try {
+      const member = await createVerifiedMember(local);
+      consumeVerifySession(sessionId);
+      return res.json({
+        sessionId,
+        sessionStatus: 'VERIFIED',
+        verifiedAt: remote.verifiedAt || null,
+        token: signToken({ id: member.id, role: 'member' }),
+        member: serializeMember(member, req),
+      });
+    } catch (err) {
+      local.creating = false;
+      throw err;
+    }
+  } catch (err) {
+    return sendAuthError(res, err);
+  }
 });
 
 module.exports = router;
