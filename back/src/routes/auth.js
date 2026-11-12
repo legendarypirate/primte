@@ -52,31 +52,37 @@ router.post('/admin/login', async (req, res) => {
   });
 });
 
-router.post('/member/login', async (req, res) => {
-  const { name, username, code } = req.body || {};
-  const login = String(username || name || '').trim();
-  if (!login || !code) {
-    return res.status(400).json({ message: 'Нэвтрэх нэр болон нууц үгээ оруулна уу.' });
+async function findMemberByLogin(login, include) {
+  const typed = String(login || '').trim().toLowerCase();
+  const digits = normalizePhone(login);
+  if (digits) {
+    const byUsername = await Member.findOne({ where: { username: digits }, include });
+    if (byUsername) return byUsername;
+    const phoneHit = await findMemberByPhone(digits);
+    if (phoneHit) return Member.findByPk(phoneHit.id, { include });
   }
-  const typed = login.toLowerCase();
-  const secret = String(code).trim();
-  const include = [MemberType, DevelopmentActivity, { model: DevelopmentActivity, as: 'developmentActivities' }, { model: Member, as: 'parent' }];
-  const matchesLogin = (member) =>
-    (member.username && member.username.toLowerCase() === typed) ||
-    member.name.trim().toLowerCase() === typed;
-
-  let member =
+  return (
     (await Member.findOne({ where: { username: typed }, include })) ||
-    (await Member.findOne({ where: { name: { [Op.iLike]: login } }, include }));
+    (await Member.findOne({ where: { name: { [Op.iLike]: String(login || '').trim() } }, include }))
+  );
+}
+
+router.post('/member/login', async (req, res) => {
+  const { name, username, phone, code } = req.body || {};
+  const login = String(username || phone || name || '').trim();
+  if (!login || !code) {
+    return res.status(400).json({ message: 'Утасны дугаар болон нууц үгээ оруулна уу.' });
+  }
+  const secret = String(code).trim();
+  const include = memberAuthInclude;
+  const member = await findMemberByLogin(login, include);
   let ok = false;
-  if (member && matchesLogin(member)) {
+  if (member) {
     if (member.passwordHash) ok = await bcrypt.compare(secret, member.passwordHash);
     if (!ok && member.pinHash) ok = await bcrypt.compare(secret, member.pinHash);
-  } else {
-    member = null;
   }
 
-  if (!member || !ok) return res.status(401).json({ message: 'Нэвтрэх нэр эсвэл нууц үг буруу.' });
+  if (!member || !ok) return res.status(401).json({ message: 'Утасны дугаар эсвэл нууц үг буруу.' });
   const type = member.MemberType;
   if (member.status !== 'active' || (type && type.hasAppAccess === false)) {
     return res.status(401).json({ message: 'Гишүүн идэвхгүй байна.' });
@@ -193,7 +199,7 @@ async function findMemberByPhone(phone) {
 async function createVerifiedMember(pending) {
   const usernameTaken = await Member.findOne({ where: { username: pending.username } });
   if (usernameTaken) {
-    const err = new Error('Энэ нэвтрэх нэр бүртгэлтэй.');
+    const err = new Error('Энэ утасны дугаар бүртгэлтэй.');
     err.statusCode = 400;
     throw err;
   }
@@ -224,27 +230,25 @@ async function createVerifiedMember(pending) {
 router.post('/member/register', async (req, res) => {
   try {
     pruneVerifySessions();
-    const { firstName, lastName, username, phone, password } = req.body || {};
+    const { firstName, lastName, phone, password } = req.body || {};
     const names = resolveMemberNames({ firstName, lastName });
     if (!names.name) return res.status(400).json({ message: 'Овог, нэр оруулна уу.' });
-    const loginName = String(username || '').trim().toLowerCase();
-    if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
     if (!isValidMnPhone(phone)) {
       return res.status(400).json({ message: 'Монгол утасны дугаар буруу (8 орон, 6-9-өөр эхэлнэ).' });
     }
     if (!password || String(password).trim().length < 4) {
       return res.status(400).json({ message: 'Нууц үг хамгийн багадаа 4 тэмдэгт байна.' });
     }
-    const usernameTaken = await Member.findOne({ where: { username: loginName } });
-    if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
-    const phoneTaken = await findMemberByPhone(phone);
+    const digits = normalizePhone(phone);
+    const usernameTaken = await Member.findOne({ where: { username: digits } });
+    if (usernameTaken) return res.status(400).json({ message: 'Энэ утасны дугаар бүртгэлтэй.' });
+    const phoneTaken = await findMemberByPhone(digits);
     if (phoneTaken) return res.status(409).json({ message: 'Энэ утас өөр бүртгэлд холбогдсон байна.' });
 
-    const digits = normalizePhone(phone);
     const session = await createVerifyMnSession(digits);
     rememberVerifySession(session.sessionId, {
       phone: digits,
-      username: loginName,
+      username: digits,
       firstName: names.firstName,
       lastName: names.lastName,
       name: names.name,
