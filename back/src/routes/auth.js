@@ -32,6 +32,20 @@ const memberAuthInclude = [
   { model: Member, as: 'parent' },
 ];
 
+function fcmFields(body) {
+  const fcmToken = body?.fcmToken ? String(body.fcmToken).trim() : '';
+  if (!fcmToken) return null;
+  const fcmPlatform = body?.platform ? String(body.platform).trim() : null;
+  return { fcmToken, fcmPlatform };
+}
+
+async function persistFcm(record, body) {
+  const fields = fcmFields(body);
+  if (!record || !fields) return;
+  await record.update(fields);
+  console.log(`FCM: saved token for ${record.constructor?.name || 'user'} ${record.id}`);
+}
+
 const router = express.Router();
 
 router.post('/admin/login', async (req, res) => {
@@ -88,6 +102,7 @@ router.post('/member/login', async (req, res) => {
   if (member.status !== 'active' || (type && type.hasAppAccess === false)) {
     return res.status(401).json({ message: 'Гишүүн идэвхгүй байна.' });
   }
+  await persistFcm(member, req.body);
   return res.json({
     token: signToken({ id: member.id, role: 'member' }),
     member: serializeMember(member, req),
@@ -159,6 +174,7 @@ router.post('/parent/login', async (req, res) => {
   if (parent.passwordHash) ok = await bcrypt.compare(secret, parent.passwordHash);
   if (!ok && parent.pinHash) ok = await bcrypt.compare(secret, parent.pinHash);
   if (!ok) return res.status(401).json({ message: 'Утас эсвэл нууц үг буруу.' });
+  await persistFcm(parent, req.body);
   return res.json({
     token: signToken({ id: parent.id, role: 'parent' }),
     parent: serializeParent(parent),
@@ -378,6 +394,7 @@ router.post('/switch-mode', async (req, res) => {
         return res.status(400).json({ message: 'Эцэг эхийн горимд шилжих боломжгүй.' });
       }
       const parent = await ensureParentForMember(member);
+      await persistFcm(parent, req.body);
       return res.json({
         role: 'parent',
         token: signToken({ id: parent.id, role: 'parent' }),
@@ -393,6 +410,7 @@ router.post('/switch-mode', async (req, res) => {
     } else {
       const member = await Member.findByPk(payload.id, { include: memberAuthInclude });
       if (!member) return res.status(401).json({ message: 'Гишүүн олдсонгүй.' });
+      await persistFcm(member, req.body);
       return res.json({
         role: 'member',
         token: signToken({ id: member.id, role: 'member' }),
@@ -408,6 +426,7 @@ router.post('/switch-mode', async (req, res) => {
     if (member.status !== 'active' || (type && type.hasAppAccess === false)) {
       return res.status(401).json({ message: 'Гишүүн идэвхгүй байна.' });
     }
+    await persistFcm(member, req.body);
     return res.json({
       role: 'member',
       token: signToken({ id: member.id, role: 'member' }),
@@ -423,17 +442,15 @@ router.post('/fcm-token', async (req, res) => {
   if (!payload || !['member', 'parent'].includes(payload.role)) {
     return res.status(401).json({ message: 'Нэвтэрнэ үү.' });
   }
-  const fcmToken = req.body.fcmToken ? String(req.body.fcmToken).trim() : null;
-  const fcmPlatform = req.body.platform ? String(req.body.platform).trim() : null;
   try {
     if (payload.role === 'parent') {
       const parent = await Parent.findByPk(payload.id);
       if (!parent) return res.status(401).json({ message: 'Эцэг эх олдсонгүй.' });
-      await parent.update({ fcmToken, fcmPlatform });
+      await persistFcm(parent, req.body);
     } else {
       const member = await Member.findByPk(payload.id);
       if (!member) return res.status(401).json({ message: 'Гишүүн олдсонгүй.' });
-      await member.update({ fcmToken, fcmPlatform });
+      await persistFcm(member, req.body);
     }
     return res.json({ ok: true });
   } catch (err) {
