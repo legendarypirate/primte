@@ -33,6 +33,8 @@ const Member = sequelize.define('Member', {
   parentName: { type: DataTypes.STRING, field: 'parent_name' },
   parentPhone: { type: DataTypes.STRING, field: 'parent_phone' },
   parentEmail: { type: DataTypes.STRING, field: 'parent_email' },
+  fcmToken: { type: DataTypes.TEXT, allowNull: true, field: 'fcm_token' },
+  fcmPlatform: { type: DataTypes.STRING, allowNull: true, field: 'fcm_platform' },
 });
 
 module.exports = Member;

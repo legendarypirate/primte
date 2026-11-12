@@ -9,6 +9,8 @@ const Parent = sequelize.define('Parent', {
   passwordHash: { type: DataTypes.STRING, allowNull: true, field: 'password_hash' },
   email: { type: DataTypes.STRING },
   avatarUrl: { type: DataTypes.STRING, field: 'avatar_url' },
+  fcmToken: { type: DataTypes.TEXT, allowNull: true, field: 'fcm_token' },
+  fcmPlatform: { type: DataTypes.STRING, allowNull: true, field: 'fcm_platform' },
 });
 
 module.exports = Parent;

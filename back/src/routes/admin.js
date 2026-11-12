@@ -24,6 +24,7 @@ const {
 } = require('../models');
 const { requireAdmin, requirePermission } = require('../middleware/auth');
 const { loadClubStatus } = require('../services/clubStatus');
+const { notifyClubStatus } = require('../services/clubNotify');
 const { startOfClubDay } = require('../domain/club');
 const { makeGatePayload, GATE_TTL_MS, attendanceHours, GATE_PREFIX } = require('../domain/attendance');
 const { applyGate, openSession, serializeSession } = require('../services/attendanceService');
@@ -201,7 +202,8 @@ router.put('/settings', requirePermission('settings.manage'), async (req, res) =
         open: value.open ?? prev.open,
         capacity: value.capacity ?? prev.capacity,
       };
-      if (Boolean(prev.open) !== Boolean(next.open)) {
+      const openChanged = Boolean(prev.open) !== Boolean(next.open);
+      if (openChanged) {
         await Setting.upsert({
           key: 'club_open_history',
           value: [
@@ -217,6 +219,13 @@ router.put('/settings', requirePermission('settings.manage'), async (req, res) =
         });
       }
       await Setting.upsert({ key: 'club', value: next });
+      if (openChanged) {
+        try {
+          await notifyClubStatus(Boolean(next.open));
+        } catch (err) {
+          console.error('FCM: club notify failed', err);
+        }
+      }
       continue;
     }
     await Setting.upsert({ key, value });

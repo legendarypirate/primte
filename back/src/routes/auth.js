@@ -418,4 +418,27 @@ router.post('/switch-mode', async (req, res) => {
   }
 });
 
+router.post('/fcm-token', async (req, res) => {
+  const payload = readToken(req);
+  if (!payload || !['member', 'parent'].includes(payload.role)) {
+    return res.status(401).json({ message: 'Нэвтэрнэ үү.' });
+  }
+  const fcmToken = req.body.fcmToken ? String(req.body.fcmToken).trim() : null;
+  const fcmPlatform = req.body.platform ? String(req.body.platform).trim() : null;
+  try {
+    if (payload.role === 'parent') {
+      const parent = await Parent.findByPk(payload.id);
+      if (!parent) return res.status(401).json({ message: 'Эцэг эх олдсонгүй.' });
+      await parent.update({ fcmToken, fcmPlatform });
+    } else {
+      const member = await Member.findByPk(payload.id);
+      if (!member) return res.status(401).json({ message: 'Гишүүн олдсонгүй.' });
+      await member.update({ fcmToken, fcmPlatform });
+    }
+    return res.json({ ok: true });
+  } catch (err) {
+    return sendAuthError(res, err);
+  }
+});
+
 module.exports = router;

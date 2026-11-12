@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const { sequelize } = require('./models');
 const { attachRealtime } = require('./realtime');
+const { initPushNotifications } = require('./services/pushNotification');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const appRoutes = require('./routes/app');
@@ -57,6 +58,7 @@ sequelize
   .then(() => require('./services/memberProgression').ensureStudentDefaults())
   .then(() => require('./services/rbacService').ensureSystemRoles())
   .then(() => {
+    initPushNotifications();
     const server = http.createServer(app);
     attachRealtime(server);
     server.listen(port, () => {

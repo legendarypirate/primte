@@ -76,7 +76,7 @@ export default function SettingsPage() {
     setToggling(true);
     try {
       await saveClub({ open: nextOpen, todayCount, capacity });
-      toast.success(nextOpen ? "Клуб нээлээ" : "Клуб хаалаа");
+      toast.success(nextOpen ? "Клуб нээлээ. Гишүүдэд мэдэгдэл илгээлээ." : "Клуб хаалаа. Гишүүдэд мэдэгдэл илгээлээ.");
     } catch (e) {
       setOpen(!nextOpen);
       toast.error(e instanceof Error ? e.message : "Алдаа");
