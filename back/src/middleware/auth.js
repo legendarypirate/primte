@@ -169,6 +169,7 @@ async function requireMember(req, res, next) {
 
 module.exports = {
   signToken,
+  readToken,
   requireAdmin,
   requireJudge,
   requireScoringAccess,

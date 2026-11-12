@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const { Admin, Judge, Member, Parent, Role, MemberType, DevelopmentActivity } = require('../models');
 const {
   signToken,
+  readToken,
   requireAdmin,
   requireJudge,
   requireParent,
@@ -312,6 +313,106 @@ router.get('/member/verify/:sessionId', async (req, res) => {
       local.creating = false;
       throw err;
     }
+  } catch (err) {
+    return sendAuthError(res, err);
+  }
+});
+
+async function findParentByPhone(phone) {
+  const digits = normalizePhone(phone);
+  if (!digits) return null;
+  const parents = await Parent.findAll();
+  return parents.find((parent) => normalizePhone(parent.phone) === digits) || null;
+}
+
+async function ensureParentForMember(member) {
+  const digits = normalizePhone(member.phone);
+  if (!digits) {
+    const err = new Error('Утасны дугаар бүртгэлгүй тул эцэг эхийн горимд шилжих боломжгүй.');
+    err.statusCode = 400;
+    throw err;
+  }
+  let parent = await findParentByPhone(digits);
+  if (!parent) {
+    parent = await Parent.create({
+      name: member.name,
+      phone: digits,
+      email: member.email || null,
+      avatarUrl: member.avatarUrl || null,
+      pinHash: member.pinHash,
+      passwordHash: member.passwordHash || member.pinHash,
+    });
+  }
+  return parent;
+}
+
+router.post('/switch-mode', async (req, res) => {
+  try {
+    const payload = readToken(req);
+    if (!payload || !['member', 'parent'].includes(payload.role)) {
+      return res.status(401).json({ message: 'Нэвтэрнэ үү.' });
+    }
+    const mode = String(req.body.mode || '').trim().toLowerCase();
+    if (mode !== 'member' && mode !== 'parent') {
+      return res.status(400).json({ message: 'Горим буруу байна.' });
+    }
+
+    if (mode === 'parent') {
+      let member = null;
+      if (payload.role === 'member') {
+        member = await Member.findByPk(payload.id);
+      } else {
+        const current = await Parent.findByPk(payload.id);
+        if (!current) return res.status(401).json({ message: 'Эцэг эх олдсонгүй.' });
+        member = await findMemberByLogin(current.phone, memberAuthInclude);
+      }
+      if (!member) {
+        const current = payload.role === 'parent' ? await Parent.findByPk(payload.id) : null;
+        if (current) {
+          return res.json({
+            role: 'parent',
+            token: signToken({ id: current.id, role: 'parent' }),
+            parent: serializeParent(current),
+          });
+        }
+        return res.status(400).json({ message: 'Эцэг эхийн горимд шилжих боломжгүй.' });
+      }
+      const parent = await ensureParentForMember(member);
+      return res.json({
+        role: 'parent',
+        token: signToken({ id: parent.id, role: 'parent' }),
+        parent: serializeParent(parent),
+      });
+    }
+
+    let phone = '';
+    if (payload.role === 'parent') {
+      const parent = await Parent.findByPk(payload.id);
+      if (!parent) return res.status(401).json({ message: 'Эцэг эх олдсонгүй.' });
+      phone = parent.phone;
+    } else {
+      const member = await Member.findByPk(payload.id, { include: memberAuthInclude });
+      if (!member) return res.status(401).json({ message: 'Гишүүн олдсонгүй.' });
+      return res.json({
+        role: 'member',
+        token: signToken({ id: member.id, role: 'member' }),
+        member: serializeMember(member, req),
+      });
+    }
+
+    const member = await findMemberByLogin(phone, memberAuthInclude);
+    if (!member) {
+      return res.status(400).json({ message: 'Гишүүний бүртгэл олдсонгүй. Эхлээд гишүүнээр бүртгүүлнэ үү.' });
+    }
+    const type = member.MemberType;
+    if (member.status !== 'active' || (type && type.hasAppAccess === false)) {
+      return res.status(401).json({ message: 'Гишүүн идэвхгүй байна.' });
+    }
+    return res.json({
+      role: 'member',
+      token: signToken({ id: member.id, role: 'member' }),
+      member: serializeMember(member, req),
+    });
   } catch (err) {
     return sendAuthError(res, err);
   }
