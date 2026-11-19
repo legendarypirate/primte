@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { startOfClubDay, mergeClubStatus } = require('./club');
+const { startOfClubDay, mergeClubStatus, clubTime } = require('./club');
 
 test('startOfClubDay is midnight in Ulaanbaatar', () => {
   const start = startOfClubDay(new Date('2026-10-28T02:30:00.000Z'));
@@ -18,4 +18,8 @@ test('mergeClubStatus uses live attendance and stored open/capacity', () => {
     todayCount: 0,
     capacity: 40,
   });
+});
+
+test('clubTime formats hours in Ulaanbaatar', () => {
+  assert.equal(clubTime(new Date('2026-10-28T02:30:00.000Z')), '10:30');
 });

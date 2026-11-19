@@ -1,6 +1,7 @@
-const { Attendance } = require('../models');
+const { Op } = require('sequelize');
+const { Attendance, Member } = require('../models');
 const { attendanceHours } = require('../domain/attendance');
-const { startOfClubDay } = require('../domain/club');
+const { startOfClubDay, clubTime } = require('../domain/club');
 const { awardTrainingHourXp } = require('./pointLedger');
 
 async function openSession(memberId) {
@@ -16,13 +17,15 @@ function fail(message, statusCode = 409) {
   throw err;
 }
 
-function clubTime(value) {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Ulaanbaatar',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(value));
+async function listPresentToday() {
+  return Attendance.findAll({
+    where: { checkOutAt: null, createdAt: { [Op.gte]: startOfClubDay() } },
+    include: [{
+      model: Member,
+      attributes: ['id', 'name', 'firstName', 'lastName', 'memberCode', 'avatarUrl'],
+    }],
+    order: [['createdAt', 'ASC']],
+  });
 }
 
 async function closeSession(member, open, checkOutAt) {
@@ -99,8 +102,10 @@ function serializeSession(row) {
 
 module.exports = {
   openSession,
+  listPresentToday,
   checkIn,
   checkOut,
   applyGate,
   serializeSession,
+  clubTime,
 };

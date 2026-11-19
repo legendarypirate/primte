@@ -1,4 +1,6 @@
 const { computeMembershipLevel, membershipLabel } = require('../domain/membership');
+const { clubTime } = require('../domain/club');
+const { resolveMemberNames } = require('../domain/names');
 const { memberRoleSlug, matchPermissionForCompetition } = require('../rbac/catalog');
 const { permissionsForMember, memberHasPermission } = require('../services/rbacService');
 
@@ -261,6 +263,21 @@ function serializeAttendance(record) {
   };
 }
 
+function serializePresentMember(row, req, viewerId) {
+  const member = row.Member || {};
+  const names = resolveMemberNames(member);
+  return {
+    id: row.id,
+    memberId: member.id || row.memberId,
+    name: names.name || member.name || '',
+    memberCode: member.memberCode || '',
+    avatarUrl: publicUrl(req, member.avatarUrl),
+    arrivedAt: row.createdAt,
+    timeLabel: clubTime(row.createdAt),
+    self: Boolean(viewerId) && member.id === viewerId,
+  };
+}
+
 function serializeProgress(progress) {
   return {
     accuracy: progress.accuracy,
@@ -399,6 +416,7 @@ module.exports = {
   serializeMember,
   serializeChildSummary,
   serializeAttendance,
+  serializePresentMember,
   serializeProgress,
   serializePurchase,
   memberHasPermission,

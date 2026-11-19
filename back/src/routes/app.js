@@ -20,7 +20,7 @@ const { memberHasPermission } = require('../services/rbacService');
 const { loadClubStatus } = require('../services/clubStatus');
 const { awardCompetitionXp, listPointHistory } = require('../services/pointLedger');
 const { parseGatePayload } = require('../domain/attendance');
-const { applyGate, openSession, serializeSession } = require('../services/attendanceService');
+const { applyGate, openSession, serializeSession, listPresentToday } = require('../services/attendanceService');
 const {
   serializeMember,
   serializeProduct,
@@ -28,6 +28,7 @@ const {
   serializeCompetition,
   serializeRegistration,
   serializeTraining,
+  serializePresentMember,
   formatDate,
   formatTime,
 } = require('../utils/helpers');
@@ -539,6 +540,14 @@ router.get('/attendance/status', async (req, res) => {
     present: Boolean(open),
     session: serializeSession(open),
     club: await loadClubStatus(),
+  });
+});
+
+router.get('/attendance/present', async (req, res) => {
+  const [rows, club] = await Promise.all([listPresentToday(), loadClubStatus()]);
+  res.json({
+    members: rows.map((row) => serializePresentMember(row, req, req.member.id)),
+    club,
   });
 });
 

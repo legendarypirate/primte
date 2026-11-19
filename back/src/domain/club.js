@@ -20,8 +20,18 @@ function mergeClubStatus(setting = {}, { todayCount = 0 } = {}) {
   };
 }
 
+function clubTime(value, timeZone = CLUB_TIME_ZONE) {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(value));
+}
+
 module.exports = {
   CLUB_TIME_ZONE,
   startOfClubDay,
   mergeClubStatus,
+  clubTime,
 };
