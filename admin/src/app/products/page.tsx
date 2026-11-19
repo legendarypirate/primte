@@ -24,10 +24,9 @@ type ProductForm = {
   name: string;
   price: number;
   originalPrice: number;
+  discountPercent: number;
   category: string;
-  subtitle: string;
   description: string;
-  features: string;
   stock: number;
   featured: boolean;
   images: string[];
@@ -38,10 +37,9 @@ const empty: ProductForm = {
   name: "",
   price: 0,
   originalPrice: 0,
+  discountPercent: 0,
   category: "",
-  subtitle: "",
   description: "",
-  features: "",
   stock: 0,
   featured: false,
   images: [],
@@ -332,7 +330,7 @@ export default function ProductsPage() {
       </Tabs>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-full gap-0 sm:max-w-xl">
+        <SheetContent className="w-full gap-0 sm:max-w-3xl">
           {open && (
             <ProductDrawerForm
               key={editing?.id ?? "new"}
@@ -387,10 +385,9 @@ function ProductDrawerForm({
           name: product.name,
           price: product.price,
           originalPrice: product.originalPrice ?? 0,
+          discountPercent: saleDiscount(product.originalPrice ?? 0, product.price),
           category: product.category,
-          subtitle: product.subtitle || "",
           description: product.description || "",
-          features: (product.features || []).join(", "),
           stock: product.stock ?? 0,
           featured: Boolean(product.featured),
           images: productImages(product),
@@ -412,8 +409,15 @@ function ProductDrawerForm({
     if (!form.name.trim()) return toast.error("Барааны нэр оруулна уу.");
     if (!form.category) return toast.error("Ангилал сонгоно уу.");
     const payload = {
-      ...form,
-      features: form.features.split(",").map((s) => s.trim()).filter(Boolean),
+      name: form.name,
+      price: form.price,
+      originalPrice: form.discountPercent > 0 ? form.originalPrice : 0,
+      category: form.category,
+      description: form.description,
+      stock: form.stock,
+      featured: form.featured,
+      images: form.images,
+      relatedIds: form.relatedIds,
     };
     setSaving(true);
     try {
@@ -435,35 +439,7 @@ function ProductDrawerForm({
         <SheetDescription>{product ? product.name : "Дэлгүүрт шинэ бараа нэмэх"}</SheetDescription>
       </SheetHeader>
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        <MultiImageUpload
-          folder="prime/products"
-          value={form.images}
-          onChange={(images) => setForm((f) => ({ ...f, images }))}
-        />
-        <div className="space-y-1"><Label>Нэр</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label>Анхны үнэ</Label>
-            <Input
-              type="number"
-              min={0}
-              value={form.originalPrice || ""}
-              placeholder="0"
-              onChange={(e) => setForm({ ...form, originalPrice: Math.max(0, Number(e.target.value) || 0) })}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label>Зарах үнэ</Label>
-            <Input type="number" min={0} value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
-          </div>
-        </div>
-        {saleDiscount(form.originalPrice, form.price) > 0 ? (
-          <p className="text-sm font-medium text-primary">
-            Хямдрал -{saleDiscount(form.originalPrice, form.price)}% · {tugrik(form.originalPrice)} → {tugrik(form.price)}
-          </p>
-        ) : (
-          <p className="text-xs text-muted-foreground">Анхны үнэ зарах үнээс өндөр бол хямдрал харагдана.</p>
-        )}
+        <div className="space-y-1"><Label>Нэр</Label><Input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
         <div className="space-y-1">
           <Label>Ангилал</Label>
           <FieldSelect value={form.category} onChange={(category) => setForm({ ...form, category })}>
@@ -473,28 +449,110 @@ function ProductDrawerForm({
             ))}
           </FieldSelect>
         </div>
-        <div className="space-y-1"><Label>Дэд гарчиг</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
-        <div className="space-y-1"><Label>Тайлбар</Label><Textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-        <div className="space-y-1"><Label>Онцлог (таслалаар)</Label><Input value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} /></div>
-        <div className="space-y-1">
-          <Label>Үлдэгдэл</Label>
-          <Input
-            type="number"
-            min={0}
-            value={form.stock}
-            onChange={(e) => setForm({ ...form, stock: Math.max(0, Number(e.target.value) || 0) })}
-          />
-          <p className="text-xs text-muted-foreground">0 бол бараа дууссан гэж харагдана.</p>
+        <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+          <p className="text-sm font-semibold">Үнэ, хямдрал</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>Үнэ</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.discountPercent > 0 ? form.originalPrice : form.price}
+                onChange={(e) => {
+                  const next = Math.max(0, Number(e.target.value) || 0);
+                  if (form.discountPercent > 0) {
+                    setForm({
+                      ...form,
+                      originalPrice: next,
+                      price: Math.round(next * (100 - form.discountPercent) / 100),
+                    });
+                    return;
+                  }
+                  setForm({ ...form, originalPrice: 0, price: next });
+                }}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Хямдрал %</Label>
+              <Input
+                type="number"
+                min={0}
+                max={99}
+                value={form.discountPercent}
+                onChange={(e) => {
+                  const discountPercent = Math.min(99, Math.max(0, Number(e.target.value) || 0));
+                  const originalPrice = form.originalPrice > 0 ? form.originalPrice : form.price;
+                  if (discountPercent <= 0) {
+                    setForm({ ...form, discountPercent: 0, originalPrice: 0, price: originalPrice || form.price });
+                    return;
+                  }
+                  setForm({
+                    ...form,
+                    discountPercent,
+                    originalPrice,
+                    price: Math.round(originalPrice * (100 - discountPercent) / 100),
+                  });
+                }}
+              />
+            </div>
+          </div>
+          {form.discountPercent > 0 ? (
+            <>
+              <div className="space-y-1">
+                <Label>Хямдралтай үнэ</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.price}
+                  onChange={(e) => {
+                    const price = Math.max(0, Number(e.target.value) || 0);
+                    const originalPrice = form.originalPrice > 0 ? form.originalPrice : price;
+                    const discountPercent = saleDiscount(originalPrice, price);
+                    setForm({
+                      ...form,
+                      price,
+                      originalPrice: discountPercent > 0 ? originalPrice : 0,
+                      discountPercent,
+                    });
+                  }}
+                />
+              </div>
+              {form.originalPrice > form.price && (
+                <p className="text-sm font-medium text-primary">
+                  {tugrik(form.originalPrice)} → {tugrik(form.price)} (−{form.discountPercent}%)
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground">Хямдрал % оруулбал апп дээр хуучин үнэ болон хувь харагдана.</p>
+          )}
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.featured}
-            onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-            className="size-4 accent-primary"
-          />
-          Онцгой бараа
-        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label>Үлдэгдэл</Label>
+            <Input
+              type="number"
+              min={0}
+              value={form.stock}
+              onChange={(e) => setForm({ ...form, stock: Math.max(0, Number(e.target.value) || 0) })}
+            />
+          </div>
+          <label className="flex items-end gap-2 pb-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.featured}
+              onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+              className="size-4 accent-primary"
+            />
+            Онцгой бараа
+          </label>
+        </div>
+        <div className="space-y-1"><Label>Тайлбар</Label><Textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+        <MultiImageUpload
+          folder="prime/products"
+          value={form.images}
+          onChange={(images) => setForm((f) => ({ ...f, images }))}
+        />
         <div className="space-y-2">
           <Label>Тохирох тоноглолууд</Label>
           <p className="text-xs text-muted-foreground">
