@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const { Op } = require('sequelize');
 const {
   sequelize,
@@ -15,6 +16,7 @@ const {
   MatchType,
 } = require('../models');
 const { requireMember } = require('../middleware/auth');
+const { isConfigured, uploadBuffer } = require('../services/cloudinaryUpload');
 const { matchPermissionForCompetition } = require('../rbac/catalog');
 const { memberHasPermission } = require('../services/rbacService');
 const { loadClubStatus } = require('../services/clubStatus');
@@ -535,6 +537,45 @@ router.get('/notices', async (_req, res) => {
 
 router.get('/profile', async (req, res) => {
   res.json({ member: serializeMember(req.member, req) });
+});
+
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = /^image\/(jpeg|png|gif|webp)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Зөвхөн JPG, PNG, GIF, WEBP зураг оруулна.'), ok);
+  },
+});
+
+function singleAvatarFile(req, res, next) {
+  avatarUpload.single('file')(req, res, (err) => {
+    if (!err) return next();
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'Зургийн хэмжээ 8MB-аас хэтэрч болохгүй.' });
+    }
+    return res.status(400).json({ message: err.message || 'Файл оруулахад алдаа гарлаа.' });
+  });
+}
+
+router.post('/profile/avatar', singleAvatarFile, async (req, res) => {
+  if (!isConfigured()) {
+    return res.status(500).json({ message: 'Cloudinary тохиргоо дутуу байна.' });
+  }
+  if (!req.file) return res.status(400).json({ message: 'Файл олдсонгүй.' });
+  try {
+    const result = await uploadBuffer(req.file.buffer, {
+      folder: 'prime/avatars',
+      resourceType: 'image',
+    });
+    await req.member.update({ avatarUrl: result.secure_url });
+    res.json({
+      url: result.secure_url,
+      member: serializeMember(req.member, req),
+    });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || 'Cloudinary upload амжилтгүй.' });
+  }
 });
 
 router.get('/points', async (req, res) => {
