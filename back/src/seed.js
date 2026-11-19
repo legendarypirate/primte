@@ -299,7 +299,7 @@ async function run() {
   ]);
 
   await Setting.bulkCreate([
-    { key: 'club', value: { open: true, capacity: 40 } },
+    { key: 'club', value: { open: true, capacity: 40, hours: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, open: true, start: '10:00', end: '22:00' })) } },
     { key: 'brand', value: { name: 'PRIME', tagline: 'Play. Train. Compete. Belong.' } },
   ]);
 

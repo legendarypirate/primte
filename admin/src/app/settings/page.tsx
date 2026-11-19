@@ -18,12 +18,43 @@ type ClubHistory = {
   at: string;
 };
 
+type ClubHour = {
+  weekday: number;
+  label?: string;
+  open: boolean;
+  start: string;
+  end: string;
+};
+
 type ClubSettings = {
   open: boolean;
   todayCount: number;
   capacity: number;
+  hours?: ClubHour[];
   history?: ClubHistory[];
 };
+
+const WEEKDAYS: ClubHour[] = [
+  { weekday: 1, label: "Даваа", open: true, start: "10:00", end: "22:00" },
+  { weekday: 2, label: "Мягмар", open: true, start: "10:00", end: "22:00" },
+  { weekday: 3, label: "Лхагва", open: true, start: "10:00", end: "22:00" },
+  { weekday: 4, label: "Пүрэв", open: true, start: "10:00", end: "22:00" },
+  { weekday: 5, label: "Баасан", open: true, start: "10:00", end: "22:00" },
+  { weekday: 6, label: "Бямба", open: true, start: "10:00", end: "22:00" },
+  { weekday: 7, label: "Ням", open: true, start: "10:00", end: "22:00" },
+];
+
+function normalizeHours(hours?: ClubHour[]) {
+  return WEEKDAYS.map((day) => {
+    const found = hours?.find((row) => row.weekday === day.weekday);
+    return {
+      ...day,
+      open: found ? found.open !== false : day.open,
+      start: found?.start || day.start,
+      end: found?.end || day.end,
+    };
+  });
+}
 
 function formatWhen(value: string) {
   const date = new Date(value);
@@ -41,6 +72,7 @@ export default function SettingsPage() {
   const [open, setOpen] = useState(true);
   const [todayCount, setTodayCount] = useState(0);
   const [capacity, setCapacity] = useState(40);
+  const [hours, setHours] = useState<ClubHour[]>(WEEKDAYS);
   const [history, setHistory] = useState<ClubHistory[]>([]);
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -49,17 +81,22 @@ export default function SettingsPage() {
     setOpen(club.open);
     setTodayCount(club.todayCount ?? 0);
     setCapacity(club.capacity ?? 40);
+    setHours(normalizeHours(club.hours));
     setHistory(club.history || []);
   }
 
   async function load() {
     const data = await api<{ settings: { club?: ClubSettings } }>("/api/admin/settings");
-    applyClub(data.settings.club || { open: true, todayCount: 0, capacity: 40, history: [] });
+    applyClub(data.settings.club || { open: true, todayCount: 0, capacity: 40, hours: WEEKDAYS, history: [] });
   }
 
   useEffect(() => {
     load().catch((e) => toast.error(e instanceof Error ? e.message : "Алдаа"));
   }, []);
+
+  function patchHour(weekday: number, patch: Partial<ClubHour>) {
+    setHours((prev) => prev.map((row) => (row.weekday === weekday ? { ...row, ...patch } : row)));
+  }
 
   async function saveClub(next: Partial<ClubSettings> & { open: boolean; todayCount: number; capacity: number }) {
     const data = await api<{ settings: { club?: ClubSettings } }>("/api/admin/settings", {
@@ -75,7 +112,7 @@ export default function SettingsPage() {
     setOpen(nextOpen);
     setToggling(true);
     try {
-      await saveClub({ open: nextOpen, todayCount, capacity });
+      await saveClub({ open: nextOpen, todayCount, capacity, hours });
       toast.success(nextOpen ? "Клуб нээлээ. Гишүүдэд мэдэгдэл илгээлээ." : "Клуб хаалаа. Гишүүдэд мэдэгдэл илгээлээ.");
     } catch (e) {
       setOpen(!nextOpen);
@@ -135,7 +172,7 @@ export default function SettingsPage() {
               onClick={async () => {
                 setSaving(true);
                 try {
-                  await saveClub({ open, todayCount, capacity });
+                  await saveClub({ open, todayCount, capacity, hours });
                   toast.success("Хадгаллаа");
                 } catch (e) {
                   toast.error(e instanceof Error ? e.message : "Алдаа");
@@ -176,6 +213,75 @@ export default function SettingsPage() {
                 ))}
               </ul>
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>7 хоногийн цагийн хуваарь</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <p className="mb-3 text-sm text-muted-foreground">
+              Гишүүдийн апп дээрх клубын төлөв дээр энэ хуваарь харагдана. Өдөр бүрийн нээлттэй цагийг тохируулна.
+            </p>
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {hours.map((day) => (
+                <div key={day.weekday} className="flex flex-wrap items-center gap-3 px-3 py-3">
+                  <div className="w-24 font-medium">{day.label}</div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={day.open}
+                    onClick={() => patchHour(day.weekday, { open: !day.open })}
+                    className={cn(
+                      "relative h-6 w-11 shrink-0 rounded-full transition-colors",
+                      day.open ? "bg-primary" : "bg-muted-foreground/30"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
+                        day.open ? "left-5" : "left-0.5"
+                      )}
+                    />
+                  </button>
+                  <span className="w-20 text-xs text-muted-foreground">{day.open ? "Нээлттэй" : "Хаалттай"}</span>
+                  <Input
+                    type="time"
+                    className="w-32"
+                    value={day.start}
+                    disabled={!day.open}
+                    onChange={(e) => patchHour(day.weekday, { start: e.target.value })}
+                  />
+                  <span className="text-muted-foreground">–</span>
+                  <Input
+                    type="time"
+                    className="w-32"
+                    value={day.end}
+                    disabled={!day.open}
+                    onChange={(e) => patchHour(day.weekday, { end: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="pt-4">
+              <Button
+                disabled={saving}
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await saveClub({ open, todayCount, capacity, hours });
+                    toast.success("Цагийн хуваарь хадгаллаа");
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Алдаа");
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+              >
+                {saving ? "Хадгалж байна..." : "Хуваарь хадгалах"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
