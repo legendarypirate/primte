@@ -594,11 +594,18 @@ router.delete('/product-categories/:id', requirePermission('products.manage'), a
 
 async function sanitizeProductInput(body, productId) {
   const input = {};
-  for (const key of ['name', 'price', 'imageUrl', 'subtitle', 'description', 'features', 'inStock', 'sortOrder']) {
+  for (const key of ['name', 'price', 'imageUrl', 'subtitle', 'description', 'features', 'sortOrder']) {
     if (body[key] !== undefined) input[key] = body[key];
   }
   if (input.price !== undefined) input.price = Math.max(0, Math.round(Number(input.price) || 0));
   if (input.sortOrder !== undefined) input.sortOrder = Number(input.sortOrder) || 0;
+  if (body.stock !== undefined) {
+    input.stock = Math.max(0, Math.round(Number(body.stock) || 0));
+    input.inStock = input.stock > 0;
+  } else if (body.inStock !== undefined) {
+    input.inStock = Boolean(body.inStock);
+    if (!input.inStock) input.stock = 0;
+  }
   if (input.features !== undefined && !Array.isArray(input.features)) input.features = [];
 
   if (body.images !== undefined) {

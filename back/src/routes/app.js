@@ -471,10 +471,16 @@ router.post('/orders', async (req, res) => {
   const prepared = [];
   for (const item of items) {
     const product = map[item.productId];
-    if (!product || !product.inStock) {
+    if (!product) {
       return res.status(400).json({ message: 'Бүтээгдэхүүн боломжгүй.' });
     }
-    const qty = Number(item.quantity || 1);
+    const qty = Math.max(1, Math.round(Number(item.quantity || 1)));
+    const stock = Math.max(0, Number(product.stock) || 0);
+    if (stock < qty) {
+      return res.status(400).json({
+        message: stock <= 0 ? `${product.name} дууссан.` : `${product.name} үлдэгдэл хүрэлцэхгүй.`,
+      });
+    }
     total += product.price * qty;
     prepared.push({ product, qty });
   }
@@ -504,6 +510,8 @@ router.post('/orders', async (req, res) => {
         },
         { transaction: t }
       );
+      const nextStock = Math.max(0, Number(row.product.stock || 0) - row.qty);
+      await row.product.update({ stock: nextStock, inStock: nextStock > 0 }, { transaction: t });
     }
     await req.member.decrement('walletBalance', { by: total, transaction: t });
   });

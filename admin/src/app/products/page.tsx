@@ -27,7 +27,7 @@ type ProductForm = {
   subtitle: string;
   description: string;
   features: string;
-  inStock: boolean;
+  stock: number;
   images: string[];
   relatedIds: string[];
 };
@@ -39,7 +39,7 @@ const empty: ProductForm = {
   subtitle: "",
   description: "",
   features: "",
-  inStock: true,
+  stock: 0,
   images: [],
   relatedIds: [],
 };
@@ -212,7 +212,7 @@ export default function ProductsPage() {
                 <TableHead>Ангилал</TableHead>
                 <TableHead>Зураг</TableHead>
                 <TableHead>Тохирох</TableHead>
-                <TableHead>Төлөв</TableHead>
+                    <TableHead>Үлдэгдэл</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -240,7 +240,11 @@ export default function ProductsPage() {
                     <TableCell>{images.length}</TableCell>
                     <TableCell>{p.relatedIds?.length ? p.relatedIds.length : <span className="text-muted-foreground">Авто</span>}</TableCell>
                     <TableCell>
-                      <StatusBadge active={p.inStock} activeLabel="Бэлэн" inactiveLabel="Дууссан" />
+                      <StatusBadge
+                        active={(p.stock ?? 0) > 0}
+                        activeLabel={`${p.stock ?? 0}`}
+                        inactiveLabel="Дууссан"
+                      />
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <ActionCell>
@@ -360,7 +364,7 @@ function ProductDrawerForm({
           subtitle: product.subtitle || "",
           description: product.description || "",
           features: (product.features || []).join(", "),
-          inStock: product.inStock,
+          stock: product.stock ?? 0,
           images: productImages(product),
           relatedIds: product.relatedIds || [],
         }
@@ -424,15 +428,16 @@ function ProductDrawerForm({
         <div className="space-y-1"><Label>Дэд гарчиг</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
         <div className="space-y-1"><Label>Тайлбар</Label><Textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
         <div className="space-y-1"><Label>Онцлог (таслалаар)</Label><Input value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} /></div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.inStock}
-            onChange={(e) => setForm({ ...form, inStock: e.target.checked })}
-            className="size-4 accent-primary"
+        <div className="space-y-1">
+          <Label>Үлдэгдэл</Label>
+          <Input
+            type="number"
+            min={0}
+            value={form.stock}
+            onChange={(e) => setForm({ ...form, stock: Math.max(0, Number(e.target.value) || 0) })}
           />
-          Бэлэн байгаа
-        </label>
+          <p className="text-xs text-muted-foreground">0 бол бараа дууссан гэж харагдана.</p>
+        </div>
         <div className="space-y-2">
           <Label>Тохирох тоноглолууд</Label>
           <p className="text-xs text-muted-foreground">

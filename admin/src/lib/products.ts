@@ -7,6 +7,7 @@ export type Product = {
   subtitle?: string;
   description?: string;
   features?: string[];
+  stock: number;
   inStock: boolean;
   imageUrl?: string;
   images?: string[];

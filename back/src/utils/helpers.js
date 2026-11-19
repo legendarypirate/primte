@@ -41,7 +41,8 @@ function serializeProduct(product, req) {
     subtitle: product.subtitle,
     description: product.description,
     features: product.features || [],
-    inStock: product.inStock,
+    stock: Math.max(0, Number(product.stock) || 0),
+    inStock: Math.max(0, Number(product.stock) || 0) > 0,
     relatedIds: product.relatedIds || [],
     sortOrder: product.sortOrder,
   };
