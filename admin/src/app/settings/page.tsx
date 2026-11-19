@@ -125,7 +125,7 @@ export default function SettingsPage() {
   return (
     <Shell>
       <h1 className="mb-6 font-heading text-3xl text-primary">Тохиргоо</h1>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
         <Card>
           <CardHeader>
             <CardTitle>Клубын төлөв</CardTitle>
@@ -138,24 +138,7 @@ export default function SettingsPage() {
                   {open ? "Гишүүд клубт нэвтрэх боломжтой" : "Клуб хаагдсан байна"}
                 </div>
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={open}
-                disabled={toggling}
-                onClick={toggleOpen}
-                className={cn(
-                  "relative h-6 w-11 rounded-full transition-colors disabled:opacity-50",
-                  open ? "bg-primary" : "bg-muted-foreground/30"
-                )}
-              >
-                <span
-                  className={cn(
-                    "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
-                    open ? "left-5" : "left-0.5"
-                  )}
-                />
-              </button>
+              <Toggle checked={open} disabled={toggling} onClick={toggleOpen} />
             </div>
             <div className="space-y-1">
               <Label>Өнөөдрийн ирц</Label>
@@ -167,6 +150,42 @@ export default function SettingsPage() {
               <Label>Хүчин чадал</Label>
               <Input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value === "" ? 0 : Number(e.target.value))} />
             </div>
+
+            <div className="space-y-2 pt-2">
+              <Label>7 хоногийн цагийн хуваарь</Label>
+              <p className="text-xs text-muted-foreground">
+                Апп дээрх клубын төлөв дээр энэ хуваарь харагдана.
+              </p>
+              <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+                {hours.map((day) => (
+                  <div key={day.weekday} className="grid gap-2 px-3 py-3 sm:grid-cols-[6.5rem_auto_1fr] sm:items-center">
+                    <div className="font-medium">{day.label}</div>
+                    <div className="flex items-center gap-2">
+                      <Toggle checked={day.open} onClick={() => patchHour(day.weekday, { open: !day.open })} />
+                      <span className="text-xs text-muted-foreground">{day.open ? "Нээлттэй" : "Хаалттай"}</span>
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Input
+                        type="time"
+                        className="w-full min-w-28"
+                        value={day.start}
+                        disabled={!day.open}
+                        onChange={(e) => patchHour(day.weekday, { start: e.target.value })}
+                      />
+                      <span className="text-muted-foreground">–</span>
+                      <Input
+                        type="time"
+                        className="w-full min-w-28"
+                        value={day.end}
+                        disabled={!day.open}
+                        onChange={(e) => patchHour(day.weekday, { end: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <Button
               disabled={saving}
               onClick={async () => {
@@ -194,7 +213,7 @@ export default function SettingsPage() {
             {history.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Одоогоор түүх байхгүй.</p>
             ) : (
-              <ul className="divide-y divide-border">
+              <ul className="max-h-[70vh] divide-y divide-border overflow-y-auto pr-1">
                 {history.map((row) => (
                   <li key={row.id} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
                     <div>
@@ -215,76 +234,38 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>7 хоногийн цагийн хуваарь</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="mb-3 text-sm text-muted-foreground">
-              Гишүүдийн апп дээрх клубын төлөв дээр энэ хуваарь харагдана. Өдөр бүрийн нээлттэй цагийг тохируулна.
-            </p>
-            <div className="divide-y divide-border rounded-lg border border-border">
-              {hours.map((day) => (
-                <div key={day.weekday} className="flex flex-wrap items-center gap-3 px-3 py-3">
-                  <div className="w-24 font-medium">{day.label}</div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={day.open}
-                    onClick={() => patchHour(day.weekday, { open: !day.open })}
-                    className={cn(
-                      "relative h-6 w-11 shrink-0 rounded-full transition-colors",
-                      day.open ? "bg-primary" : "bg-muted-foreground/30"
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
-                        day.open ? "left-5" : "left-0.5"
-                      )}
-                    />
-                  </button>
-                  <span className="w-20 text-xs text-muted-foreground">{day.open ? "Нээлттэй" : "Хаалттай"}</span>
-                  <Input
-                    type="time"
-                    className="w-32"
-                    value={day.start}
-                    disabled={!day.open}
-                    onChange={(e) => patchHour(day.weekday, { start: e.target.value })}
-                  />
-                  <span className="text-muted-foreground">–</span>
-                  <Input
-                    type="time"
-                    className="w-32"
-                    value={day.end}
-                    disabled={!day.open}
-                    onChange={(e) => patchHour(day.weekday, { end: e.target.value })}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="pt-4">
-              <Button
-                disabled={saving}
-                onClick={async () => {
-                  setSaving(true);
-                  try {
-                    await saveClub({ open, todayCount, capacity, hours });
-                    toast.success("Цагийн хуваарь хадгаллаа");
-                  } catch (e) {
-                    toast.error(e instanceof Error ? e.message : "Алдаа");
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-              >
-                {saving ? "Хадгалж байна..." : "Хуваарь хадгалах"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Shell>
+  );
+}
+
+function Toggle({
+  checked,
+  onClick,
+  disabled,
+}: {
+  checked: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50",
+        checked ? "bg-primary" : "bg-muted-foreground/30"
+      )}
+    >
+      <span
+        className={cn(
+          "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
+          checked ? "left-5" : "left-0.5"
+        )}
+      />
+    </button>
   );
 }
