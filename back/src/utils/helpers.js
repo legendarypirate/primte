@@ -59,12 +59,19 @@ function serializeProduct(product, req) {
   };
 }
 
-function serializeProductCategory(category) {
+function serializeProductCategory(category, extra = {}) {
   return {
     id: category.id,
     name: category.name,
     slug: category.slug,
     sortOrder: category.sortOrder,
+    parentId: category.parentId || null,
+    parentName: extra.parentName ?? category.parent?.name ?? null,
+    path: extra.path || category.name,
+    depth: extra.depth ?? 0,
+    childCount: extra.childCount ?? (Array.isArray(category.children) ? category.children.length : 0),
+    productCount: extra.productCount ?? 0,
+    totalProductCount: extra.totalProductCount ?? extra.productCount ?? 0,
   };
 }
 

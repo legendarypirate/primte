@@ -67,6 +67,9 @@ DevelopmentActivity.belongsToMany(Member, {
 Member.belongsTo(Member, { as: 'parent', foreignKey: 'parentId' });
 Member.hasMany(Member, { as: 'legacyChildren', foreignKey: 'parentId' });
 
+ProductCategory.belongsTo(ProductCategory, { as: 'parent', foreignKey: 'parentId' });
+ProductCategory.hasMany(ProductCategory, { as: 'children', foreignKey: 'parentId' });
+
 Member.hasMany(Transaction, { foreignKey: 'memberId' });
 Transaction.belongsTo(Member, { foreignKey: 'memberId' });
 

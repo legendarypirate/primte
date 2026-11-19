@@ -33,13 +33,12 @@ const { applyGate, openSession, serializeSession } = require('../services/attend
 const {
   serializeMember,
   serializeProduct,
-  serializeProductCategory,
   serializeCompetition,
   serializeRegistration,
   serializeTraining,
   serializeNotice,
 } = require('../utils/helpers');
-const { uniqueSlug } = require('../services/productCategoryService');
+const { uniqueSlug, assertValidParent, decorateCategories } = require('../services/productCategoryService');
 const {
   nextStudentCode,
   applyMemberProgression,
@@ -554,23 +553,28 @@ router.get('/product-categories', requirePermission('products.view'), async (_re
     raw: true,
   });
   const map = Object.fromEntries(counts.map((c) => [c.category, Number(c.count)]));
-  res.json({
-    categories: categories.map((c) => ({ ...serializeProductCategory(c), productCount: map[c.slug] || 0 })),
-  });
+  res.json({ categories: decorateCategories(categories, map) });
 });
 
 router.post('/product-categories', requirePermission('products.manage'), async (req, res) => {
   const name = String(req.body?.name || '').trim();
   if (!name) return res.status(400).json({ message: 'Ангиллын нэр оруулна уу.' });
-  const last = await ProductCategory.max('sortOrder');
-  const category = await ProductCategory.create({
-    name,
-    slug: await uniqueSlug(req.body?.slug || name),
-    sortOrder: Number.isFinite(Number(req.body?.sortOrder)) && req.body?.sortOrder !== ''
-      ? Number(req.body.sortOrder)
-      : (last || 0) + 1,
-  });
-  res.status(201).json({ category: serializeProductCategory(category) });
+  try {
+    const parentId = await assertValidParent(null, req.body?.parentId);
+    const last = await ProductCategory.max('sortOrder');
+    const category = await ProductCategory.create({
+      name,
+      slug: await uniqueSlug(req.body?.slug || name),
+      parentId,
+      sortOrder: Number.isFinite(Number(req.body?.sortOrder)) && req.body?.sortOrder !== ''
+        ? Number(req.body.sortOrder)
+        : (last || 0) + 1,
+    });
+    const all = await ProductCategory.findAll();
+    res.status(201).json({ category: decorateCategories(all).find((c) => c.id === category.id) });
+  } catch (err) {
+    res.status(err.statusCode || 400).json({ message: err.message || 'Ангилал үүсгэж чадсангүй.' });
+  }
 });
 
 router.put('/product-categories/:id', requirePermission('products.manage'), async (req, res) => {
@@ -578,18 +582,30 @@ router.put('/product-categories/:id', requirePermission('products.manage'), asyn
   if (!category) return res.status(404).json({ message: 'Ангилал олдсонгүй.' });
   const name = String(req.body?.name ?? category.name).trim();
   if (!name) return res.status(400).json({ message: 'Ангиллын нэр оруулна уу.' });
-  const updates = { name };
-  if (req.body?.sortOrder !== undefined && req.body.sortOrder !== '') updates.sortOrder = Number(req.body.sortOrder) || 0;
-  await sequelize.transaction(async (t) => {
-    await category.update(updates, { transaction: t });
-    await Product.update({ categoryLabel: name }, { where: { category: category.slug }, transaction: t });
-  });
-  res.json({ category: serializeProductCategory(category) });
+  try {
+    const updates = { name };
+    if (req.body?.sortOrder !== undefined && req.body.sortOrder !== '') updates.sortOrder = Number(req.body.sortOrder) || 0;
+    if (req.body?.parentId !== undefined) {
+      updates.parentId = await assertValidParent(category.id, req.body.parentId);
+    }
+    await sequelize.transaction(async (t) => {
+      await category.update(updates, { transaction: t });
+      await Product.update({ categoryLabel: name }, { where: { category: category.slug }, transaction: t });
+    });
+    const all = await ProductCategory.findAll();
+    res.json({ category: decorateCategories(all).find((c) => c.id === category.id) });
+  } catch (err) {
+    res.status(err.statusCode || 400).json({ message: err.message || 'Ангилал шинэчилж чадсангүй.' });
+  }
 });
 
 router.delete('/product-categories/:id', requirePermission('products.manage'), async (req, res) => {
   const category = await ProductCategory.findByPk(req.params.id);
   if (!category) return res.status(404).json({ message: 'Ангилал олдсонгүй.' });
+  const childCount = await ProductCategory.count({ where: { parentId: category.id } });
+  if (childCount > 0) {
+    return res.status(400).json({ message: `Энэ ангилалд ${childCount} дэд ангилал байна. Эхлээд дэд ангиллыг устгана уу.` });
+  }
   const used = await Product.count({ where: { category: category.slug } });
   if (used > 0) {
     return res.status(400).json({ message: `Энэ ангилалд ${used} бараа байна. Эхлээд барааг өөр ангилал руу шилжүүлнэ үү.` });

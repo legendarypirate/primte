@@ -1,4 +1,5 @@
 const { Product, ProductCategory } = require('../models');
+const { serializeProductCategory } = require('../utils/helpers');
 
 const DEFAULT_CATEGORIES = [
   { slug: 'bb', name: 'BB' },
@@ -6,6 +7,8 @@ const DEFAULT_CATEGORIES = [
   { slug: 'clothing', name: 'Хувцас' },
   { slug: 'accessory', name: 'Аксессуар' },
 ];
+
+const MAX_CATEGORY_DEPTH = 4;
 
 function slugify(value) {
   return String(value || '')
@@ -26,6 +29,136 @@ async function uniqueSlug(base, excludeId) {
   }
 }
 
+function parseParentId(value) {
+  if (value == null || value === '' || value === 'null' || value === 'undefined') return null;
+  return String(value);
+}
+
+function childrenMap(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const key = row.parentId || null;
+    const list = map.get(key) || [];
+    list.push(row);
+    map.set(key, list);
+  }
+  return map;
+}
+
+function descendantIds(id, rows) {
+  const byParent = childrenMap(rows);
+  const out = new Set();
+  const stack = [...(byParent.get(id) || [])];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (out.has(cur.id)) continue;
+    out.add(cur.id);
+    stack.push(...(byParent.get(cur.id) || []));
+  }
+  return out;
+}
+
+function subtreeHeight(id, rows) {
+  const byParent = childrenMap(rows);
+  function height(nodeId) {
+    const kids = byParent.get(nodeId) || [];
+    if (!kids.length) return 1;
+    return 1 + Math.max(...kids.map((kid) => height(kid.id)));
+  }
+  return height(id);
+}
+
+function ancestorDepth(parentId, rows) {
+  if (!parentId) return 0;
+  const byId = Object.fromEntries(rows.map((row) => [row.id, row]));
+  let depth = 0;
+  let cur = byId[parentId];
+  const seen = new Set();
+  while (cur && !seen.has(cur.id)) {
+    seen.add(cur.id);
+    depth += 1;
+    cur = cur.parentId ? byId[cur.parentId] : null;
+  }
+  return depth;
+}
+
+async function assertValidParent(categoryId, parentId) {
+  const resolved = parseParentId(parentId);
+  if (!resolved) return null;
+  if (categoryId && resolved === categoryId) {
+    const err = new Error('Ангилал өөрийгөө эцэг болгож болохгүй.');
+    err.statusCode = 400;
+    throw err;
+  }
+  const rows = await ProductCategory.findAll({ attributes: ['id', 'parentId'] });
+  const parent = rows.find((row) => row.id === resolved);
+  if (!parent) {
+    const err = new Error('Эцэг ангилал олдсонгүй.');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (categoryId && descendantIds(categoryId, rows).has(resolved)) {
+    const err = new Error('Дэд ангиллаа эцэг болгож болохгүй.');
+    err.statusCode = 400;
+    throw err;
+  }
+  const height = categoryId ? subtreeHeight(categoryId, rows) : 1;
+  if (ancestorDepth(resolved, rows) + height > MAX_CATEGORY_DEPTH) {
+    const err = new Error(`Ангилал хамгийн ихдээ ${MAX_CATEGORY_DEPTH} төвшинтэй байж болно.`);
+    err.statusCode = 400;
+    throw err;
+  }
+  return resolved;
+}
+
+function decorateCategories(categories, countMap = {}) {
+  const byId = Object.fromEntries(categories.map((c) => [c.id, c]));
+  const byParent = childrenMap(categories);
+
+  function pathFor(category) {
+    const names = [];
+    const seen = new Set();
+    let cur = category;
+    while (cur && !seen.has(cur.id)) {
+      seen.add(cur.id);
+      names.unshift(cur.name);
+      cur = cur.parentId ? byId[cur.parentId] : null;
+    }
+    return names.join(' / ');
+  }
+
+  function depthFor(category) {
+    let depth = 0;
+    const seen = new Set();
+    let cur = category.parentId ? byId[category.parentId] : null;
+    while (cur && !seen.has(cur.id)) {
+      seen.add(cur.id);
+      depth += 1;
+      cur = cur.parentId ? byId[cur.parentId] : null;
+    }
+    return depth;
+  }
+
+  function totalCount(id) {
+    const cat = byId[id];
+    let n = countMap[cat.slug] || 0;
+    for (const child of byParent.get(id) || []) n += totalCount(child.id);
+    return n;
+  }
+
+  return categories.map((c) => {
+    const productCount = countMap[c.slug] || 0;
+    return serializeProductCategory(c, {
+      parentName: c.parentId ? byId[c.parentId]?.name || null : null,
+      path: pathFor(c),
+      depth: depthFor(c),
+      childCount: (byParent.get(c.id) || []).length,
+      productCount,
+      totalProductCount: totalCount(c.id),
+    });
+  });
+}
+
 async function ensureProductCategories() {
   if ((await ProductCategory.count()) > 0) return;
   const used = await Product.findAll({ attributes: ['category'], group: ['category'], raw: true });
@@ -40,4 +173,11 @@ async function ensureProductCategories() {
   await ProductCategory.bulkCreate(rows.map((row, i) => ({ ...row, sortOrder: i + 1 })));
 }
 
-module.exports = { slugify, uniqueSlug, ensureProductCategories };
+module.exports = {
+  slugify,
+  uniqueSlug,
+  parseParentId,
+  assertValidParent,
+  decorateCategories,
+  ensureProductCategories,
+};

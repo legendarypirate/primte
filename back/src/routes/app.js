@@ -21,13 +21,13 @@ const { matchPermissionForCompetition } = require('../rbac/catalog');
 const { memberHasPermission } = require('../services/rbacService');
 const { loadClubStatus } = require('../services/clubStatus');
 const { loadBranding } = require('../services/branding');
+const { decorateCategories } = require('../services/productCategoryService');
 const { awardCompetitionXp, listPointHistory } = require('../services/pointLedger');
 const { parseGatePayload } = require('../domain/attendance');
 const { applyGate, openSession, serializeSession, listPresentToday } = require('../services/attendanceService');
 const {
   serializeMember,
   serializeProduct,
-  serializeProductCategory,
   serializeCompetition,
   serializeRegistration,
   serializeTraining,
@@ -136,7 +136,7 @@ router.get('/products', async (req, res) => {
   ]);
   res.json({
     products: products.map((p) => serializeProduct(p, req)),
-    categories: categories.map(serializeProductCategory),
+    categories: decorateCategories(categories),
   });
 });
 

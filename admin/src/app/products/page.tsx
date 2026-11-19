@@ -16,7 +16,14 @@ import { FieldSelect } from "@/components/field-select";
 import { MultiImageUpload } from "@/components/multi-image-upload";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { api, assetUrl, tugrik } from "@/lib/api";
-import { errorMessage, type Product, type ProductCategory } from "@/lib/products";
+import {
+  categoryDescendantSlugs,
+  categoryLabel,
+  errorMessage,
+  flattenCategoryTree,
+  type Product,
+  type ProductCategory,
+} from "@/lib/products";
 import { cn } from "@/lib/utils";
 import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 
@@ -67,6 +74,7 @@ export default function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
+  const [createParentId, setCreateParentId] = useState<string | null>(null);
 
   async function load() {
     const [productData, categoryData] = await Promise.all([
@@ -85,22 +93,38 @@ export default function ProductsPage() {
   }, []);
 
   const categoryName = useMemo(
-    () => Object.fromEntries(categories.map((c) => [c.slug, c.name])),
+    () => Object.fromEntries(categories.map((c) => [c.slug, c.path || c.name])),
     [categories]
   );
 
-  const filtered = useMemo(
-    () =>
-      items.filter(
-        (p) => (filter === "all" || p.category === filter) && matchesQuery(query, [p.name, p.subtitle, p.category])
-      ),
-    [items, filter, query]
-  );
+  const filtered = useMemo(() => {
+    const slugs = filter === "all" ? null : new Set(categoryDescendantSlugs(categories, filter));
+    return items.filter(
+      (p) =>
+        (!slugs || slugs.has(p.category)) &&
+        matchesQuery(query, [p.name, p.subtitle, p.category, categoryName[p.category]])
+    );
+  }, [items, filter, query, categories, categoryName]);
   const table = useClientTable(filtered, { resetKey: `${query}|${filter}` });
-  const filteredCategories = useMemo(
-    () => categories.filter((c) => matchesQuery(categoryQuery, [c.name, c.slug])),
-    [categories, categoryQuery]
-  );
+  const filteredCategories = useMemo(() => {
+    const tree = flattenCategoryTree(categories);
+    if (!categoryQuery.trim()) return tree;
+    const matched = new Set(
+      tree
+        .filter((c) => matchesQuery(categoryQuery, [c.name, c.slug, c.parentName, c.path]))
+        .map((c) => c.id)
+    );
+    const byId = Object.fromEntries(categories.map((c) => [c.id, c]));
+    const keep = new Set(matched);
+    for (const id of matched) {
+      let cur = byId[id];
+      while (cur?.parentId) {
+        keep.add(cur.parentId);
+        cur = byId[cur.parentId];
+      }
+    }
+    return tree.filter((c) => keep.has(c.id));
+  }, [categories, categoryQuery]);
   const categoryTable = useClientTable(filteredCategories, { resetKey: categoryQuery });
 
   function openCreate() {
@@ -124,13 +148,15 @@ export default function ProductsPage() {
     }
   }
 
-  function openCreateCategory() {
+  function openCreateCategory(parentId: string | null = null) {
     setEditingCategory(null);
+    setCreateParentId(parentId);
     setCategoryOpen(true);
   }
 
   function openEditCategory(c: ProductCategory) {
     setEditingCategory(c);
+    setCreateParentId(c.parentId);
     setCategoryOpen(true);
   }
 
@@ -195,7 +221,7 @@ export default function ProductsPage() {
             }}
             filters={
               <div className="flex flex-wrap gap-2">
-                {[{ slug: "all", name: "Бүгд", count: items.length }, ...categories.map((c) => ({ slug: c.slug, name: c.name, count: c.productCount }))].map((c) => (
+                {[{ slug: "all", name: "Бүгд", count: items.length }, ...flattenCategoryTree(categories).map((c) => ({ slug: c.slug, name: categoryLabel(c), count: c.totalProductCount ?? c.productCount }))].map((c) => (
                   <button
                     key={c.slug}
                     type="button"
@@ -302,6 +328,7 @@ export default function ProductsPage() {
                 <TableRow>
                   <TableHead className="w-20">Эрэмбэ</TableHead>
                   <TableHead>Нэр</TableHead>
+                  <TableHead>Эцэг</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Бараа</TableHead>
                   <TableHead></TableHead>
@@ -311,18 +338,43 @@ export default function ProductsPage() {
                 {categoryTable.visible.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer" onClick={() => openEditCategory(c)}>
                     <TableCell className="text-muted-foreground">#{c.sortOrder}</TableCell>
-                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <span
+                        className="inline-flex items-center gap-2"
+                        style={{ paddingLeft: `${(c.depth ?? 0) * 1.25}rem` }}
+                      >
+                        {(c.depth ?? 0) > 0 && <span className="text-muted-foreground">└</span>}
+                        {c.name}
+                        {(c.childCount ?? 0) > 0 && (
+                          <Badge variant="secondary" className="font-normal">
+                            {c.childCount} дэд
+                          </Badge>
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{c.parentName || "—"}</TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">{c.slug}</TableCell>
-                    <TableCell>{c.productCount}</TableCell>
+                    <TableCell>{c.totalProductCount ?? c.productCount}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <ActionCell>
+                        <Button
+                          type="button"
+                          size="icon-sm"
+                          variant="outline"
+                          title="Дэд ангилал"
+                          aria-label="Дэд ангилал"
+                          className="size-8 shrink-0 rounded-md text-muted-foreground shadow-sm"
+                          onClick={() => openCreateCategory(c.id)}
+                        >
+                          <Plus />
+                        </Button>
                         <IconActionButton action="edit" onClick={() => openEditCategory(c)} />
                         <IconActionButton action="delete" onClick={() => removeCategory(c)} />
                       </ActionCell>
                     </TableCell>
                   </TableRow>
                 ))}
-                {categoryTable.visible.length === 0 && <TableEmpty colSpan={5}>Ангилал алга.</TableEmpty>}
+                {categoryTable.visible.length === 0 && <TableEmpty colSpan={6}>Ангилал алга.</TableEmpty>}
               </TableBody>
             </Table>
           </DataTable>
@@ -350,8 +402,10 @@ export default function ProductsPage() {
         <SheetContent className="w-full gap-0 sm:max-w-md">
           {categoryOpen && (
             <CategoryDrawerForm
-              key={editingCategory?.id ?? "new"}
+              key={`${editingCategory?.id ?? "new"}-${createParentId ?? ""}`}
               category={editingCategory}
+              categories={categories}
+              initialParentId={editingCategory?.parentId ?? createParentId}
               nextSortOrder={Math.max(0, ...categories.map((c) => c.sortOrder)) + 1}
               onSaved={async () => {
                 setCategoryOpen(false);
@@ -399,7 +453,7 @@ function ProductDrawerForm({
   const [saving, setSaving] = useState(false);
 
   const productName = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p.name])), [products]);
-  const categoryName = useMemo(() => Object.fromEntries(categories.map((c) => [c.slug, c.name])), [categories]);
+  const categoryName = useMemo(() => Object.fromEntries(categories.map((c) => [c.slug, c.path || c.name])), [categories]);
   const rq = relatedQuery.trim().toLowerCase();
   const relatedCandidates = products.filter(
     (p) => p.id !== product?.id && !form.relatedIds.includes(p.id) && (!rq || p.name.toLowerCase().includes(rq))
@@ -444,8 +498,8 @@ function ProductDrawerForm({
           <Label>Ангилал</Label>
           <FieldSelect value={form.category} onChange={(category) => setForm({ ...form, category })}>
             <option value="">Сонгох</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.slug}>{c.name}</option>
+            {flattenCategoryTree(categories).map((c) => (
+              <option key={c.id} value={c.slug}>{categoryLabel(c)}</option>
             ))}
           </FieldSelect>
         </div>
@@ -608,24 +662,46 @@ function ProductDrawerForm({
 
 function CategoryDrawerForm({
   category,
+  categories,
+  initialParentId,
   nextSortOrder,
   onSaved,
   onCancel,
 }: {
   category: ProductCategory | null;
+  categories: ProductCategory[];
+  initialParentId: string | null;
   nextSortOrder: number;
   onSaved: () => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(category?.name ?? "");
+  const [parentId, setParentId] = useState(initialParentId ?? "");
   const [sortOrder, setSortOrder] = useState(category?.sortOrder ?? nextSortOrder);
   const [saving, setSaving] = useState(false);
+
+  const parentOptions = useMemo(() => {
+    const blocked = new Set<string>();
+    if (category) {
+      blocked.add(category.id);
+      const stack = [category.id];
+      while (stack.length) {
+        const id = stack.pop()!;
+        for (const child of categories.filter((c) => c.parentId === id)) {
+          if (blocked.has(child.id)) continue;
+          blocked.add(child.id);
+          stack.push(child.id);
+        }
+      }
+    }
+    return flattenCategoryTree(categories).filter((c) => !blocked.has(c.id));
+  }, [categories, category]);
 
   async function save() {
     if (!name.trim()) return toast.error("Ангиллын нэр оруулна уу.");
     setSaving(true);
     try {
-      const body = JSON.stringify({ name, sortOrder });
+      const body = JSON.stringify({ name, sortOrder, parentId: parentId || null });
       if (category) await api(`/api/admin/product-categories/${category.id}`, { method: "PUT", body });
       else await api("/api/admin/product-categories", { method: "POST", body });
       toast.success("Хадгаллаа");
@@ -640,9 +716,11 @@ function CategoryDrawerForm({
   return (
     <>
       <SheetHeader className="border-b border-border">
-        <SheetTitle>{category ? "Ангилал засах" : "Шинэ ангилал"}</SheetTitle>
+        <SheetTitle>{category ? "Ангилал засах" : parentId ? "Шинэ дэд ангилал" : "Шинэ ангилал"}</SheetTitle>
         <SheetDescription>
-          {category ? `${category.productCount} бараа энэ ангилалд байна.` : "Дэлгүүрийн шинэ ангилал нэмэх"}
+          {category
+            ? `${category.totalProductCount ?? category.productCount} бараа энэ ангилалд байна.`
+            : "Дэлгүүрийн шинэ ангилал нэмэх"}
         </SheetDescription>
       </SheetHeader>
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
@@ -651,9 +729,19 @@ function CategoryDrawerForm({
           <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} />
         </div>
         <div className="space-y-1">
+          <Label>Эцэг ангилал</Label>
+          <FieldSelect value={parentId} onChange={setParentId}>
+            <option value="">Үндсэн ангилал</option>
+            {parentOptions.map((c) => (
+              <option key={c.id} value={c.id}>{categoryLabel(c)}</option>
+            ))}
+          </FieldSelect>
+          <p className="text-xs text-muted-foreground">Хоосон бол үндсэн (эцэггүй) ангилал болно.</p>
+        </div>
+        <div className="space-y-1">
           <Label>Эрэмбэ</Label>
           <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
-          <p className="text-xs text-muted-foreground">Бага тоо эхэнд харагдана.</p>
+          <p className="text-xs text-muted-foreground">Бага тоо эхэнд харагдана. Ижил эцэг дотор эрэмбэлнэ.</p>
         </div>
         {category && (
           <div className="space-y-1">
