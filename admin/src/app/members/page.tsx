@@ -24,6 +24,7 @@ import { api, tugrik } from "@/lib/api";
 import { can } from "@/lib/auth";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { MPassword } from "@/components/custom/fields";
+import { DatePicker } from "@/components/date-picker";
 import { DataTable, FilterField, SortHead, StatusBadge, TableEmpty, useClientTable } from "@/components/data-table";
 import { cn } from "@/lib/utils";
 import { membershipLabel, membershipLevel } from "@/lib/membership";
@@ -1057,7 +1058,7 @@ function MemberFormDrawer({
             {!member && <p className="text-xs text-muted-foreground">Шинэ гишүүний ID S-ээр эхэлнэ.</p>}
           </Field>
           <Field label="Гишүүнчлэл үүссэн огноо" required>
-            <Input type="date" required value={form.validFrom} onChange={(e) => set("validFrom", e.target.value)} />
+            <DatePicker required value={form.validFrom} onChange={(validFrom) => set("validFrom", validFrom)} />
           </Field>
           <Field label="Овог">
             <Input value={form.lastName} placeholder="Бат" onChange={(e) => set("lastName", e.target.value)} />
@@ -1075,7 +1076,7 @@ function MemberFormDrawer({
             <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
           </Field>
           <Field label="Төрсөн өдөр" required={isJunior}>
-            <Input type="date" required={isJunior} value={form.birthday} onChange={(e) => set("birthday", e.target.value)} />
+            <DatePicker required={isJunior} value={form.birthday} onChange={(birthday) => set("birthday", birthday)} />
           </Field>
           <Field label="Хүйс">
             <FieldSelect value={form.gender} onChange={(gender) => set("gender", gender)}>
@@ -1205,7 +1206,7 @@ function MemberFormDrawer({
             <p className="text-xs text-muted-foreground">Хоосон бол гишүүний ID-аар нэвтэрнэ. Оноо баталгаажуулахад ID хэвээр хэрэглэнэ.</p>
           </Field>
           <Field label="Дуусах огноо" required>
-            <Input type="date" required value={form.validTo} onChange={(e) => set("validTo", e.target.value)} />
+            <DatePicker required value={form.validTo} onChange={(validTo) => set("validTo", validTo)} />
           </Field>
           <Field label="Гишүүнчлэлийн түвшин">
             <div className="rounded-lg border border-border px-3 py-2">

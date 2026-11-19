@@ -27,6 +27,7 @@ import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { DataTable, FilterField, TableEmpty, useClientTable } from "@/components/data-table";
 import { FieldSelect } from "@/components/field-select";
+import { DatePicker } from "@/components/date-picker";
 import { cn } from "@/lib/utils";
 
 type Division = { id: string; abbreviation: string; name: string };
@@ -372,8 +373,8 @@ export default function CompetitionDetailPage() {
                   {matchTypes.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </FieldSelect>
               </div>
-              <div className="space-y-1"><Label>Тэмцээн эхлэх</Label><Input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} /></div>
-              <div className="space-y-1"><Label>Тэмцээн дуусах</Label><Input type="date" value={form.eventEndDate} onChange={(e) => setForm({ ...form, eventEndDate: e.target.value })} /></div>
+              <div className="space-y-1"><Label>Тэмцээн эхлэх</Label><DatePicker value={form.eventDate} onChange={(eventDate) => setForm({ ...form, eventDate })} /></div>
+              <div className="space-y-1"><Label>Тэмцээн дуусах</Label><DatePicker value={form.eventEndDate} onChange={(eventEndDate) => setForm({ ...form, eventEndDate })} /></div>
               <div className="space-y-1"><Label>Бүртгэл нээгдэх</Label><Input type="datetime-local" value={form.registrationOpenAt} onChange={(e) => setForm({ ...form, registrationOpenAt: e.target.value })} /></div>
               <div className="space-y-1"><Label>Бүртгэл хаагдах</Label><Input type="datetime-local" value={form.registrationCloseAt} onChange={(e) => setForm({ ...form, registrationCloseAt: e.target.value })} /></div>
               <div className="space-y-1"><Label>Байршил</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
@@ -453,7 +454,7 @@ export default function CompetitionDetailPage() {
                   <div key={i} className="grid gap-2 rounded-lg border p-3 md:grid-cols-2">
                     <Input placeholder="SQ1" value={sq.label} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, label: e.target.value }; setForm({ ...form, squads }); }} />
                     <Input placeholder="Day 1" value={sq.dayLabel} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, dayLabel: e.target.value }; setForm({ ...form, squads }); }} />
-                    <Input type="date" value={sq.date} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, date: e.target.value }; setForm({ ...form, squads }); }} />
+                    <DatePicker value={sq.date} onChange={(date) => { const squads = [...form.squads]; squads[i] = { ...sq, date }; setForm({ ...form, squads }); }} />
                     <Input placeholder="18:00" value={sq.timeStart} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, timeStart: e.target.value }; setForm({ ...form, squads }); }} />
                     <Input placeholder="22:00" value={sq.timeEnd} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, timeEnd: e.target.value }; setForm({ ...form, squads }); }} />
                     <Input placeholder="Final эхлэх" value={sq.finalDayStart} onChange={(e) => { const squads = [...form.squads]; squads[i] = { ...sq, finalDayStart: e.target.value }; setForm({ ...form, squads }); }} />
@@ -477,7 +478,7 @@ export default function CompetitionDetailPage() {
                   <div key={i} className="grid gap-2 rounded-lg border p-3 md:grid-cols-2">
                     <Input placeholder="Day 1" value={row.day} onChange={(e) => { const schedule = [...form.schedule]; schedule[i] = { ...row, day: e.target.value }; setForm({ ...form, schedule }); }} />
                     <Input placeholder="Stage 1-6" value={row.stages} onChange={(e) => { const schedule = [...form.schedule]; schedule[i] = { ...row, stages: e.target.value }; setForm({ ...form, schedule }); }} />
-                    <Input type="date" value={row.date} onChange={(e) => { const schedule = [...form.schedule]; schedule[i] = { ...row, date: e.target.value }; setForm({ ...form, schedule }); }} />
+                    <DatePicker value={row.date} onChange={(date) => { const schedule = [...form.schedule]; schedule[i] = { ...row, date }; setForm({ ...form, schedule }); }} />
                     <Input placeholder="SQ1-3" value={row.squads} onChange={(e) => { const schedule = [...form.schedule]; schedule[i] = { ...row, squads: e.target.value }; setForm({ ...form, schedule }); }} />
                     <IconActionButton action="delete" onClick={() => setForm({ ...form, schedule: form.schedule.filter((_, j) => j !== i) })} />
                   </div>

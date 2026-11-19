@@ -15,6 +15,7 @@ import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { DataTable, FilterField, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 import { FieldSelect } from "@/components/field-select";
 import { FormDrawer } from "@/components/form-drawer";
+import { DatePicker } from "@/components/date-picker";
 
 type Competition = {
   id: string;
@@ -181,7 +182,7 @@ export default function CompetitionsPage() {
       >
         <div className="space-y-1"><Label>Нэр</Label><Input autoFocus value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
         <div className="space-y-1"><Label>Дэд гарчиг</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} placeholder="IPSC Action Air" /></div>
-        <div className="space-y-1"><Label>Эхлэх огноо</Label><Input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} /></div>
+        <div className="space-y-1"><Label>Эхлэх огноо</Label><DatePicker value={form.eventDate} onChange={(eventDate) => setForm({ ...form, eventDate })} /></div>
         <div className="space-y-1"><Label>Байршил</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1"><Label>Хүчин чадал</Label><Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} /></div>

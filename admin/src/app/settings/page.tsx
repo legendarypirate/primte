@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { IconActionButton } from "@/components/icon-action-button";
+import { DatePickerPanel } from "@/components/date-picker";
+import { TimeRangePicker } from "@/components/time-picker";
 import { cn } from "@/lib/utils";
 
 type ClubHistory = {
@@ -200,6 +202,7 @@ export default function SettingsPage() {
 
   return (
     <Shell>
+      <div id="club-picker-portal" />
       <h1 className="mb-6 font-heading text-3xl text-primary">Тохиргоо</h1>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
         <Card>
@@ -230,33 +233,23 @@ export default function SettingsPage() {
             <div className="space-y-2 pt-2">
               <Label>7 хоногийн үндсэн хуваарь</Label>
               <p className="text-xs text-muted-foreground">
-                Даваа–Нямын default цаг. Тусгай өдрийг доорх date picker-оор дарж өөрчилнө.
+                Даваа–Нямын default цаг. Тусгай өдрийг календараас сонгож өөрчилнө.
               </p>
-              <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+              <div className="divide-y divide-border overflow-visible rounded-xl border border-border">
                 {hours.map((day) => (
-                  <div key={day.weekday} className="grid gap-2 px-3 py-3 sm:grid-cols-[6.5rem_auto_1fr] sm:items-center">
-                    <div className="font-medium">{day.label}</div>
+                  <div key={day.weekday} className="flex flex-wrap items-center gap-3 px-3 py-3">
+                    <div className="w-20 font-medium">{day.label}</div>
                     <div className="flex items-center gap-2">
                       <Toggle checked={day.open} onClick={() => patchHour(day.weekday, { open: !day.open })} />
-                      <span className="text-xs text-muted-foreground">{day.open ? "Нээлттэй" : "Хаалттай"}</span>
+                      <span className="w-16 text-xs text-muted-foreground">{day.open ? "Нээлттэй" : "Хаалттай"}</span>
                     </div>
-                    <div className="flex min-w-0 items-center gap-2">
-                      <Input
-                        type="time"
-                        className="w-full min-w-28"
-                        value={day.start}
-                        disabled={!day.open}
-                        onChange={(e) => patchHour(day.weekday, { start: e.target.value })}
-                      />
-                      <span className="text-muted-foreground">–</span>
-                      <Input
-                        type="time"
-                        className="w-full min-w-28"
-                        value={day.end}
-                        disabled={!day.open}
-                        onChange={(e) => patchHour(day.weekday, { end: e.target.value })}
-                      />
-                    </div>
+                    <TimeRangePicker
+                      start={day.start}
+                      end={day.end}
+                      disabled={!day.open}
+                      onStart={(start) => patchHour(day.weekday, { start })}
+                      onEnd={(end) => patchHour(day.weekday, { end })}
+                    />
                   </div>
                 ))}
               </div>
@@ -265,23 +258,28 @@ export default function SettingsPage() {
             <div className="space-y-2 pt-2">
               <Label>Өдөр өдрийн цаг</Label>
               <p className="text-xs text-muted-foreground">
-                Огноо сонгоод тухайн өдрийн нээлттэй цагийг тохируулна. Сонгоогүй өдөр дээрх 7 хоногийн хуваарийг ашиглана.
+                Календараас огноо сонгоод тухайн өдрийн нээлттэй цагийг тохируулна. Ногоон цэгтэй өдөр тусгай тохиргоотой.
               </p>
-              <div className="space-y-3 rounded-lg border border-border p-3">
-                <div className="space-y-1">
-                  <Label>Огноо</Label>
-                  <Input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => {
-                      if (e.target.value) selectDate(e.target.value);
-                    }}
+              <div className="grid gap-4 rounded-xl border border-border p-3 lg:grid-cols-[auto_minmax(0,1fr)]">
+                <div className="flex justify-center">
+                  <DatePickerPanel
+                    selected={selectedDate}
+                    onSelect={selectDate}
+                    minDate={todayKey()}
+                    markers={dates.map((row) => row.date)}
                   />
                 </div>
                 {selectedDate ? (
-                  <>
-                    <div className="text-sm font-medium">
-                      {weekdayLabel(selectedDate)} · {formatDateLabel(selectedDate)}
+                  <div className="flex flex-col justify-center gap-3">
+                    <div>
+                      <div className="text-base font-medium">
+                        {weekdayLabel(selectedDate)} · {formatDateLabel(selectedDate)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {dates.some((row) => row.date === selectedDate)
+                          ? "Энэ өдөр тусгай цагтай."
+                          : "Одоогоор 7 хоногийн хуваарийг ашиглана."}
+                      </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Toggle
@@ -290,33 +288,29 @@ export default function SettingsPage() {
                       />
                       <span className="text-xs text-muted-foreground">{dateDraft.open ? "Нээлттэй" : "Хаалттай"}</span>
                     </div>
-                    <div className="flex min-w-0 items-center gap-2">
-                      <Input
-                        type="time"
-                        className="w-full min-w-28"
-                        value={dateDraft.start}
-                        disabled={!dateDraft.open}
-                        onChange={(e) => setDateDraft((prev) => ({ ...prev, start: e.target.value }))}
-                      />
-                      <span className="text-muted-foreground">–</span>
-                      <Input
-                        type="time"
-                        className="w-full min-w-28"
-                        value={dateDraft.end}
-                        disabled={!dateDraft.open}
-                        onChange={(e) => setDateDraft((prev) => ({ ...prev, end: e.target.value }))}
-                      />
-                    </div>
+                    <TimeRangePicker
+                      start={dateDraft.start}
+                      end={dateDraft.end}
+                      disabled={!dateDraft.open}
+                      onStart={(start) => setDateDraft((prev) => ({ ...prev, start }))}
+                      onEnd={(end) => setDateDraft((prev) => ({ ...prev, end }))}
+                    />
                     <Button type="button" variant="outline" disabled={saving} onClick={upsertSelectedDate}>
                       {saving ? "Хадгалж байна..." : "Энэ өдрийг хадгалах"}
                     </Button>
-                  </>
+                  </div>
                 ) : null}
               </div>
               {dates.length > 0 ? (
-                <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+                <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
                   {dates.map((row) => (
-                    <div key={row.date} className="flex items-center gap-3 px-3 py-2">
+                    <div
+                      key={row.date}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2",
+                        row.date === selectedDate && "bg-secondary/60"
+                      )}
+                    >
                       <button type="button" className="min-w-0 flex-1 text-left" onClick={() => selectDate(row.date)}>
                         <div className="font-medium">
                           {weekdayLabel(row.date)} · {formatDateLabel(row.date)}

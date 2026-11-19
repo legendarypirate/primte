@@ -13,6 +13,7 @@ import { api, tugrik } from "@/lib/api";
 import { ActionCell, IconActionButton } from "@/components/icon-action-button";
 import { DataTable, TableEmpty, matchesQuery, useClientTable } from "@/components/data-table";
 import { FormDrawer } from "@/components/form-drawer";
+import { DatePicker } from "@/components/date-picker";
 
 type Training = { id: string; title: string; subtitle?: string; eventDate?: string; timeLabel?: string; capacity: number; fee: number; imageUrl?: string };
 const empty = { title: "", subtitle: "", eventDate: "", timeLabel: "", capacity: 24, fee: 0, imageUrl: "" };
@@ -138,7 +139,7 @@ export default function TrainingsPage() {
       >
         <div className="space-y-1"><Label>Нэр</Label><Input autoFocus value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
         <div className="space-y-1"><Label>Тайлбар</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
-        <div className="space-y-1"><Label>Огноо</Label><Input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} /></div>
+        <div className="space-y-1"><Label>Огноо</Label><DatePicker value={form.eventDate} onChange={(eventDate) => setForm({ ...form, eventDate })} /></div>
         <div className="space-y-1"><Label>Цаг</Label><Input value={form.timeLabel} onChange={(e) => setForm({ ...form, timeLabel: e.target.value })} /></div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1"><Label>Хүчин чадал</Label><Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} /></div>

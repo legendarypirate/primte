@@ -147,3 +147,91 @@ optgroup {
     color: var(--popover-foreground);
   }
 }
+
+.club-day-picker.rdp-root {
+  --rdp-accent-color: var(--primary);
+  --rdp-accent-background-color: var(--secondary);
+  --rdp-today-color: var(--primary);
+  --rdp-day-height: 38px;
+  --rdp-day-width: 38px;
+  --rdp-day_button-height: 36px;
+  --rdp-day_button-width: 36px;
+  --rdp-nav_button-height: 2rem;
+  --rdp-nav_button-width: 2rem;
+  margin: 0;
+}
+
+.club-day-picker .rdp-month_caption {
+  font-weight: 600;
+}
+
+.club-day-picker .rdp-selected .rdp-day_button {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.club-day-special .rdp-day_button {
+  font-weight: 700;
+}
+
+.club-day-special .rdp-day_button::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--primary);
+  transform: translateX(-50%);
+}
+
+.club-day-picker .rdp-day {
+  position: relative;
+}
+
+.club-time-popper {
+  z-index: 80;
+}
+
+.club-time-picker.react-datepicker {
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 12px 32px rgba(20, 51, 38, 0.12);
+}
+
+.club-time-picker .react-datepicker__header {
+  background: var(--secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+  color: var(--foreground);
+}
+
+.club-time-picker .react-datepicker__time-container,
+.club-time-picker .react-datepicker__time,
+.club-time-picker .react-datepicker__time-box {
+  width: 8.5rem;
+}
+
+.club-time-picker .react-datepicker__time-list-item {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.club-time-picker .react-datepicker__time-list-item:hover {
+  background: var(--secondary) !important;
+  color: var(--primary);
+}
+
+.club-time-picker .react-datepicker__time-list-item--selected {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  font-weight: 600;
+}
