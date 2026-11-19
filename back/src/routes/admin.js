@@ -598,6 +598,9 @@ async function sanitizeProductInput(body, productId) {
     if (body[key] !== undefined) input[key] = body[key];
   }
   if (input.price !== undefined) input.price = Math.max(0, Math.round(Number(input.price) || 0));
+  if (body.originalPrice !== undefined) {
+    input.originalPrice = Math.max(0, Math.round(Number(body.originalPrice) || 0));
+  }
   if (input.sortOrder !== undefined) input.sortOrder = Number(input.sortOrder) || 0;
   if (body.stock !== undefined) {
     input.stock = Math.max(0, Math.round(Number(body.stock) || 0));

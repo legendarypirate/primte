@@ -25,6 +25,13 @@ function formatTime(value) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+function discountPercentFor(originalPrice, price) {
+  const original = Math.max(0, Number(originalPrice) || 0);
+  const current = Math.max(0, Number(price) || 0);
+  if (original <= current) return 0;
+  return Math.min(99, Math.max(1, Math.round(((original - current) / original) * 100)));
+}
+
 function serializeProduct(product, req) {
   const images = (product.images?.length ? product.images : [product.imageUrl])
     .filter(Boolean)
@@ -33,6 +40,8 @@ function serializeProduct(product, req) {
     id: product.id,
     name: product.name,
     price: product.price,
+    originalPrice: Math.max(0, Number(product.originalPrice) || 0),
+    discountPercent: discountPercentFor(product.originalPrice, product.price),
     image: images[0] || null,
     imageUrl: images[0] || null,
     images,

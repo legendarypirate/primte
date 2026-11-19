@@ -23,6 +23,7 @@ import { DataTable, StatusBadge, TableEmpty, matchesQuery, useClientTable } from
 type ProductForm = {
   name: string;
   price: number;
+  originalPrice: number;
   category: string;
   subtitle: string;
   description: string;
@@ -36,6 +37,7 @@ type ProductForm = {
 const empty: ProductForm = {
   name: "",
   price: 0,
+  originalPrice: 0,
   category: "",
   subtitle: "",
   description: "",
@@ -45,6 +47,11 @@ const empty: ProductForm = {
   images: [],
   relatedIds: [],
 };
+
+function saleDiscount(originalPrice: number, price: number) {
+  if (!originalPrice || originalPrice <= price) return 0;
+  return Math.min(99, Math.max(1, Math.round(((originalPrice - price) / originalPrice) * 100)));
+}
 
 function productImages(p: Product) {
   if (p.images?.length) return p.images;
@@ -242,7 +249,19 @@ export default function ProductsPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{tugrik(p.price)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span>{tugrik(p.price)}</span>
+                        {(p.originalPrice ?? 0) > p.price && (
+                          <>
+                            <span className="text-xs text-muted-foreground line-through">{tugrik(p.originalPrice)}</span>
+                            {saleDiscount(p.originalPrice ?? 0, p.price) > 0 && (
+                              <Badge variant="secondary">-{saleDiscount(p.originalPrice ?? 0, p.price)}%</Badge>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{categoryName[p.category] || p.categoryLabel || p.category}</TableCell>
                     <TableCell>{images.length}</TableCell>
                     <TableCell>{p.relatedIds?.length ? p.relatedIds.length : <span className="text-muted-foreground">Авто</span>}</TableCell>
@@ -367,6 +386,7 @@ function ProductDrawerForm({
       ? {
           name: product.name,
           price: product.price,
+          originalPrice: product.originalPrice ?? 0,
           category: product.category,
           subtitle: product.subtitle || "",
           description: product.description || "",
@@ -422,16 +442,36 @@ function ProductDrawerForm({
         />
         <div className="space-y-1"><Label>Нэр</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1"><Label>Үнэ</Label><Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} /></div>
           <div className="space-y-1">
-            <Label>Ангилал</Label>
-            <FieldSelect value={form.category} onChange={(category) => setForm({ ...form, category })}>
-              <option value="">Сонгох</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.slug}>{c.name}</option>
-              ))}
-            </FieldSelect>
+            <Label>Анхны үнэ</Label>
+            <Input
+              type="number"
+              min={0}
+              value={form.originalPrice || ""}
+              placeholder="0"
+              onChange={(e) => setForm({ ...form, originalPrice: Math.max(0, Number(e.target.value) || 0) })}
+            />
           </div>
+          <div className="space-y-1">
+            <Label>Зарах үнэ</Label>
+            <Input type="number" min={0} value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+          </div>
+        </div>
+        {saleDiscount(form.originalPrice, form.price) > 0 ? (
+          <p className="text-sm font-medium text-primary">
+            Хямдрал -{saleDiscount(form.originalPrice, form.price)}% · {tugrik(form.originalPrice)} → {tugrik(form.price)}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">Анхны үнэ зарах үнээс өндөр бол хямдрал харагдана.</p>
+        )}
+        <div className="space-y-1">
+          <Label>Ангилал</Label>
+          <FieldSelect value={form.category} onChange={(category) => setForm({ ...form, category })}>
+            <option value="">Сонгох</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.slug}>{c.name}</option>
+            ))}
+          </FieldSelect>
         </div>
         <div className="space-y-1"><Label>Дэд гарчиг</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></div>
         <div className="space-y-1"><Label>Тайлбар</Label><Textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>

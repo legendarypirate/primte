@@ -2,6 +2,8 @@ export type Product = {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
+  discountPercent?: number;
   category: string;
   categoryLabel?: string;
   subtitle?: string;
