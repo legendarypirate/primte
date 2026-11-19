@@ -12,12 +12,14 @@ export function FileUpload({
   onChange,
   folder = "prime",
   accept = "image/*,application/pdf",
+  previewClassName = "h-24 w-24 rounded-lg border border-border object-cover",
 }: {
   label?: string;
   value?: string;
   onChange: (url: string) => void;
   folder?: string;
   accept?: string;
+  previewClassName?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const preview = assetUrl(value);
@@ -54,7 +56,7 @@ export function FileUpload({
       {busy && <p className="text-xs text-muted-foreground">Cloudinary руу хуулж байна...</p>}
       {preview && isImage && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={preview} alt="" className="h-24 w-24 rounded-lg border border-border object-cover" />
+        <img src={preview} alt="" className={previewClassName} />
       )}
       {preview && !isImage && (
         <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-primary underline">

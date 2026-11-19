@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { api, assetUrl } from "@/lib/api";
+import { api } from "@/lib/api";
 import { FileUpload } from "@/components/file-upload";
 import { IconActionButton } from "@/components/icon-action-button";
 import { DatePicker } from "@/components/date-picker";
@@ -38,17 +38,11 @@ type ClubDate = {
 };
 
 type BrandingSettings = {
-  logoUrl: string;
-  tagline: string;
-  name: string;
-  subtitle: string;
+  imageUrl: string;
 };
 
 const DEFAULT_BRANDING: BrandingSettings = {
-  logoUrl: "",
-  tagline: "Хийн буудлага · AA",
-  name: "PRIME",
-  subtitle: "2019 оноос · Клуб",
+  imageUrl: "",
 };
 
 type ClubSettings = {
@@ -152,7 +146,8 @@ export default function SettingsPage() {
   async function load() {
     const data = await api<{ settings: { club?: ClubSettings; branding?: BrandingSettings } }>("/api/admin/settings");
     applyClub(data.settings.club || { open: true, todayCount: 0, capacity: 40, hours: WEEKDAYS, history: [] });
-    setBranding({ ...DEFAULT_BRANDING, ...data.settings.branding });
+    const next = data.settings.branding || DEFAULT_BRANDING;
+    setBranding({ imageUrl: next.imageUrl || (next as { logoUrl?: string }).logoUrl || "" });
   }
 
   useEffect(() => {
@@ -225,7 +220,7 @@ export default function SettingsPage() {
         method: "PUT",
         body: JSON.stringify({ branding }),
       });
-      toast.success("Апп-ын лого, бичвэрийг хадгаллаа");
+      toast.success("Апп-ын логог хадгаллаа");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Алдаа");
     } finally {
@@ -243,54 +238,22 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Нүүр, нэвтрэх, QR болон толгой хэсэгт харагдах лого, нэр, тайлбар.
+            Нүүр, нэвтрэх болон толгой хэсэгт харагдах лого. Нэг зураг л хангалттай.
           </p>
-          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/30 p-4">
-            {branding.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={assetUrl(branding.logoUrl)} alt="" className="size-16 rounded-md object-cover" />
-            ) : (
-              <div className="flex size-16 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
-                Лого
-              </div>
-            )}
-            <div>
-              <p className="text-[11px] tracking-wide text-muted-foreground">{branding.tagline || DEFAULT_BRANDING.tagline}</p>
-              <p className="font-heading text-3xl leading-none text-primary">{branding.name || DEFAULT_BRANDING.name}</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">{branding.subtitle || DEFAULT_BRANDING.subtitle}</p>
-            </div>
-          </div>
           <FileUpload
             label="Лого зураг"
             accept="image/*"
             folder="prime/branding"
-            value={branding.logoUrl}
-            onChange={(logoUrl) => setBranding((prev) => ({ ...prev, logoUrl }))}
+            value={branding.imageUrl}
+            previewClassName="h-20 w-auto max-w-full rounded-lg border border-border object-contain bg-muted/30 p-2"
+            onChange={(imageUrl) => setBranding({ imageUrl })}
           />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label>Дээд бичиг</Label>
-              <Input
-                value={branding.tagline}
-                onChange={(e) => setBranding((prev) => ({ ...prev, tagline: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Нэр</Label>
-              <Input
-                value={branding.name}
-                onChange={(e) => setBranding((prev) => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label>Доод бичиг</Label>
-            <Input
-              value={branding.subtitle}
-              onChange={(e) => setBranding((prev) => ({ ...prev, subtitle: e.target.value }))}
-            />
-          </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            {branding.imageUrl ? (
+              <Button variant="outline" onClick={() => setBranding({ imageUrl: "" })}>
+                Цэвэрлэх
+              </Button>
+            ) : null}
             <Button onClick={saveBranding} disabled={savingBrand}>
               {savingBrand ? "Хадгалж байна..." : "Хадгалах"}
             </Button>
