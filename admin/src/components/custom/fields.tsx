@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, EyeIcon, EyeOffIcon, SearchIcon } from "lucide-react";
+import { Combobox } from "@base-ui/react/combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -103,6 +104,7 @@ export interface MSelectOption {
   label: string;
   value: string;
   disabled?: boolean;
+  searchText?: string;
 }
 
 const EMPTY_VALUE = "__empty__";
@@ -118,6 +120,8 @@ export function MSelect({
   triggerClassName,
   id,
   name,
+  searchable = false,
+  searchPlaceholder = "Хайх...",
   "aria-invalid": ariaInvalid,
 }: {
   options: MSelectOption[];
@@ -130,6 +134,8 @@ export function MSelect({
   triggerClassName?: string;
   id?: string;
   name?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
   "aria-invalid"?: boolean;
 }) {
   const labelByValue = React.useMemo(() => {
@@ -152,6 +158,24 @@ export function MSelect({
 
   const controlledValue =
     value === undefined && defaultValue !== undefined ? undefined : toInternal(value ?? "");
+
+  if (searchable) {
+    return (
+      <SearchSelect
+        options={options}
+        value={value ?? ""}
+        onValueChange={(next) => onValueChange?.(next)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={className}
+        triggerClassName={triggerClassName}
+        id={id}
+        name={name}
+        searchPlaceholder={searchPlaceholder}
+        ariaInvalid={ariaInvalid}
+      />
+    );
+  }
 
   return (
     <Select
@@ -191,6 +215,107 @@ export function MSelect({
         })}
       </SelectContent>
     </Select>
+  );
+}
+
+function SearchSelect({
+  options,
+  value,
+  onValueChange,
+  placeholder,
+  disabled,
+  className,
+  triggerClassName,
+  id,
+  name,
+  searchPlaceholder,
+  ariaInvalid,
+}: {
+  options: MSelectOption[];
+  value: string;
+  onValueChange?: (value: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+  className?: string;
+  triggerClassName?: string;
+  id?: string;
+  name?: string;
+  searchPlaceholder: string;
+  ariaInvalid?: boolean;
+}) {
+  const selected = React.useMemo(
+    () => options.find((option) => option.value === value && option.value !== "") ?? null,
+    [options, value]
+  );
+
+  return (
+    <Combobox.Root
+      items={options}
+      value={selected}
+      onValueChange={(next) => onValueChange?.(next?.value ?? "")}
+      itemToStringLabel={(item) => item.label}
+      itemToStringValue={(item) => item.value}
+      isItemEqualToValue={(a, b) => a.value === b.value}
+      filter={(item, query) => {
+        const q = query.trim().toLowerCase();
+        if (!q) return true;
+        const haystack = `${item.searchText || ""} ${item.label} ${item.value}`.toLowerCase();
+        return haystack.includes(q);
+      }}
+      autoHighlight
+      disabled={disabled}
+      name={name}
+    >
+      <Combobox.Trigger
+        id={id}
+        disabled={disabled}
+        aria-invalid={ariaInvalid}
+        className={cn(
+          "flex h-9 w-full cursor-pointer items-center justify-between gap-1.5 rounded-md px-2.5 py-2 text-sm outline-none select-none disabled:cursor-not-allowed disabled:opacity-50",
+          selectFieldClass,
+          triggerClassName,
+          className
+        )}
+      >
+        <span className={cn("min-w-0 flex-1 truncate text-left", !selected && "text-muted-foreground")}>
+          {selected?.label || placeholder}
+        </span>
+        <Combobox.Icon className="flex shrink-0 items-center">
+          <ChevronDownIcon className="size-4 text-muted-foreground" />
+        </Combobox.Icon>
+      </Combobox.Trigger>
+      <Combobox.Portal>
+        <Combobox.Positioner className="isolate z-50" side="bottom" sideOffset={4} align="start">
+          <Combobox.Popup className="isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-hidden rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-primary/15 duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+            <div className="border-b border-border p-1.5">
+              <div className="relative">
+                <SearchIcon className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Combobox.Input
+                  placeholder={searchPlaceholder}
+                  className={cn(fieldClass, "h-8 w-full rounded-md pr-2 pl-7 text-sm outline-none")}
+                />
+              </div>
+            </div>
+            <Combobox.Empty className="px-3 py-2 text-sm text-muted-foreground">Олдсонгүй.</Combobox.Empty>
+            <Combobox.List className="max-h-64 overflow-y-auto p-1">
+              {(item: MSelectOption) => (
+                <Combobox.Item
+                  key={item.value || EMPTY_VALUE}
+                  value={item}
+                  disabled={item.disabled}
+                  className="relative flex w-full cursor-pointer items-center rounded-md py-1.5 pr-8 pl-2 text-sm outline-none select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-primary/10 data-highlighted:text-primary"
+                >
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  <Combobox.ItemIndicator className="pointer-events-none absolute right-2 flex size-4 items-center justify-center">
+                    <CheckIcon className="size-4" />
+                  </Combobox.ItemIndicator>
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox.Root>
   );
 }
 

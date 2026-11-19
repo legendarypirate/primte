@@ -496,10 +496,17 @@ function ProductDrawerForm({
         <div className="space-y-1"><Label>Нэр</Label><Input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
         <div className="space-y-1">
           <Label>Ангилал</Label>
-          <FieldSelect value={form.category} onChange={(category) => setForm({ ...form, category })}>
+          <FieldSelect
+            value={form.category}
+            onChange={(category) => setForm({ ...form, category })}
+            searchable
+            searchPlaceholder="Ангилал хайх..."
+          >
             <option value="">Сонгох</option>
             {flattenCategoryTree(categories).map((c) => (
-              <option key={c.id} value={c.slug}>{categoryLabel(c)}</option>
+              <option key={c.id} value={c.slug} data-search={`${c.path || c.name} ${c.slug}`}>
+                {categoryLabel(c)}
+              </option>
             ))}
           </FieldSelect>
         </div>
@@ -730,10 +737,17 @@ function CategoryDrawerForm({
         </div>
         <div className="space-y-1">
           <Label>Эцэг ангилал</Label>
-          <FieldSelect value={parentId} onChange={setParentId}>
+          <FieldSelect
+            value={parentId}
+            onChange={setParentId}
+            searchable
+            searchPlaceholder="Ангилал хайх..."
+          >
             <option value="">Үндсэн ангилал</option>
             {parentOptions.map((c) => (
-              <option key={c.id} value={c.id}>{categoryLabel(c)}</option>
+              <option key={c.id} value={c.id} data-search={`${c.path || c.name} ${c.slug}`}>
+                {categoryLabel(c)}
+              </option>
             ))}
           </FieldSelect>
           <p className="text-xs text-muted-foreground">Хоосон бол үндсэн (эцэггүй) ангилал болно.</p>

@@ -12,14 +12,16 @@ function optionLabel(children: ReactNode): string {
 }
 
 function optionsFromChildren(children: ReactNode) {
-  const options: Array<{ label: string; value: string; disabled?: boolean }> = [];
+  const options: Array<{ label: string; value: string; disabled?: boolean; searchText?: string }> = [];
   Children.forEach(children, (child) => {
-    if (!isValidElement<{ value?: string | number; disabled?: boolean; children?: ReactNode }>(child)) return;
+    if (!isValidElement<{ value?: string | number; disabled?: boolean; children?: ReactNode; "data-search"?: string }>(child)) return;
     if (child.type !== "option") return;
+    const label = optionLabel(child.props.children);
     options.push({
       value: String(child.props.value ?? ""),
-      label: optionLabel(child.props.children),
+      label,
       disabled: child.props.disabled,
+      searchText: child.props["data-search"] || label,
     });
   });
   return options;
@@ -30,11 +32,15 @@ export function FieldSelect({
   onChange,
   children,
   className,
+  searchable = false,
+  searchPlaceholder,
 }: {
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
   className?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
 }) {
   const options = optionsFromChildren(children);
   const empty = options.find((option) => option.value === "");
@@ -45,6 +51,8 @@ export function FieldSelect({
       onValueChange={(next) => onChange(next ?? "")}
       placeholder={empty?.label || "Сонгоно уу"}
       className={className}
+      searchable={searchable}
+      searchPlaceholder={searchPlaceholder}
     />
   );
 }
