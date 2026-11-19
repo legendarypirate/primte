@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { IconActionButton } from "@/components/icon-action-button";
 import { cn } from "@/lib/utils";
 
 type ClubHistory = {
@@ -26,11 +27,20 @@ type ClubHour = {
   end: string;
 };
 
+type ClubDate = {
+  date: string;
+  open: boolean;
+  start: string;
+  end: string;
+};
+
 type ClubSettings = {
   open: boolean;
   todayCount: number;
   capacity: number;
   hours?: ClubHour[];
+  weeklyHours?: ClubHour[];
+  dates?: ClubDate[];
   history?: ClubHistory[];
 };
 
@@ -56,6 +66,34 @@ function normalizeHours(hours?: ClubHour[]) {
   });
 }
 
+function todayKey() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function isoWeekday(dateKey: string) {
+  const day = new Date(`${dateKey}T12:00:00`).getDay();
+  return day === 0 ? 7 : day;
+}
+
+function formatDateLabel(dateKey: string) {
+  return dateKey.replaceAll("-", ".");
+}
+
+function weekdayLabel(dateKey: string) {
+  return WEEKDAYS.find((day) => day.weekday === isoWeekday(dateKey))?.label || "";
+}
+
+function draftForDate(dateKey: string, weekly: ClubHour[], dates: ClubDate[]): ClubDate {
+  const found = dates.find((row) => row.date === dateKey);
+  if (found) return { ...found };
+  const weeklyDay = weekly.find((row) => row.weekday === isoWeekday(dateKey)) || WEEKDAYS[0];
+  return { date: dateKey, open: weeklyDay.open, start: weeklyDay.start, end: weeklyDay.end };
+}
+
 function formatWhen(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -73,16 +111,23 @@ export default function SettingsPage() {
   const [todayCount, setTodayCount] = useState(0);
   const [capacity, setCapacity] = useState(40);
   const [hours, setHours] = useState<ClubHour[]>(WEEKDAYS);
+  const [dates, setDates] = useState<ClubDate[]>([]);
+  const [selectedDate, setSelectedDate] = useState(todayKey);
+  const [dateDraft, setDateDraft] = useState<ClubDate>(() => draftForDate(todayKey(), WEEKDAYS, []));
   const [history, setHistory] = useState<ClubHistory[]>([]);
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
 
   function applyClub(club: ClubSettings) {
+    const weekly = normalizeHours(club.weeklyHours || club.hours);
+    const nextDates = (club.dates || []).filter((row) => row.date);
     setOpen(club.open);
     setTodayCount(club.todayCount ?? 0);
     setCapacity(club.capacity ?? 40);
-    setHours(normalizeHours(club.hours));
+    setHours(weekly);
+    setDates(nextDates);
     setHistory(club.history || []);
+    setDateDraft(draftForDate(selectedDate, weekly, nextDates));
   }
 
   async function load() {
@@ -96,6 +141,37 @@ export default function SettingsPage() {
 
   function patchHour(weekday: number, patch: Partial<ClubHour>) {
     setHours((prev) => prev.map((row) => (row.weekday === weekday ? { ...row, ...patch } : row)));
+  }
+
+  function selectDate(dateKey: string) {
+    setSelectedDate(dateKey);
+    setDateDraft(draftForDate(dateKey, hours, dates));
+  }
+
+  async function persistDates(nextDates: ClubDate[], message: string) {
+    setDates(nextDates);
+    setSaving(true);
+    try {
+      await saveClub({ open, todayCount, capacity, hours, dates: nextDates });
+      toast.success(message);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Алдаа");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function upsertSelectedDate() {
+    if (!selectedDate) return;
+    const next = { ...dateDraft, date: selectedDate };
+    const nextDates = [...dates.filter((row) => row.date !== selectedDate), next].sort((a, b) => a.date.localeCompare(b.date));
+    void persistDates(nextDates, `${formatDateLabel(selectedDate)} өдрийн цагийг хадгаллаа`);
+  }
+
+  function removeDate(dateKey: string) {
+    const nextDates = dates.filter((row) => row.date !== dateKey);
+    if (selectedDate === dateKey) setDateDraft(draftForDate(dateKey, hours, []));
+    void persistDates(nextDates, `${formatDateLabel(dateKey)} өдрийн тохиргоог устгалаа`);
   }
 
   async function saveClub(next: Partial<ClubSettings> & { open: boolean; todayCount: number; capacity: number }) {
@@ -112,7 +188,7 @@ export default function SettingsPage() {
     setOpen(nextOpen);
     setToggling(true);
     try {
-      await saveClub({ open: nextOpen, todayCount, capacity, hours });
+      await saveClub({ open: nextOpen, todayCount, capacity, hours, dates });
       toast.success(nextOpen ? "Клуб нээлээ. Гишүүдэд мэдэгдэл илгээлээ." : "Клуб хаалаа. Гишүүдэд мэдэгдэл илгээлээ.");
     } catch (e) {
       setOpen(!nextOpen);
@@ -152,9 +228,9 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2 pt-2">
-              <Label>7 хоногийн цагийн хуваарь</Label>
+              <Label>7 хоногийн үндсэн хуваарь</Label>
               <p className="text-xs text-muted-foreground">
-                Апп дээрх клубын төлөв дээр энэ хуваарь харагдана.
+                Даваа–Нямын default цаг. Тусгай өдрийг доорх date picker-оор дарж өөрчилнө.
               </p>
               <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
                 {hours.map((day) => (
@@ -186,12 +262,84 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            <div className="space-y-2 pt-2">
+              <Label>Өдөр өдрийн цаг</Label>
+              <p className="text-xs text-muted-foreground">
+                Огноо сонгоод тухайн өдрийн нээлттэй цагийг тохируулна. Сонгоогүй өдөр дээрх 7 хоногийн хуваарийг ашиглана.
+              </p>
+              <div className="space-y-3 rounded-lg border border-border p-3">
+                <div className="space-y-1">
+                  <Label>Огноо</Label>
+                  <Input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => {
+                      if (e.target.value) selectDate(e.target.value);
+                    }}
+                  />
+                </div>
+                {selectedDate ? (
+                  <>
+                    <div className="text-sm font-medium">
+                      {weekdayLabel(selectedDate)} · {formatDateLabel(selectedDate)}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Toggle
+                        checked={dateDraft.open}
+                        onClick={() => setDateDraft((prev) => ({ ...prev, open: !prev.open }))}
+                      />
+                      <span className="text-xs text-muted-foreground">{dateDraft.open ? "Нээлттэй" : "Хаалттай"}</span>
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Input
+                        type="time"
+                        className="w-full min-w-28"
+                        value={dateDraft.start}
+                        disabled={!dateDraft.open}
+                        onChange={(e) => setDateDraft((prev) => ({ ...prev, start: e.target.value }))}
+                      />
+                      <span className="text-muted-foreground">–</span>
+                      <Input
+                        type="time"
+                        className="w-full min-w-28"
+                        value={dateDraft.end}
+                        disabled={!dateDraft.open}
+                        onChange={(e) => setDateDraft((prev) => ({ ...prev, end: e.target.value }))}
+                      />
+                    </div>
+                    <Button type="button" variant="outline" disabled={saving} onClick={upsertSelectedDate}>
+                      {saving ? "Хадгалж байна..." : "Энэ өдрийг хадгалах"}
+                    </Button>
+                  </>
+                ) : null}
+              </div>
+              {dates.length > 0 ? (
+                <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+                  {dates.map((row) => (
+                    <div key={row.date} className="flex items-center gap-3 px-3 py-2">
+                      <button type="button" className="min-w-0 flex-1 text-left" onClick={() => selectDate(row.date)}>
+                        <div className="font-medium">
+                          {weekdayLabel(row.date)} · {formatDateLabel(row.date)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {row.open ? `${row.start} – ${row.end}` : "Хаалттай"}
+                        </div>
+                      </button>
+                      <IconActionButton action="delete" onClick={() => removeDate(row.date)} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Тусгай өдөр тохируулаагүй байна.</p>
+              )}
+            </div>
+
             <Button
               disabled={saving}
               onClick={async () => {
                 setSaving(true);
                 try {
-                  await saveClub({ open, todayCount, capacity, hours });
+                  await saveClub({ open, todayCount, capacity, hours, dates });
                   toast.success("Хадгаллаа");
                 } catch (e) {
                   toast.error(e instanceof Error ? e.message : "Алдаа");

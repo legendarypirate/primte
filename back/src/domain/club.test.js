@@ -5,8 +5,11 @@ const {
   mergeClubStatus,
   clubTime,
   clubWeekday,
+  clubDateKey,
+  shiftClubDate,
   normalizeClock,
   normalizeClubHours,
+  normalizeClubDates,
 } = require('./club');
 
 test('startOfClubDay is midnight in Ulaanbaatar', () => {
@@ -37,20 +40,50 @@ test('normalizeClubHours fills seven days and keeps closed days', () => {
   assert.equal(hours[2].open, true);
 });
 
-test('mergeClubStatus uses live attendance, stored open/capacity, and weekly hours', () => {
+test('shiftClubDate moves by calendar days', () => {
+  assert.equal(shiftClubDate('2026-10-28', 1), '2026-10-29');
+  assert.equal(clubDateKey(new Date('2026-10-28T02:30:00.000Z')), '2026-10-28');
+});
+
+test('normalizeClubDates keeps valid future days and drops bad keys', () => {
+  const dates = normalizeClubDates(
+    [
+      { date: '2026-10-27', open: false, start: '10:00', end: '12:00' },
+      { date: '2026.10.29', open: true, start: '11:00', end: '19:00' },
+      { date: 'not-a-date', open: true },
+    ],
+    { fromDate: '2026-10-28' },
+  );
+  assert.deepEqual(dates, [{ date: '2026-10-29', open: true, start: '11:00', end: '19:00' }]);
+});
+
+test('mergeClubStatus uses live attendance, weekly hours, and date overrides', () => {
   const now = new Date('2026-10-28T02:30:00.000Z');
   const merged = mergeClubStatus(
-    { open: false, todayCount: 12, capacity: 40, hours: [{ weekday: 3, open: false, start: '12:00', end: '18:00' }] },
+    {
+      open: false,
+      todayCount: 12,
+      capacity: 40,
+      hours: [{ weekday: 3, open: false, start: '12:00', end: '18:00' }],
+      dates: [{ date: '2026-10-29', open: false, start: '09:00', end: '13:00' }],
+    },
     { todayCount: 3, now },
   );
   assert.equal(merged.open, false);
   assert.equal(merged.todayCount, 3);
   assert.equal(merged.capacity, 40);
   assert.equal(merged.hours.length, 7);
-  assert.equal(merged.hours[2].today, true);
-  assert.equal(merged.hours[2].label, 'Лхагва');
-  assert.equal(merged.hours[2].open, false);
-  assert.equal(merged.hours[2].start, '12:00');
+  assert.equal(merged.hours[0].today, true);
+  assert.equal(merged.hours[0].date, '2026-10-28');
+  assert.equal(merged.hours[0].label, 'Лхагва');
+  assert.equal(merged.hours[0].open, false);
+  assert.equal(merged.hours[0].start, '12:00');
+  assert.equal(merged.hours[1].date, '2026-10-29');
+  assert.equal(merged.hours[1].open, false);
+  assert.equal(merged.hours[1].start, '09:00');
+  assert.equal(merged.hours[1].special, true);
+  assert.equal(merged.weeklyHours[2].label, 'Лхагва');
+  assert.equal(merged.dates[0].date, '2026-10-29');
 
   const fallback = mergeClubStatus({}, { todayCount: 0, now });
   assert.equal(fallback.open, true);
@@ -58,6 +91,7 @@ test('mergeClubStatus uses live attendance, stored open/capacity, and weekly hou
   assert.equal(fallback.capacity, 40);
   assert.equal(fallback.hours[0].start, '10:00');
   assert.equal(fallback.hours[0].end, '22:00');
+  assert.equal(fallback.hours[0].date, '2026-10-28');
 });
 
 test('clubTime formats hours in Ulaanbaatar', () => {

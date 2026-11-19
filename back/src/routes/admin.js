@@ -25,7 +25,7 @@ const {
 const { requireAdmin, requirePermission } = require('../middleware/auth');
 const { loadClubStatus } = require('../services/clubStatus');
 const { notifyClubStatus } = require('../services/clubNotify');
-const { startOfClubDay, normalizeClubHours } = require('../domain/club');
+const { startOfClubDay, clubDateKey, normalizeClubHours, normalizeClubDates } = require('../domain/club');
 const { makeGatePayload, GATE_TTL_MS, attendanceHours, GATE_PREFIX } = require('../domain/attendance');
 const { applyGate, openSession, serializeSession } = require('../services/attendanceService');
 const {
@@ -201,7 +201,8 @@ router.put('/settings', requirePermission('settings.manage'), async (req, res) =
       const next = {
         open: value.open ?? prev.open,
         capacity: value.capacity ?? prev.capacity,
-        hours: normalizeClubHours(value.hours ?? prev.hours),
+        hours: normalizeClubHours(value.hours ?? value.weeklyHours ?? prev.hours),
+        dates: normalizeClubDates(value.dates ?? prev.dates, { fromDate: clubDateKey() }),
       };
       const openChanged = Boolean(prev.open) !== Boolean(next.open);
       if (openChanged) {
