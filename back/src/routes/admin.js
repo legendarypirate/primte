@@ -38,7 +38,7 @@ const {
   serializeTraining,
   serializeNotice,
 } = require('../utils/helpers');
-const { uniqueSlug, assertValidParent, decorateCategories } = require('../services/productCategoryService');
+const { uniqueSlug, assertValidParent, decorateCategories, applyCategoryOrder } = require('../services/productCategoryService');
 const {
   nextStudentCode,
   applyMemberProgression,
@@ -574,6 +574,21 @@ router.post('/product-categories', requirePermission('products.manage'), async (
     res.status(201).json({ category: decorateCategories(all).find((c) => c.id === category.id) });
   } catch (err) {
     res.status(err.statusCode || 400).json({ message: err.message || 'Ангилал үүсгэж чадсангүй.' });
+  }
+});
+
+router.put('/product-categories/reorder', requirePermission('products.manage'), async (req, res) => {
+  try {
+    const categories = await applyCategoryOrder(req.body?.items);
+    const counts = await Product.findAll({
+      attributes: ['category', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+      group: ['category'],
+      raw: true,
+    });
+    const map = Object.fromEntries(counts.map((c) => [c.category, Number(c.count)]));
+    res.json({ categories: decorateCategories(categories, map) });
+  } catch (err) {
+    res.status(err.statusCode || 400).json({ message: err.message || 'Эрэмбэлж чадсангүй.' });
   }
 });
 

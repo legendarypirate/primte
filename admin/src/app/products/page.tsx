@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
+import { CategoryTable } from "./category-table";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import {
   categoryLabel,
   errorMessage,
   flattenCategoryTree,
+  moveCategoryAfter,
   type Product,
   type ProductCategory,
 } from "@/lib/products";
@@ -125,7 +127,6 @@ export default function ProductsPage() {
     }
     return tree.filter((c) => keep.has(c.id));
   }, [categories, categoryQuery]);
-  const categoryTable = useClientTable(filteredCategories, { resetKey: categoryQuery });
 
   function openCreate() {
     setEditing(null);
@@ -167,6 +168,25 @@ export default function ProductsPage() {
       await load();
       toast.success("Устгалаа");
     } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  }
+
+  async function reorderCategories(activeId: string, overId: string) {
+    const next = moveCategoryAfter(categories, activeId, overId);
+    if (next === categories) return;
+    const prev = categories;
+    setCategories(next);
+    try {
+      const data = await api<{ categories: ProductCategory[] }>("/api/admin/product-categories/reorder", {
+        method: "PUT",
+        body: JSON.stringify({
+          items: next.map((c) => ({ id: c.id, parentId: c.parentId, sortOrder: c.sortOrder })),
+        }),
+      });
+      setCategories(data.categories);
+    } catch (e) {
+      setCategories(prev);
       toast.error(errorMessage(e));
     }
   }
@@ -316,67 +336,26 @@ export default function ProductsPage() {
             onSearchChange={setCategoryQuery}
             searchPlaceholder="Ангилал хайх..."
             unit="ангилал"
-            total={categoryTable.total}
-            page={categoryTable.page}
-            pageCount={categoryTable.pageCount}
-            onPageChange={categoryTable.setPage}
-            pageSize={categoryTable.pageSize}
-            onPageSizeChange={categoryTable.setPageSize}
+            total={filteredCategories.length}
+            page={1}
+            pageCount={1}
+            onPageChange={() => {}}
+            pageSize={Math.max(filteredCategories.length, 1)}
+            onPageSizeChange={() => {}}
+            extra={
+              <p className="text-xs text-muted-foreground">
+                Зүүн талын бариулыг чирж эрэмбэлнэ. Дэд ангилал эцэгтэйгээ хамт явна.
+              </p>
+            }
           >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-20">Эрэмбэ</TableHead>
-                  <TableHead>Нэр</TableHead>
-                  <TableHead>Эцэг</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Бараа</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {categoryTable.visible.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer" onClick={() => openEditCategory(c)}>
-                    <TableCell className="text-muted-foreground">#{c.sortOrder}</TableCell>
-                    <TableCell className="font-medium">
-                      <span
-                        className="inline-flex items-center gap-2"
-                        style={{ paddingLeft: `${(c.depth ?? 0) * 1.25}rem` }}
-                      >
-                        {(c.depth ?? 0) > 0 && <span className="text-muted-foreground">└</span>}
-                        {c.name}
-                        {(c.childCount ?? 0) > 0 && (
-                          <Badge variant="secondary" className="font-normal">
-                            {c.childCount} дэд
-                          </Badge>
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{c.parentName || "—"}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{c.slug}</TableCell>
-                    <TableCell>{c.totalProductCount ?? c.productCount}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <ActionCell>
-                        <Button
-                          type="button"
-                          size="icon-sm"
-                          variant="outline"
-                          title="Дэд ангилал"
-                          aria-label="Дэд ангилал"
-                          className="size-8 shrink-0 rounded-md text-muted-foreground shadow-sm"
-                          onClick={() => openCreateCategory(c.id)}
-                        >
-                          <Plus />
-                        </Button>
-                        <IconActionButton action="edit" onClick={() => openEditCategory(c)} />
-                        <IconActionButton action="delete" onClick={() => removeCategory(c)} />
-                      </ActionCell>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {categoryTable.visible.length === 0 && <TableEmpty colSpan={6}>Ангилал алга.</TableEmpty>}
-              </TableBody>
-            </Table>
+            <CategoryTable
+              rows={filteredCategories}
+              canDrag={!categoryQuery.trim()}
+              onReorder={reorderCategories}
+              onEdit={openEditCategory}
+              onDelete={removeCategory}
+              onAddChild={openCreateCategory}
+            />
           </DataTable>
         </TabsContent>
       </Tabs>

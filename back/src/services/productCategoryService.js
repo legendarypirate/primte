@@ -159,6 +159,63 @@ function decorateCategories(categories, countMap = {}) {
   });
 }
 
+function assertAcyclic(parentMap) {
+  for (const id of parentMap.keys()) {
+    const seen = new Set();
+    let cur = parentMap.get(id);
+    let depth = 0;
+    while (cur) {
+      if (cur === id || seen.has(cur)) {
+        const err = new Error('Ангиллын мод буруу байна.');
+        err.statusCode = 400;
+        throw err;
+      }
+      seen.add(cur);
+      depth += 1;
+      if (depth >= MAX_CATEGORY_DEPTH) {
+        const err = new Error(`Ангилал хамгийн ихдээ ${MAX_CATEGORY_DEPTH} төвшинтэй байж болно.`);
+        err.statusCode = 400;
+        throw err;
+      }
+      cur = parentMap.get(cur) || null;
+    }
+  }
+}
+
+async function applyCategoryOrder(items) {
+  const rows = await ProductCategory.findAll();
+  const known = new Set(rows.map((row) => row.id));
+  const updates = [];
+  for (const item of Array.isArray(items) ? items : []) {
+    const id = String(item?.id || '');
+    if (!known.has(id)) continue;
+    updates.push({
+      id,
+      parentId: item.parentId === undefined ? undefined : parseParentId(item.parentId),
+      sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : 0,
+    });
+  }
+  if (!updates.length) {
+    const err = new Error('Эрэмбэ хоосон байна.');
+    err.statusCode = 400;
+    throw err;
+  }
+  const parentMap = new Map(rows.map((row) => [row.id, row.parentId || null]));
+  for (const update of updates) {
+    if (update.parentId !== undefined) parentMap.set(update.id, update.parentId);
+  }
+  assertAcyclic(parentMap);
+  const sequelize = ProductCategory.sequelize;
+  await sequelize.transaction(async (t) => {
+    for (const update of updates) {
+      const patch = { sortOrder: update.sortOrder };
+      if (update.parentId !== undefined) patch.parentId = update.parentId;
+      await ProductCategory.update(patch, { where: { id: update.id }, transaction: t });
+    }
+  });
+  return ProductCategory.findAll({ order: [['sortOrder', 'ASC'], ['createdAt', 'ASC']] });
+}
+
 async function ensureProductCategories() {
   if ((await ProductCategory.count()) > 0) return;
   const used = await Product.findAll({ attributes: ['category'], group: ['category'], raw: true });
@@ -179,5 +236,6 @@ module.exports = {
   parseParentId,
   assertValidParent,
   decorateCategories,
+  applyCategoryOrder,
   ensureProductCategories,
 };
