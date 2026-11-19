@@ -29,6 +29,7 @@ const {
   serializeRegistration,
   serializeTraining,
   serializePresentMember,
+  serializeNotice,
   formatDate,
   formatTime,
 } = require('../utils/helpers');
@@ -115,7 +116,7 @@ router.get('/home', async (req, res) => {
       )
     ),
     trainings: trainings.map((t) => serializeTraining(t, req)),
-    notices,
+    notices: notices.map(serializeNotice),
     unreadNotices: notices.length,
   });
 });
@@ -515,7 +516,7 @@ router.get('/notices', async (_req, res) => {
     where: { published: true },
     order: [['createdAt', 'DESC']],
   });
-  res.json({ notices });
+  res.json({ notices: notices.map(serializeNotice) });
 });
 
 router.get('/profile', async (req, res) => {

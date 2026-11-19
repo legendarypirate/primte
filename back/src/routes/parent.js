@@ -23,6 +23,7 @@ const {
   serializeAttendance,
   serializeProgress,
   serializePurchase,
+  serializeNotice,
   formatDate,
   formatTime,
 } = require('../utils/helpers');
@@ -57,7 +58,7 @@ router.get('/home', async (req, res) => {
     },
     children: children.map((c) => serializeChildSummary(c, req)),
     club: await loadClubStatus(),
-    notices,
+    notices: notices.map(serializeNotice),
     unreadNotices: notices.length,
   });
 });
@@ -303,7 +304,7 @@ router.get('/notices', async (_req, res) => {
     where: { published: true },
     order: [['createdAt', 'DESC']],
   });
-  res.json({ notices });
+  res.json({ notices: notices.map(serializeNotice) });
 });
 
 function calcAttendancePercent(attended, goal = 12) {

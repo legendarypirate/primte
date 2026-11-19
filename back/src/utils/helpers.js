@@ -263,6 +263,17 @@ function serializeAttendance(record) {
   };
 }
 
+function serializeNotice(notice) {
+  return {
+    id: notice.id,
+    title: notice.title,
+    body: notice.body,
+    published: Boolean(notice.published),
+    createdAt: notice.createdAt,
+    timeLabel: formatDateTime(notice.createdAt),
+  };
+}
+
 function serializePresentMember(row, req, viewerId) {
   const member = row.Member || {};
   const names = resolveMemberNames(member);
@@ -416,6 +427,7 @@ module.exports = {
   serializeMember,
   serializeChildSummary,
   serializeAttendance,
+  serializeNotice,
   serializePresentMember,
   serializeProgress,
   serializePurchase,

@@ -40,10 +40,25 @@ export default function NoticesPage() {
 
   async function publish() {
     if (!form.title.trim()) return toast.error("Гарчиг оруулна уу.");
+    if (!form.body.trim()) return toast.error("Агуулга оруулна уу.");
     setSaving(true);
     try {
-      await api("/api/admin/notices", { method: "POST", body: JSON.stringify({ ...form, published: true }) });
-      toast.success("Нийтэллээ");
+      const result = await api<{
+        push?: { skipped?: boolean; successCount?: number; tokenCount?: number };
+      }>("/api/admin/notices", {
+        method: "POST",
+        body: JSON.stringify({ ...form, published: true }),
+      });
+      if (result.push?.skipped) {
+        toast.success("Нийтэллээ. Push сервер тохируулаагүй байна.");
+      } else {
+        const sent = result.push?.successCount ?? 0;
+        toast.success(
+          sent > 0
+            ? `Нийтэллээ. ${sent} төхөөрөмжид мэдэгдэл илгээлээ.`
+            : "Нийтэллээ. Бүх хэрэглэгчид мэдэгдэл илгээлээ."
+        );
+      }
       close();
       await load();
     } catch (e) {
@@ -115,6 +130,7 @@ export default function NoticesPage() {
       >
         <div className="space-y-1"><Label>Гарчиг</Label><Input autoFocus value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
         <div className="space-y-1"><Label>Агуулга</Label><Textarea rows={8} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
+        <p className="text-sm text-muted-foreground">Нийтлэх үед гишүүд болон эцэг эх бүрт push мэдэгдэл очно.</p>
       </FormDrawer>
     </Shell>
   );

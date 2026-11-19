@@ -25,6 +25,7 @@ const {
 const { requireAdmin, requirePermission } = require('../middleware/auth');
 const { loadClubStatus } = require('../services/clubStatus');
 const { notifyClubStatus } = require('../services/clubNotify');
+const { notifyPublishedNotice } = require('../services/noticeNotify');
 const { startOfClubDay, clubDateKey, normalizeClubHours, normalizeClubDates } = require('../domain/club');
 const { makeGatePayload, GATE_TTL_MS, attendanceHours, GATE_PREFIX } = require('../domain/attendance');
 const { applyGate, openSession, serializeSession } = require('../services/attendanceService');
@@ -35,6 +36,7 @@ const {
   serializeCompetition,
   serializeRegistration,
   serializeTraining,
+  serializeNotice,
 } = require('../utils/helpers');
 const { uniqueSlug } = require('../services/productCategoryService');
 const {
@@ -788,21 +790,47 @@ router.delete('/trainings/:id', requirePermission('trainings.manage'), async (re
   res.json({ ok: true });
 });
 
+function noticeFields(body = {}) {
+  const title = String(body.title || '').trim();
+  const text = String(body.body || '').trim();
+  return { title, body: text, published: body.published !== false };
+}
+
+async function maybeBroadcastNotice(notice) {
+  if (!notice?.published) return null;
+  try {
+    return await notifyPublishedNotice(notice);
+  } catch (err) {
+    console.error('FCM: notice broadcast failed', err);
+    return { skipped: true, error: err.message };
+  }
+}
+
 router.get('/notices', requirePermission('notices.view'), async (_req, res) => {
   const notices = await Notice.findAll({ order: [['createdAt', 'DESC']] });
-  res.json({ notices });
+  res.json({ notices: notices.map(serializeNotice) });
 });
 
 router.post('/notices', requirePermission('notices.manage'), async (req, res) => {
-  const notice = await Notice.create(req.body || {});
-  res.status(201).json({ notice });
+  const fields = noticeFields(req.body);
+  if (!fields.title) return res.status(400).json({ message: 'Гарчиг оруулна уу.' });
+  if (!fields.body) return res.status(400).json({ message: 'Агуулга оруулна уу.' });
+  const notice = await Notice.create(fields);
+  const push = await maybeBroadcastNotice(notice);
+  res.status(201).json({ notice: serializeNotice(notice), push });
 });
 
 router.put('/notices/:id', requirePermission('notices.manage'), async (req, res) => {
   const notice = await Notice.findByPk(req.params.id);
   if (!notice) return res.status(404).json({ message: 'Мэдэгдэл олдсонгүй.' });
-  await notice.update(req.body || {});
-  res.json({ notice });
+  const wasPublished = Boolean(notice.published);
+  const fields = noticeFields({ ...notice.toJSON(), ...req.body });
+  if (!fields.title) return res.status(400).json({ message: 'Гарчиг оруулна уу.' });
+  if (!fields.body) return res.status(400).json({ message: 'Агуулга оруулна уу.' });
+  await notice.update(fields);
+  const shouldPush = notice.published && !wasPublished;
+  const push = shouldPush ? await maybeBroadcastNotice(notice) : null;
+  res.json({ notice: serializeNotice(notice), push });
 });
 
 router.delete('/notices/:id', requirePermission('notices.manage'), async (req, res) => {
