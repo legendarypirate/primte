@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { IconActionButton } from "@/components/icon-action-button";
-import { DatePickerPanel } from "@/components/date-picker";
+import { DatePicker } from "@/components/date-picker";
 import { TimeRangePicker } from "@/components/time-picker";
 import { cn } from "@/lib/utils";
 
@@ -258,21 +258,22 @@ export default function SettingsPage() {
             <div className="space-y-2 pt-2">
               <Label>Өдөр өдрийн цаг</Label>
               <p className="text-xs text-muted-foreground">
-                Календараас огноо сонгоод тухайн өдрийн нээлттэй цагийг тохируулна. Ногоон цэгтэй өдөр тусгай тохиргоотой.
+                Огноо дээр дарж календараас өдөр сонгоно. Сонгоогүй өдөр 7 хоногийн хуваарийг ашиглана.
               </p>
-              <div className="grid gap-4 rounded-xl border border-border p-3 lg:grid-cols-[auto_minmax(0,1fr)]">
-                <div className="flex justify-center">
-                  <DatePickerPanel
-                    selected={selectedDate}
-                    onSelect={selectDate}
+              <div className="space-y-3 rounded-xl border border-border p-3">
+                <div className="space-y-1">
+                  <Label>Огноо</Label>
+                  <DatePicker
+                    value={selectedDate}
                     minDate={todayKey()}
                     markers={dates.map((row) => row.date)}
+                    onChange={selectDate}
                   />
                 </div>
                 {selectedDate ? (
-                  <div className="flex flex-col justify-center gap-3">
+                  <>
                     <div>
-                      <div className="text-base font-medium">
+                      <div className="text-sm font-medium">
                         {weekdayLabel(selectedDate)} · {formatDateLabel(selectedDate)}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -298,7 +299,7 @@ export default function SettingsPage() {
                     <Button type="button" variant="outline" disabled={saving} onClick={upsertSelectedDate}>
                       {saving ? "Хадгалж байна..." : "Энэ өдрийг хадгалах"}
                     </Button>
-                  </div>
+                  </>
                 ) : null}
               </div>
               {dates.length > 0 ? (
