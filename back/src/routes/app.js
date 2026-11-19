@@ -18,6 +18,7 @@ const { requireMember } = require('../middleware/auth');
 const { matchPermissionForCompetition } = require('../rbac/catalog');
 const { memberHasPermission } = require('../services/rbacService');
 const { loadClubStatus } = require('../services/clubStatus');
+const { loadBranding } = require('../services/branding');
 const { awardCompetitionXp, listPointHistory } = require('../services/pointLedger');
 const { parseGatePayload } = require('../domain/attendance');
 const { applyGate, openSession, serializeSession, listPresentToday } = require('../services/attendanceService');
@@ -82,8 +83,13 @@ function buildPaymentReference(competition, division, squadLabel, seq) {
 const router = express.Router();
 router.use((req, res, next) => {
   if (req.path.startsWith('/parent')) return next();
+  if (req.method === 'GET' && req.path === '/branding') return next();
   if (req.method === 'GET' && /^\/competitions\/[^/]+\/leaderboard$/.test(req.path)) return next();
   return requireMember(req, res, next);
+});
+
+router.get('/branding', async (req, res) => {
+  res.json({ branding: await loadBranding(req) });
 });
 
 router.get('/home', async (req, res) => {

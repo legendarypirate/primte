@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { api, assetUrl } from "@/lib/api";
+import { FileUpload } from "@/components/file-upload";
 import { IconActionButton } from "@/components/icon-action-button";
 import { DatePicker } from "@/components/date-picker";
 import { TimeRangePicker } from "@/components/time-picker";
@@ -34,6 +35,20 @@ type ClubDate = {
   open: boolean;
   start: string;
   end: string;
+};
+
+type BrandingSettings = {
+  logoUrl: string;
+  tagline: string;
+  name: string;
+  subtitle: string;
+};
+
+const DEFAULT_BRANDING: BrandingSettings = {
+  logoUrl: "",
+  tagline: "Хийн буудлага · AA",
+  name: "PRIME",
+  subtitle: "2019 оноос · Клуб",
 };
 
 type ClubSettings = {
@@ -119,6 +134,8 @@ export default function SettingsPage() {
   const [history, setHistory] = useState<ClubHistory[]>([]);
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [branding, setBranding] = useState<BrandingSettings>(DEFAULT_BRANDING);
+  const [savingBrand, setSavingBrand] = useState(false);
 
   function applyClub(club: ClubSettings) {
     const weekly = normalizeHours(club.weeklyHours || club.hours);
@@ -133,8 +150,9 @@ export default function SettingsPage() {
   }
 
   async function load() {
-    const data = await api<{ settings: { club?: ClubSettings } }>("/api/admin/settings");
+    const data = await api<{ settings: { club?: ClubSettings; branding?: BrandingSettings } }>("/api/admin/settings");
     applyClub(data.settings.club || { open: true, todayCount: 0, capacity: 40, hours: WEEKDAYS, history: [] });
+    setBranding({ ...DEFAULT_BRANDING, ...data.settings.branding });
   }
 
   useEffect(() => {
@@ -200,10 +218,85 @@ export default function SettingsPage() {
     }
   }
 
+  async function saveBranding() {
+    setSavingBrand(true);
+    try {
+      await api("/api/admin/settings", {
+        method: "PUT",
+        body: JSON.stringify({ branding }),
+      });
+      toast.success("Апп-ын лого, бичвэрийг хадгаллаа");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Алдаа");
+    } finally {
+      setSavingBrand(false);
+    }
+  }
+
   return (
     <Shell>
       <div id="club-picker-portal" />
       <h1 className="mb-6 font-heading text-3xl text-primary">Тохиргоо</h1>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Апп-ын лого</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Нүүр, нэвтрэх, QR болон толгой хэсэгт харагдах лого, нэр, тайлбар.
+          </p>
+          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/30 p-4">
+            {branding.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={assetUrl(branding.logoUrl)} alt="" className="size-16 rounded-md object-cover" />
+            ) : (
+              <div className="flex size-16 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
+                Лого
+              </div>
+            )}
+            <div>
+              <p className="text-[11px] tracking-wide text-muted-foreground">{branding.tagline || DEFAULT_BRANDING.tagline}</p>
+              <p className="font-heading text-3xl leading-none text-primary">{branding.name || DEFAULT_BRANDING.name}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{branding.subtitle || DEFAULT_BRANDING.subtitle}</p>
+            </div>
+          </div>
+          <FileUpload
+            label="Лого зураг"
+            accept="image/*"
+            folder="prime/branding"
+            value={branding.logoUrl}
+            onChange={(logoUrl) => setBranding((prev) => ({ ...prev, logoUrl }))}
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label>Дээд бичиг</Label>
+              <Input
+                value={branding.tagline}
+                onChange={(e) => setBranding((prev) => ({ ...prev, tagline: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Нэр</Label>
+              <Input
+                value={branding.name}
+                onChange={(e) => setBranding((prev) => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label>Доод бичиг</Label>
+            <Input
+              value={branding.subtitle}
+              onChange={(e) => setBranding((prev) => ({ ...prev, subtitle: e.target.value }))}
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={saveBranding} disabled={savingBrand}>
+              {savingBrand ? "Хадгалж байна..." : "Хадгалах"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
         <Card>
           <CardHeader>

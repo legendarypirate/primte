@@ -24,6 +24,7 @@ const {
 } = require('../models');
 const { requireAdmin, requirePermission } = require('../middleware/auth');
 const { loadClubStatus } = require('../services/clubStatus');
+const { normalizeBranding, serializeBranding } = require('../services/branding');
 const { notifyClubStatus } = require('../services/clubNotify');
 const { notifyPublishedNotice } = require('../services/noticeNotify');
 const { startOfClubDay, clubDateKey, normalizeClubHours, normalizeClubDates } = require('../domain/club');
@@ -177,7 +178,7 @@ router.get('/dashboard', requirePermission('dashboard.view'), async (_req, res) 
   });
 });
 
-async function serializeSettings() {
+async function serializeSettings(req) {
   const rows = await Setting.findAll();
   const settings = Object.fromEntries(rows.map((row) => [row.key, row.value]));
   const live = await loadClubStatus();
@@ -185,11 +186,12 @@ async function serializeSettings() {
     ...live,
     history: Array.isArray(settings.club_open_history) ? settings.club_open_history : [],
   };
+  settings.branding = serializeBranding(settings.branding, req);
   return settings;
 }
 
-router.get('/settings', requirePermission('settings.manage'), async (_req, res) => {
-  res.json({ settings: await serializeSettings() });
+router.get('/settings', requirePermission('settings.manage'), async (req, res) => {
+  res.json({ settings: await serializeSettings(req) });
 });
 
 router.put('/settings', requirePermission('settings.manage'), async (req, res) => {
@@ -232,9 +234,13 @@ router.put('/settings', requirePermission('settings.manage'), async (req, res) =
       }
       continue;
     }
+    if (key === 'branding' && value && typeof value === 'object') {
+      await Setting.upsert({ key: 'branding', value: normalizeBranding(value) });
+      continue;
+    }
     await Setting.upsert({ key, value });
   }
-  res.json({ settings: await serializeSettings() });
+  res.json({ settings: await serializeSettings(req) });
 });
 
 router.get('/members', requirePermission('members.view'), async (req, res) => {
