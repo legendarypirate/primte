@@ -179,7 +179,7 @@ export default function ProductsPage() {
           <p className="text-sm text-muted-foreground">{items.length} бараа · {categories.length} ангилал</p>
         </div>
         {tab === "categories" ? (
-          <Button onClick={openCreateCategory}>
+          <Button onClick={() => openCreateCategory()}>
             <Plus className="size-4" /> Шинэ ангилал
           </Button>
         ) : (
