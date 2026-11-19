@@ -28,6 +28,7 @@ type ProductForm = {
   description: string;
   features: string;
   stock: number;
+  featured: boolean;
   images: string[];
   relatedIds: string[];
 };
@@ -40,6 +41,7 @@ const empty: ProductForm = {
   description: "",
   features: "",
   stock: 0,
+  featured: false,
   images: [],
   relatedIds: [],
 };
@@ -230,7 +232,12 @@ export default function ProductsPage() {
                           <div className="size-10 rounded-md bg-muted" />
                         )}
                         <div className="min-w-0">
-                          <p className="truncate font-medium">{p.name}</p>
+                          <p className="flex min-w-0 items-center gap-2 font-medium">
+                            <span className="truncate">{p.name}</span>
+                            {p.featured && (
+                              <Badge variant="secondary" className="shrink-0">Онцгой</Badge>
+                            )}
+                          </p>
                           {p.subtitle && <p className="truncate text-xs text-muted-foreground">{p.subtitle}</p>}
                         </div>
                       </div>
@@ -365,6 +372,7 @@ function ProductDrawerForm({
           description: product.description || "",
           features: (product.features || []).join(", "),
           stock: product.stock ?? 0,
+          featured: Boolean(product.featured),
           images: productImages(product),
           relatedIds: product.relatedIds || [],
         }
@@ -438,6 +446,15 @@ function ProductDrawerForm({
           />
           <p className="text-xs text-muted-foreground">0 бол бараа дууссан гэж харагдана.</p>
         </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={form.featured}
+            onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+            className="size-4 accent-primary"
+          />
+          Онцгой бараа
+        </label>
         <div className="space-y-2">
           <Label>Тохирох тоноглолууд</Label>
           <p className="text-xs text-muted-foreground">

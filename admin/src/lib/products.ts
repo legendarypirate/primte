@@ -9,6 +9,7 @@ export type Product = {
   features?: string[];
   stock: number;
   inStock: boolean;
+  featured: boolean;
   imageUrl?: string;
   images?: string[];
   relatedIds?: string[];

@@ -15,6 +15,7 @@ const Product = sequelize.define('Product', {
   relatedIds: { type: DataTypes.JSONB, defaultValue: [], field: 'related_ids' },
   stock: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   inStock: { type: DataTypes.BOOLEAN, defaultValue: false, field: 'in_stock' },
+  featured: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   sortOrder: { type: DataTypes.INTEGER, defaultValue: 0, field: 'sort_order' },
 });
 

@@ -43,6 +43,8 @@ function serializeProduct(product, req) {
     features: product.features || [],
     stock: Math.max(0, Number(product.stock) || 0),
     inStock: Math.max(0, Number(product.stock) || 0) > 0,
+    featured: Boolean(product.featured),
+    isBestChoice: Boolean(product.featured),
     relatedIds: product.relatedIds || [],
     sortOrder: product.sortOrder,
   };

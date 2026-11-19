@@ -607,6 +607,9 @@ async function sanitizeProductInput(body, productId) {
     if (!input.inStock) input.stock = 0;
   }
   if (input.features !== undefined && !Array.isArray(input.features)) input.features = [];
+  if (body.featured !== undefined || body.isBestChoice !== undefined) {
+    input.featured = Boolean(body.featured ?? body.isBestChoice);
+  }
 
   if (body.images !== undefined) {
     input.images = (Array.isArray(body.images) ? body.images : [])
