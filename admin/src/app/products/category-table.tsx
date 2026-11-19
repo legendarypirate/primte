@@ -76,7 +76,6 @@ export function CategoryTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-10"></TableHead>
-            <TableHead className="w-20">Эрэмбэ</TableHead>
             <TableHead>Нэр</TableHead>
             <TableHead>Эцэг</TableHead>
             <TableHead>Slug</TableHead>
@@ -97,7 +96,7 @@ export function CategoryTable({
                 onAddChild={onAddChild}
               />
             ))}
-            {rows.length === 0 && <TableEmpty colSpan={7}>Ангилал алга.</TableEmpty>}
+            {rows.length === 0 && <TableEmpty colSpan={6}>Ангилал алга.</TableEmpty>}
           </TableBody>
         </SortableContext>
       </Table>
@@ -159,7 +158,6 @@ function SortableCategoryRow({
           <GripVertical className="size-4" />
         </button>
       </TableCell>
-      <TableCell className="text-muted-foreground">#{category.sortOrder}</TableCell>
       <TableCell className="font-medium">
         <span className="inline-flex items-center gap-2" style={{ paddingLeft: `${(category.depth ?? 0) * 1.25}rem` }}>
           {(category.depth ?? 0) > 0 && <span className="text-muted-foreground">└</span>}

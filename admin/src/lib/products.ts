@@ -97,9 +97,15 @@ export function moveCategoryAfter(categories: ProductCategory[], activeId: strin
   const overIndex = rest.findIndex((c) => c.id === overId);
   if (overIndex < 0) return categories;
 
+  const activeIndex = tree.findIndex((c) => c.id === activeId);
+  const overTreeIndex = tree.findIndex((c) => c.id === overId);
+  const movingUp = activeIndex > overTreeIndex;
   const overDescendants = new Set(categoryDescendantIds(rest, overId));
-  let insertAt = overIndex + 1;
-  while (insertAt < rest.length && overDescendants.has(rest[insertAt].id)) insertAt += 1;
+  let insertAt = overIndex;
+  if (!movingUp) {
+    insertAt = overIndex + 1;
+    while (insertAt < rest.length && overDescendants.has(rest[insertAt].id)) insertAt += 1;
+  }
 
   const next = [
     ...rest.slice(0, insertAt),

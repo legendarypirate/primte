@@ -42,7 +42,29 @@ function childrenMap(rows) {
     list.push(row);
     map.set(key, list);
   }
+  for (const list of map.values()) {
+    list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0) || String(a.name).localeCompare(String(b.name), 'mn'));
+  }
   return map;
+}
+
+function flattenTree(rows) {
+  const byParent = childrenMap(rows);
+  const out = [];
+  const seen = new Set();
+  function walk(parentId) {
+    for (const row of byParent.get(parentId) || []) {
+      if (seen.has(row.id)) continue;
+      seen.add(row.id);
+      out.push(row);
+      walk(row.id);
+    }
+  }
+  walk(null);
+  for (const row of rows) {
+    if (!seen.has(row.id)) out.push(row);
+  }
+  return out;
 }
 
 function descendantIds(id, rows) {
@@ -146,7 +168,7 @@ function decorateCategories(categories, countMap = {}) {
     return n;
   }
 
-  return categories.map((c) => {
+  return flattenTree(categories).map((c) => {
     const productCount = countMap[c.slug] || 0;
     return serializeProductCategory(c, {
       parentName: c.parentId ? byId[c.parentId]?.name || null : null,
