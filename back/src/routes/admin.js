@@ -712,17 +712,27 @@ router.put('/products/:id', requirePermission('products.manage'), async (req, re
 router.delete('/products/:id', requirePermission('products.manage'), async (req, res) => {
   const product = await Product.findByPk(req.params.id);
   if (!product) return res.status(404).json({ message: 'Бүтээгдэхүүн олдсонгүй.' });
-  await sequelize.transaction(async (t) => {
-    await product.destroy({ transaction: t });
-    const referencing = await Product.findAll({
-      where: { relatedIds: { [Op.contains]: [product.id] } },
-      transaction: t,
+  try {
+    await sequelize.transaction(async (t) => {
+      await OrderItem.update({ productId: null }, { where: { productId: product.id }, transaction: t });
+      const referencing = await Product.findAll({
+        where: { relatedIds: { [Op.contains]: [product.id] } },
+        transaction: t,
+      });
+      for (const p of referencing) {
+        await p.update({ relatedIds: (p.relatedIds || []).filter((id) => id !== product.id) }, { transaction: t });
+      }
+      await product.destroy({ transaction: t });
     });
-    for (const p of referencing) {
-      await p.update({ relatedIds: (p.relatedIds || []).filter((id) => id !== product.id) }, { transaction: t });
-    }
-  });
-  res.json({ ok: true });
+    res.json({ ok: true });
+  } catch (err) {
+    const foreignKey = err.parent?.code === '23503' || /foreign key constraint/i.test(err.message || '');
+    res.status(err.status || (foreignKey ? 400 : 500)).json({
+      message: foreignKey
+        ? 'Энэ барааг захиалгад ашигласан тул устгах боломжгүй.'
+        : err.message || 'Барааг устгаж чадсангүй.',
+    });
+  }
 });
 
 router.get('/competitions', requirePermission('competitions.view'), async (req, res) => {

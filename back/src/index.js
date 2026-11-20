@@ -51,6 +51,21 @@ sequelize
     return sequelize.sync({ alter: true });
   })
   .then(() => require('./services/memberDelete').ensureMemberCascadeFks())
+  .then(async () => {
+    try {
+      await sequelize.query('ALTER TABLE "order_items" ALTER COLUMN "product_id" DROP NOT NULL');
+    } catch {
+      // already nullable
+    }
+    try {
+      await sequelize.query('ALTER TABLE "order_items" DROP CONSTRAINT IF EXISTS "order_items_product_id_fkey"');
+      await sequelize.query(
+        'ALTER TABLE "order_items" ADD CONSTRAINT "order_items_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON UPDATE CASCADE ON DELETE SET NULL'
+      );
+    } catch (err) {
+      console.warn('Could not update order_items_product_id_fkey:', err.message);
+    }
+  })
   .then(() => require('./services/productCategoryService').ensureProductCategories())
   .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
   .then(() => require('./services/memberUsernameService').backfillMemberNames())

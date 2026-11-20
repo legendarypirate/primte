@@ -78,7 +78,8 @@ Order.belongsTo(Member, { foreignKey: 'memberId' });
 
 Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
-OrderItem.belongsTo(Product, { foreignKey: 'productId' });
+OrderItem.belongsTo(Product, { foreignKey: 'productId', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
+Product.hasMany(OrderItem, { foreignKey: 'productId', onDelete: 'SET NULL' });
 
 Member.belongsToMany(Competition, { through: Registration, foreignKey: 'memberId' });
 Competition.belongsToMany(Member, { through: Registration, foreignKey: 'competitionId' });
