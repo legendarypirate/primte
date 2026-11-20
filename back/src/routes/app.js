@@ -22,7 +22,7 @@ const { memberHasPermission } = require('../services/rbacService');
 const { loadClubStatus } = require('../services/clubStatus');
 const { loadBranding } = require('../services/branding');
 const { decorateCategories } = require('../services/productCategoryService');
-const { awardCompetitionXp, listPointHistory } = require('../services/pointLedger');
+const { listPointHistory } = require('../services/pointLedger');
 const { parseGatePayload } = require('../domain/attendance');
 const { applyGate, openSession, serializeSession, listPresentToday } = require('../services/attendanceService');
 const {
@@ -254,7 +254,6 @@ router.post('/competitions/:id/register', async (req, res) => {
     }
     if (shouldPayNow) {
       await req.member.increment('competitionCount', { by: 1, transaction: t });
-      await awardCompetitionXp(req.member, competition, { transaction: t });
     }
     registration = await Registration.create(
       {
@@ -365,7 +364,6 @@ router.post('/competitions/:id/register/qpay/confirm', async (req, res) => {
       },
       { transaction: t }
     );
-    await awardCompetitionXp(req.member, competition, { transaction: t });
   });
 
   await req.member.reload();
@@ -418,7 +416,6 @@ router.post('/competitions/:id/register/pay', async (req, res) => {
       },
       { transaction: t }
     );
-    await awardCompetitionXp(req.member, competition, { transaction: t });
   });
 
   await req.member.reload();

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Member, MemberPointEvent, MemberType } = require('../models');
+const { Member, MemberPointEvent, MemberType, Match, Competition, MatchType } = require('../models');
 const { formatDate, formatTime } = require('../utils/helpers');
 const { applyPointDelta, POINT_RULES, competitionXpAward, XP_AWARDS, decomposeXp } = require('../domain/points');
 
@@ -232,6 +232,25 @@ async function awardCompetitionXp(member, competition, { transaction } = {}) {
   );
 }
 
+async function awardCompetitionXpForCompetitor(competitor, { transaction } = {}) {
+  if (!competitor?.memberId || !competitor?.matchId) return null;
+  const member = await Member.findByPk(competitor.memberId, {
+    include: [MemberType],
+    transaction,
+  });
+  if (!member) return null;
+  const match = await Match.findByPk(competitor.matchId, {
+    include: [{
+      model: Competition,
+      include: [{ model: MatchType, required: false }],
+    }],
+    transaction,
+  });
+  const competition = match?.Competition;
+  if (!competition) return null;
+  return awardCompetitionXp(member, competition, { transaction });
+}
+
 async function awardTrainingHourXp(member, attendance, { hours = 1, transaction } = {}) {
   if (!member?.id || !attendance?.id) return null;
   if (await alreadyAwarded(member.id, { source: 'training_hour', refId: attendance.id }, { transaction })) {
@@ -280,6 +299,7 @@ module.exports = {
   recordAbsoluteChange,
   ensureOpeningBalance,
   awardCompetitionXp,
+  awardCompetitionXpForCompetitor,
   awardTrainingHourXp,
   listPointHistory,
 };

@@ -15,6 +15,14 @@ const { SCORE_STATUS, MATCH_STATUS } = require('../domain/scoring/scoring-types'
 const { getScoringProfile, PROFILES } = require('../domain/scoring/scoring-profile');
 const { recalculateAfterScore } = require('./resultService');
 const { memberCodeUnlocks, normalizeMemberCode } = require('../domain/member-code');
+const { awardCompetitionXpForCompetitor } = require('./pointLedger');
+
+function tryAwardCompetitionXp(competitor) {
+  if (!competitor) return;
+  awardCompetitionXpForCompetitor(competitor).catch((err) => {
+    console.error('competition XP award failed', err);
+  });
+}
 
 async function pinHashMatches(secret, hash) {
   if (!hash) return false;
@@ -145,6 +153,9 @@ async function createOrUpdateScore(payload, actorId, deviceId) {
     return score;
   }).then((saved) => {
     emitLeaderboard(saved.matchId);
+    if (saved.status !== SCORE_STATUS.INVALIDATED) {
+      tryAwardCompetitionXp(competitor);
+    }
     return saved;
   });
 }
@@ -180,6 +191,8 @@ async function confirmScore(scoreId, pin, competitorId, officialId, deviceId) {
     signedBy: officialId,
     deviceId,
   });
+
+  tryAwardCompetitionXp(score.Competitor);
 
   await AuditLog.create({
     actorId: officialId,
