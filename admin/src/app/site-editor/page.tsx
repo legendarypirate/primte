@@ -12,6 +12,7 @@ import {
   Send,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PrimeShell } from "@/components/site/prime/prime-shell";
 import { SiteShell } from "@/components/site/shell";
 import { LayoutInspector } from "@/components/site-editor/layout-inspector";
 import { SitePagePreview, isLivePagePreview } from "@/components/site/site-page-preview";
@@ -303,24 +304,35 @@ export default function SiteEditorPage() {
 
       {layoutDraft ? (
         <SitePreviewGuard>
-          <SiteShell layout={layoutDraft} edit={layoutEdit}>
-            {viewMode === "layout" ? (
-              <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4 py-16 text-center">
-                <LayoutTemplate className="size-10 text-muted-foreground" />
-                <p className="max-w-md text-sm text-muted-foreground">
-                  Header болон footer дээр шууд засвар хийнэ. Nav link, social хаяг, logo-г{" "}
-                  <span className="font-medium text-foreground">Тохиргоо</span> товчоор нээнэ.
-                </p>
-              </div>
-            ) : (
+          {viewMode !== "layout" && selectedSlug === "home" ? (
+            <PrimeShell>
               <SitePagePreview
                 slug={selectedSlug}
                 content={pageContentDraft}
                 editing
                 onContentChange={setPageContentDraft}
               />
-            )}
-          </SiteShell>
+            </PrimeShell>
+          ) : (
+            <SiteShell layout={layoutDraft} edit={layoutEdit}>
+              {viewMode === "layout" ? (
+                <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4 py-16 text-center">
+                  <LayoutTemplate className="size-10 text-muted-foreground" />
+                  <p className="max-w-md text-sm text-muted-foreground">
+                    Header болон footer дээр шууд засвар хийнэ. Nav link, social хаяг, logo-г{" "}
+                    <span className="font-medium text-foreground">Тохиргоо</span> товчоор нээнэ.
+                  </p>
+                </div>
+              ) : (
+                <SitePagePreview
+                  slug={selectedSlug}
+                  content={pageContentDraft}
+                  editing
+                  onContentChange={setPageContentDraft}
+                />
+              )}
+            </SiteShell>
+          )}
         </SitePreviewGuard>
       ) : null}
 

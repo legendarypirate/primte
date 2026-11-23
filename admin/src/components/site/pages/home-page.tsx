@@ -1,959 +1,595 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import {
-  ArrowRight,
-  BarChart3,
-  CheckCircle2,
-  ChevronRight,
-  Clock,
-  Crosshair,
-  Eye,
-  FileText,
-  PackageCheck,
-  Shield,
-  ShieldAlert,
-  Target,
-  Trophy,
-  User,
-  Users,
-  XCircle,
-} from "lucide-react";
-import { toast } from "sonner";
-import { EditableBackground } from "@/components/site/editable-background";
-import { EditableText } from "@/components/site/editable-text";
-import { ContentSection, LionIcon, OutlineButton, PageHero, RedButton, SectionTag } from "../primitives";
+import { useEffect, useMemo, useState } from "react";
+import { COURSES, GOLD, HOME_FILTERS, HOME_IDS, type Course } from "@/components/site/prime/courses";
+import { useRegister } from "@/components/site/prime/register-context";
+import "@/styles/prime-home.css";
 
-const safetyRules = [
-  { n: "01", title: "Зэвсгийг үргэлж аюулгүй чиглэлд барина.", body: "Буудлага хийгээгүй үед ч бууны хошуу үргэлж аюулгүй чиглэлд заагдсан байна." },
-  { n: "02", title: "Сүмтүй эсэхийг үргэлж шалгана.", body: "Зэвсгийг гартаа авах бүрт хөг, замаг шалгаж аюулгүй байдлыг хангах ёстой." },
-  { n: "03", title: "Триггер дээр хуруугаа байршуулахгүй.", body: "Зорилтонд буудах бэлэн болоогүй тохиолдолд хурууг спускээс гадуур барина." },
-  { n: "04", title: "Зорилтоо болон түүний цаад орчныг танина.", body: "Зорилтонд буудахын өмнө зорилт ба түүний арын орчныг бүрэн шалгана." },
+const SLIDES = [
+  { src: "/prime/hero-1.jpg", pos: "60% 30%" },
+  { src: "/prime/hero-2.jpg", pos: "50% 35%" },
+  { src: "/prime/hero-3.jpg", pos: "50% 30%" },
+  { src: "/prime/hero-4.jpg", pos: "60% 50%" },
 ];
 
-const featureCards = [
+const PILLARS = [
   {
-    icon: Target,
-    title: "Зэвсгийн ангилал",
-    body: "IPSC Action Air-д зөвхөн S.A. зөвшөөрөгдсөн airsoft зэвсэг ашиглана.",
-    href: "/about",
+    href: "/membership",
+    title: "Гишүүнчлэл",
+    text: "Клубын гишүүн болж, тогтмол бэлтгэл, тэмцээнд оролцох эрхтэй бол.",
+    img: "/prime/pillar-membership.jpg",
   },
   {
-    icon: Crosshair,
-    title: "Дасгалын зохиомж",
-    body: "Хөдөлгөөн, байрлал, оновч дараалал бүхий бодит нөхцөлтэй дасгалууд.",
     href: "/training",
+    title: "Сургалт",
+    text: "Туршилтын буудлага, Course 1, Course 2, жуниор хөтөлбөр.",
+    img: "/prime/pillar-training.jpg",
   },
   {
-    icon: BarChart3,
-    title: "Тэмцээний түвшин",
-    body: "Орон нутгаас олон улсын түвшний тэмцээнүүд.",
     href: "/ranking",
-  },
-  {
-    icon: XCircle,
-    title: "Тэмцээнээс хасах (DQ)",
-    body: "Аюулгүй ажиллагааны зөрчил, дүрэм зөрчсөн тохиолдолд тэмцээнээс хасна.",
-    href: "/about",
+    title: "Тэмцээн",
+    text: "Ням гараг бүр клубын тэмцээн. Level I-ээс олон улсын түвшин хүртэл.",
+    img: "/prime/pillar-competition.jpg",
   },
 ];
 
-const levels = [
-  { n: "1", title: "Level I", label: "Клубын ТҮВШИН" },
-  { n: "2", title: "Level II", label: "Бүсийн ТҮВШИН" },
-  { n: "3", title: "Level III", label: "Үндэсний ТҮВШИН" },
-  { n: "4", title: "Level IV", label: "Олон улсын ТҮВШИН" },
-  { n: "5", title: "Level V", label: "Дэлхийн аварга шалгаруулах ТҮВШИН" },
+const RULES = [
+  { n: "1", title: "Аюулгүй ажиллагааны үндсэн дүрэм", href: "/ranking/rules" },
+  { n: "2", title: "Зэвсгийн ангилал", href: "/about" },
+  { n: "3", title: "Дасгалын зохиомж", href: "/ranking/rules" },
+  { n: "4", title: "Тэмцээний түвшин", href: "/ranking" },
+  { n: "5", title: "Тэмцээнээс хасах “DQ”", href: "/ranking/rules" },
 ];
 
-const courses = [
-  {
-    id: "course-1",
-    title: "COURSE 1",
-    subtitle: "Гишүүнчлэлийн сургалт",
-    duration: "2 өдөр",
-    audience: "Анхан шат",
-    details: "Аюулгүй ажиллагаа, үндсэн техник, IPSC суурь мэдлэг",
-    price: "350,000₮",
-    href: "/training/course-1",
-  },
-  {
-    id: "course-2",
-    title: "COURSE 2",
-    subtitle: "Гишүүнчлэлийн сургалт",
-    duration: "2 өдөр",
-    audience: "Анхан шат (C1 төгссөн)",
-    details: "Дээд техник, стратеги, тэмцээний бэлтгэл",
-    price: "350,000₮",
-    href: "/training/course-2",
-  },
-  {
-    id: "junior",
-    title: "Junior хөтөлбөр",
-    subtitle: "Жуниор хөтөлбөр",
-    duration: "4 долоо хоног",
-    audience: "12-17 нас",
-    details: "Аюулгүй байдал, оновчтой ур чадвар, зөв дадал",
-    price: "250,000₮",
-    href: "/training",
-  },
-];
+function ArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
 
-const newsItems = [
-  {
-    date: "2024.10.20",
-    title: "PRIME клубийн намрын тэмцээн амжилттай боллоо",
-    desc: "50+ тамирчин оролцсон клубын аварга шалгаруулах тэмцээн өндөрлөлөө.",
-  },
-  {
-    date: "2024.09.14",
-    title: "IPSC Action Air сургалт амжилттай зохион байгууллаа",
-    desc: "Шинэ гишүүдийн ээлжит сургалт амжилттай дууслаа.",
-  },
-  {
-    date: "2024.08.03",
-    title: "Жуниор хөтөлбөрийн шинэ элсэлт эхэллээ",
-    desc: "12-17 насны сурагчдад зориулсан тусгай хөтөлбөр.",
-  },
-];
-
-const adultMembershipItems = [
-  "Клубын бүх үйл ажиллагаанд хамрагдах",
-  "Тогтмол дасгал, тэмцээнд оролцох",
-  "Давуу сургалтын хөнгөлөлт",
-  "Клубын өмсгөл ашиглах",
-];
-
-const ratingItems = ["Эрэмбэ чансаа", "Ангилал тус бүрээр", "Жилийн эцсийн оноо"];
-
-const competitionRuleItems = ["IPSC дүрмийн дагуу", "Аюулгүй ажиллагааны хяналт", "Ил тод үнэлгээ"];
+function GoIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D8AE4A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 17L17 7M9 7h8v8" />
+    </svg>
+  );
+}
 
 export function HomePage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    course: "Course 1",
-    time: "19:00 - 22:00",
-    notes: "",
-  });
+  const { openRegister } = useRegister();
+  const [slide, setSlide] = useState(0);
+  const [filter, setFilter] = useState("all");
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.phone) {
-      toast.error("Нэр болон утасны дугаараа оруулна уу.");
-      return;
-    }
-    toast.success("Таны бүртгэлийн хүсэлт амжилттай илгээгдлээ!");
-    setFormData({ name: "", email: "", phone: "", course: "Course 1", time: "19:00 - 22:00", notes: "" });
-  };
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const t = setInterval(() => setSlide((i) => (i + 1) % SLIDES.length), 5000);
+    return () => clearInterval(t);
+  }, []);
+
+  const courses = useMemo(
+    () => HOME_IDS.map((id) => COURSES.find((c) => c.id === id)!).filter((c) => filter === "all" || c.id === filter),
+    [filter]
+  );
 
   return (
-    <>
-      {/* 01 - HERO / ТАНИЛЦУУЛГА */}
-      <PageHero
-        eyebrow="01 —— ТАНИЛЦУУЛГА"
-        titleText={"ИЛҮҮ САЙН ХҮН\nИЛҮҮ АЮУЛГҮЙ НИЙГЭМ"}
-        renderTitle={(text) => {
-          const [line1, line2 = ""] = text.split("\n");
-          return (
-            <>
-              {line1}
-              {line2 ? (
-                <>
-                  <br />
-                  <span className="text-[#1B7F4E]">{line2.replace(" НИЙГЭМ", "").trim()}</span>
-                  {line2.includes("НИЙГЭМ") ? " НИЙГЭМ" : null}
-                </>
-              ) : null}
-            </>
-          );
+    <div className="prime-home" data-page="home">
+      <section
+        id="top"
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          width: "100%",
+          height: "100vh",
+          minHeight: 760,
+          maxHeight: 1000,
+          display: "flex",
+          alignItems: "flex-end",
+          background: "#15161A",
         }}
-        description="PRIME IPSC Club нь практик буудлагын спортыг Монголд хөгжүүлэх, аюулгүй, хариуцлагатай, мэргэжлийн соёл түгээх зорилготой клуб юм."
-        aside={
-          <div className="space-y-4">
-            {/* IPSC Info Box */}
-            <EditableBackground
-              field="hero.aside.ipscImageUrl"
-              className="rounded-2xl border border-[#1B7F4E]/40 p-6 shadow-2xl shadow-black/80"
-              fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
-              editMode="corner"
-            >
-              <div className="relative z-10 flex items-center gap-3">
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-[#1B7F4E] bg-[#1B7F4E]/10 text-[#1B7F4E]">
-                  <LionIcon className="size-7" />
-                </div>
-                <div>
-                  <EditableText
-                    field="hero.aside.ipsc.title"
-                    defaultValue="IPSC гэж юу вэ?"
-                    as="h3"
-                    className="font-heading text-lg font-bold text-white block"
-                  />
-                  <EditableText
-                    field="hero.aside.ipsc.subtitle"
-                    defaultValue="International Practical Shooting Confederation"
-                    as="p"
-                    className="text-[10px] uppercase tracking-widest text-[#1B7F4E] block"
-                  />
-                </div>
-              </div>
-              <EditableText
-                field="hero.aside.ipsc.body"
-                defaultValue="IPSC (International Practical Shooting Confederation) нь бодит нөхцөлд ойр, хөдөлгөөнтэй, хурд, хүч, нарийвчлалыг хослуулсан практик буудлагын олон улсын спорт юм. Дэлхийн 100+ оронд түгсэн, аюулгүй байдал, сахилга бат, техник ур чадварыг хөгжүүлдэг."
-                multiline
-                as="p"
-                className="relative z-10 mt-4 text-xs leading-relaxed text-[#a0a0a5] block"
-              />
-              <Link
-                href="/about"
-                className="relative z-10 mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#1B7F4E] hover:underline"
-              >
-                <EditableText field="hero.aside.ipsc.link" defaultValue="Илүү ихийг мэдэх" />
-                <ArrowRight className="size-3.5" />
-              </Link>
-            </EditableBackground>
-
-            {/* Tactical Banner Quote */}
-            <EditableBackground
-              field="hero.aside.quoteImageUrl"
-              className="rounded-2xl border border-[#ffffff10] p-6 text-right shadow-xl"
-              fallbackClassName="bg-[#121215]"
-              editMode="corner"
-            >
-              <div className="absolute top-0 right-0 size-32 bg-[radial-gradient(circle_at_100%_0%,#1B7F4E20,transparent_70%)]" />
-              <EditableText
-                field="hero.aside.quote.label"
-                defaultValue="PRIME IPSC ACTION AIR"
-                as="p"
-                className="relative z-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#1B7F4E] block"
-              />
-              <EditableText
-                field="hero.aside.quote.text"
-                defaultValue={'"Хурд бол ур чадвар. Нарийвчлал бол хариуцлага. Харин аюулгүй байдал бол бүхний үндэс."'}
-                multiline
-                as="blockquote"
-                className="relative z-10 mt-2 text-xs italic leading-relaxed text-white block"
-              />
-            </EditableBackground>
-          </div>
-        }
       >
-        <RedButton href="/about">
-          <EditableText field="hero.ctaPrimary" defaultValue="IPSC гэж юу вэ?" />
-          <ArrowRight className="size-4" />
-        </RedButton>
-        <OutlineButton href="/training">
-          <EditableText field="hero.ctaSecondary" defaultValue="IPSC Action Air" />
-        </OutlineButton>
-      </PageHero>
-
-      {/* 02 - СПОРТЫН ДҮРЭМ (SAFETY FIRST) */}
-      <ContentSection id="safety" dark>
-        <SectionTag n="02" label="СПОРТЫН ДҮРЭМ" />
-        <div className="flex flex-col gap-2">
-          <EditableText
-            field="safety.title"
-            defaultValue="4 ҮНДСЭН АЮУЛГҮЙ АЖИЛЛАГААНЫ ДҮРЭМ"
-            as="h2"
-            className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
-          />
-          <EditableText
-            field="safety.tagline"
-            defaultValue="SAFETY FIRST"
-            as="p"
-            className="text-xs uppercase tracking-widest text-[#1B7F4E] block"
-          />
-          <EditableText
-            field="safety.subtitle"
-            defaultValue="Аюулгүй байдал бол спортын үндэс. Үргэлж санаа, үргэлж мөрдөн."
-            multiline
-            as="p"
-            className="text-sm text-muted-foreground block"
-          />
-        </div>
-
-        {/* 4 Safety Rules Cards Horizontal Row */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {safetyRules.map((rule, idx) => (
-            <EditableBackground
-              key={rule.n}
-              field={`safety.rules.${idx}.imageUrl`}
-              className="rounded-xl border border-[#ffffff15] p-5 shadow-lg transition-all hover:border-[#1B7F4E]/60"
-              fallbackClassName="bg-[#101014]"
-              editMode="corner"
-            >
-              <div className="relative z-10 mb-3 flex items-center justify-between">
-                <span className="flex size-9 items-center justify-center rounded-lg border border-[#1B7F4E]/40 bg-[#1B7F4E]/10 font-mono text-sm font-bold text-[#1B7F4E]">
-                  <EditableText field={`safety.rules.${idx}.n`} defaultValue={rule.n} />
-                </span>
-                <Shield className="size-4 text-[#1B7F4E]/40" />
-              </div>
-              <EditableText
-                field={`safety.rules.${idx}.title`}
-                defaultValue={rule.title}
-                multiline
-                as="h4"
-                className="relative z-10 text-xs font-bold text-white block"
-              />
-              <EditableText
-                field={`safety.rules.${idx}.body`}
-                defaultValue={rule.body}
-                multiline
-                as="p"
-                className="relative z-10 mt-2 text-[11px] leading-relaxed text-[#a0a0a5] block"
-              />
-            </EditableBackground>
+        <div className="slides" aria-hidden="true">
+          {SLIDES.map((s, i) => (
+            <img key={s.src} className={`slide${i === slide ? " is-active" : ""}`} src={s.src} alt="" style={{ objectPosition: s.pos }} />
           ))}
         </div>
-
-        {/* 4 Feature Cards */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featureCards.map(({ icon: Icon, title, body, href }, idx) => (
-            <EditableBackground
-              key={title}
-              field={`safety.features.${idx}.imageUrl`}
-              className="flex flex-col justify-between rounded-xl border border-[#ffffff10] p-5 transition-all hover:border-[#1B7F4E]/50"
-              fallbackClassName="bg-[#121215]"
-              editMode="corner"
-            >
-              <div className="relative z-10">
-                <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[#1B7F4E]/30 bg-[#1B7F4E]/10 text-[#1B7F4E]">
-                  <Icon className="size-5" />
-                </div>
-                <EditableText
-                  field={`safety.features.${idx}.title`}
-                  defaultValue={title}
-                  as="h4"
-                  className="font-heading text-sm font-bold text-white block"
-                />
-                <EditableText
-                  field={`safety.features.${idx}.body`}
-                  defaultValue={body}
-                  multiline
-                  as="p"
-                  className="mt-2 text-xs leading-relaxed text-[#a0a0a5] block"
-                />
-              </div>
-              <Link
-                href={href}
-                className="relative z-10 mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#1B7F4E] hover:text-white"
-              >
-                <EditableText field={`safety.features.${idx}.link`} defaultValue="Дэлгэрэнгүй" />
-                <ArrowRight className="size-3" />
-              </Link>
-            </EditableBackground>
-          ))}
-        </div>
-
-        {/* Stepper horizontal bar: ТЭМЦЭЭНИЙ 5 ТҮВШИН */}
-        <EditableBackground
-          field="safety.levels.imageUrl"
-          className="mt-12 rounded-2xl border border-[#ffffff10] p-6"
-          fallbackClassName="bg-[#0c0c0e]"
-          editMode="corner"
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(11,12,14,.92) 0%, rgba(11,12,14,.70) 45%, rgba(11,12,14,.15) 100%)" }} />
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "linear-gradient(0deg, rgba(11,12,14,.85) 0%, rgba(11,12,14,0) 40%)" }} />
+        <div
+          className="hero-in"
+          style={{
+            position: "relative",
+            zIndex: 1,
+            width: "100%",
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "140px 20px clamp(40px, 6vw, 80px)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 28,
+            boxSizing: "border-box",
+          }}
         >
-          <div className="relative z-10 mb-4 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <EditableText
-              field="safety.levels.title"
-              defaultValue="ТЭМЦЭЭНИЙ 5 ТҮВШИН"
-              as="h3"
-              className="font-heading text-base font-bold text-white uppercase tracking-wider block"
-            />
-            <EditableText
-              field="safety.levels.subtitle"
-              defaultValue="Олон улсын стандартын дагуу үнэлэгддэг"
-              as="p"
-              className="text-xs text-[#a0a0a5] block"
-            />
-          </div>
-          <div className="relative z-10 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {levels.map((lvl, idx) => (
-              <EditableBackground
-                key={lvl.n}
-                field={`safety.levels.${idx}.imageUrl`}
-                className="flex items-center gap-3 rounded-xl border border-[#ffffff10] p-3 transition-colors hover:border-[#1B7F4E]/50"
-                fallbackClassName="bg-[#141418]"
-                editMode="corner"
-              >
-                <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border border-[#1B7F4E] bg-[#1B7F4E]/20 font-mono text-xs font-bold text-[#1B7F4E]">
-                  <EditableText field={`safety.levels.${idx}.n`} defaultValue={lvl.n} />
-                </div>
-                <div className="relative z-10">
-                  <EditableText
-                    field={`safety.levels.${idx}.title`}
-                    defaultValue={lvl.title}
-                    as="p"
-                    className="text-xs font-bold text-white block"
-                  />
-                  <EditableText
-                    field={`safety.levels.${idx}.label`}
-                    defaultValue={lvl.label}
-                    as="p"
-                    className="text-[10px] text-[#a0a0a5] block"
-                  />
-                </div>
-              </EditableBackground>
-            ))}
-          </div>
-        </EditableBackground>
-      </ContentSection>
-
-      {/* 03 - СУРГАЛТ */}
-      <ContentSection id="training">
-        <SectionTag n="03" label="СУРГАЛТ" />
-        <div className="flex flex-col gap-2">
-          <EditableText
-            field="training.title"
-            defaultValue="ИЛҮҮ ИХ УР ЧАДВАР, ИЛҮҮ ИХ БОЛОМЖ"
-            as="h2"
-            className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
-          />
-          <EditableText
-            field="training.subtitle"
-            defaultValue="Онол, дадлага, аюулгүй ажиллагаа хосолсон мэргэжлийн сургалтын хөтөлбөр."
-            multiline
-            as="p"
-            className="text-sm text-muted-foreground block"
-          />
-        </div>
-
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_0.9fr]">
-          {/* 3 Course Cards */}
-          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-3">
-            {courses.map((c, idx) => (
-              <EditableBackground
-                key={c.id}
-                field={`training.courses.${idx}.imageUrl`}
-                className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ffffff15] p-5 shadow-xl transition-all hover:border-[#1B7F4E]/60"
-                fallbackClassName="bg-[#101014]"
-                editMode="corner"
-              >
-                <div className="relative z-10">
-                  <div className="mb-3 flex items-center justify-between">
-                    <EditableText
-                      field={`training.courses.${idx}.title`}
-                      defaultValue={c.title}
-                      className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#1B7F4E]"
-                    />
-                  </div>
-                  <EditableText
-                    field={`training.courses.${idx}.subtitle`}
-                    defaultValue={c.subtitle}
-                    as="h4"
-                    className="font-heading text-sm font-bold text-white block"
-                  />
-
-                  <ul className="mt-4 space-y-2 text-xs text-[#a0a0a5]">
-                    <li className="flex items-center gap-2">
-                      <Clock className="size-3.5 text-[#1B7F4E]" />
-                      <span>
-                        <EditableText field={`training.courses.${idx}.durationLabel`} defaultValue="Хугацаа:" />{" "}
-                        <EditableText field={`training.courses.${idx}.duration`} defaultValue={c.duration} />
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Users className="size-3.5 text-[#1B7F4E]" />
-                      <span>
-                        <EditableText field={`training.courses.${idx}.audienceLabel`} defaultValue="Хамрах хүрээ:" />{" "}
-                        <EditableText field={`training.courses.${idx}.audience`} defaultValue={c.audience} />
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="size-3.5 shrink-0 text-[#1B7F4E] mt-0.5" />
-                      <EditableText
-                        field={`training.courses.${idx}.details`}
-                        defaultValue={c.details}
-                        multiline
-                        as="p"
-                        className="text-[11px] leading-tight block"
-                      />
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="relative z-10 mt-6 border-t border-[#ffffff10] pt-4">
-                  <EditableText
-                    field={`training.courses.${idx}.priceLabel`}
-                    defaultValue="Үнэ"
-                    as="p"
-                    className="text-xs text-[#a0a0a5] block"
-                  />
-                  <EditableText
-                    field={`training.courses.${idx}.price`}
-                    defaultValue={c.price}
-                    as="p"
-                    className="font-mono text-xl font-extrabold text-[#1B7F4E] block"
-                  />
-                  <Link
-                    href={c.href}
-                    className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#1B7F4E] text-xs font-bold text-white transition hover:bg-[#156B41]"
-                  >
-                    <EditableText field={`training.courses.${idx}.cta`} defaultValue="Бүртгүүлэх" />
-                    <ArrowRight className="size-3.5" />
-                  </Link>
-                </div>
-              </EditableBackground>
-            ))}
-          </div>
-
-          {/* Quick Registration Form */}
-          <EditableBackground
-            field="training.form.imageUrl"
-            className="rounded-2xl border border-[#1B7F4E]/40 p-6 shadow-2xl"
-            fallbackClassName="bg-[#121215]"
-            editMode="corner"
+          <span
+            style={{
+              alignSelf: "flex-start",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 14px",
+              borderRadius: 999,
+              background: "rgba(11,12,14,.55)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(216,174,74,.35)",
+              color: "#D8AE4A",
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: ".06em",
+            }}
           >
-            <EditableText
-              field="training.form.title"
-              defaultValue="СУРГАЛТЫН БҮРТГЭЛ"
-              as="h3"
-              className="relative z-10 font-heading text-base font-bold uppercase tracking-wider text-white block"
-            />
-            <EditableText
-              field="training.form.subtitle"
-              defaultValue="Доорх формоор бүртгэлээ илгээнэ үү"
-              as="p"
-              className="relative z-10 mt-1 text-xs text-[#a0a0a5] block"
-            />
-
-            <form onSubmit={handleFormSubmit} className="relative z-10 mt-5 space-y-3">
-              <div>
-                <EditableText
-                  field="training.form.nameLabel"
-                  defaultValue="Овог, нэр *"
-                  as="label"
-                  className="block text-[11px] font-semibold text-[#a0a0a5]"
-                />
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Овог, нэр оруулах"
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
-                />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <EditableText
-                    field="training.form.emailLabel"
-                    defaultValue="И-мэйл *"
-                    as="label"
-                    className="block text-[11px] font-semibold text-[#a0a0a5]"
-                  />
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="name@domain.com"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
-                  />
-                </div>
-                <div>
-                  <EditableText
-                    field="training.form.phoneLabel"
-                    defaultValue="Гар утас *"
-                    as="label"
-                    className="block text-[11px] font-semibold text-[#a0a0a5]"
-                  />
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="9911-XXXX"
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <EditableText
-                    field="training.form.courseLabel"
-                    defaultValue="Сургалтын төрөл"
-                    as="label"
-                    className="block text-[11px] font-semibold text-[#a0a0a5]"
-                  />
-                  <select
-                    value={formData.course}
-                    onChange={(e) => setFormData({ ...formData, course: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#1B7F4E]"
-                  >
-                    <option value="Course 1">Course 1 (Анхан шат)</option>
-                    <option value="Course 2">Course 2 (Анхан дунд)</option>
-                    <option value="Junior">Junior хөтөлбөр</option>
-                  </select>
-                </div>
-                <div>
-                  <EditableText
-                    field="training.form.timeLabel"
-                    defaultValue="Боломжит цаг"
-                    as="label"
-                    className="block text-[11px] font-semibold text-[#a0a0a5]"
-                  />
-                  <select
-                    value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white outline-none focus:border-[#1B7F4E]"
-                  >
-                    <option value="19:00 - 22:00">Ажлын өдөр (19:00 - 22:00)</option>
-                    <option value="18:00 - 22:00">Амралтын өдөр (18:00 - 22:00)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <EditableText
-                  field="training.form.notesLabel"
-                  defaultValue="Зурвас / Тайлбар"
-                  as="label"
-                  className="block text-[11px] font-semibold text-[#a0a0a5]"
-                />
-                <textarea
-                  rows={2}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Асуулт, тэмдэглэл байвал энд бичнэ үү..."
-                  className="mt-1 w-full rounded-lg border border-[#ffffff15] bg-[#0c0c0e] px-3 py-2 text-xs text-white placeholder-muted-foreground outline-none focus:border-[#1B7F4E]"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#1B7F4E] text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-[#156B41]"
-              >
-                <EditableText field="training.form.submit" defaultValue="Бүртгэл илгээх" />
-                <ArrowRight className="size-4" />
-              </button>
-
-              <EditableText
-                field="training.form.helper"
-                defaultValue="Бид тантай 1 ажлын өдрийн дотор холбогдоно."
-                as="p"
-                className="mt-2 text-center text-[10px] text-[#a0a0a5] block"
-              />
-            </form>
-          </EditableBackground>
-        </div>
-      </ContentSection>
-
-      {/* 05 - ГИШҮҮНЧЛЭЛ */}
-      <ContentSection id="membership">
-        <SectionTag n="04" label="ГИШҮҮНЧЛЭЛ" fieldPrefix="section.05" />
-        <div className="flex flex-col gap-2">
-          <EditableText
-            field="membership.title"
-            defaultValue="НЭГ ДЭЭР ИЛҮҮ ХҮЧТЭЙ"
-            as="h2"
-            className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
-          />
-          <EditableText
-            field="membership.subtitle"
-            defaultValue="PRIME IPSC Club-ийн гишүүн болж, тогтмол сургалт, тэмцээн, нийгэмлэгийн үйл ажиллагаанд оролцоорой."
-            multiline
-            as="p"
-            className="text-sm text-muted-foreground block"
-          />
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          {/* Adult Membership */}
-          <EditableBackground
-            field="membership.adult.imageUrl"
-            className="rounded-2xl border border-[#1B7F4E]/50 p-6 shadow-xl"
-            fallbackClassName="bg-[#121215]"
-            editMode="corner"
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#D8AE4A" }} />
+            IPSC ACTION AIR MONGOLIA
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
+              fontWeight: 800,
+              fontSize: "clamp(42px, 6vw, 84px)",
+              lineHeight: 1.02,
+              letterSpacing: "-.02em",
+              color: "#FFFFFF",
+              maxWidth: 760,
+            }}
           >
-            <div className="relative z-10 flex items-center justify-between">
-              <EditableText
-                field="membership.adult.title"
-                defaultValue="Насанд хүрэгчид"
-                className="font-heading text-sm font-bold text-white uppercase"
-              />
-              <EditableText
-                field="membership.adult.badge"
-                defaultValue="ҮНДСЭН"
-                className="rounded bg-[#1B7F4E]/20 px-2 py-0.5 text-[10px] font-bold text-[#1B7F4E]"
-              />
-            </div>
-            <p className="relative z-10 mt-4 font-mono text-2xl font-extrabold text-[#1B7F4E]">
-              <EditableText field="membership.adult.price" defaultValue="250,000₮" />{" "}
-              <EditableText
-                field="membership.adult.period"
-                defaultValue="/ жил"
-                className="text-xs font-normal text-muted-foreground"
-              />
-            </p>
-            <ul className="relative z-10 mt-6 space-y-2.5 text-xs text-[#a0a0a5]">
-              {adultMembershipItems.map((item, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 text-[#1B7F4E]" />
-                  <EditableText field={`membership.adult.items.${idx}`} defaultValue={item} />
-                </li>
-              ))}
-            </ul>
-          </EditableBackground>
-
-          {/* Junior Membership */}
-          <EditableBackground
-            field="membership.junior.imageUrl"
-            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl"
-            fallbackClassName="bg-[#121215]"
-            editMode="corner"
-          >
-            <div className="relative z-10 flex items-center justify-between">
-              <EditableText
-                field="membership.junior.title"
-                defaultValue="Жуниор гишүүнчлэл"
-                className="font-heading text-sm font-bold text-white uppercase"
-              />
-              <EditableText
-                field="membership.junior.badge"
-                defaultValue="12-17 НАС"
-                className="rounded bg-[#1B7F4E]/20 px-2 py-0.5 text-[10px] font-bold text-[#1B7F4E]"
-              />
-            </div>
-            <EditableText
-              field="membership.junior.body"
-              defaultValue="Хүүхэд залуучуудад зориулсан тусгай нөхцөлтэй аюулгүй байдлын сургалт бүхий гишүүнчлэл."
-              multiline
-              as="p"
-              className="relative z-10 mt-4 text-xs leading-relaxed text-[#a0a0a5] block"
-            />
-            <div className="relative z-10 mt-6">
-              <OutlineButton href="/membership" className="w-full">
-                <EditableText field="membership.junior.cta" defaultValue="Дэлгэрэнгүй →" />
-              </OutlineButton>
-            </div>
-          </EditableBackground>
-
-          {/* Stepper Path: ГИШҮҮН БОЛОХ ЗАМ */}
-          <EditableBackground
-            field="membership.path.imageUrl"
-            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl"
-            fallbackClassName="bg-[#0c0c0e]"
-            editMode="corner"
-          >
-            <EditableText
-              field="membership.path.title"
-              defaultValue="ГИШҮҮН БОЛОХ ЗАМ"
-              as="h4"
-              className="relative z-10 font-heading text-xs font-bold uppercase tracking-wider text-[#1B7F4E] block"
-            />
-            <div className="relative z-10 mt-5 space-y-3">
-              {[
-                { n: "1", label: "Course 1", sub: "Суурь сургалт" },
-                { n: "2", label: "Course 2", sub: "Баталгаажуулах сургалт" },
-                { n: "3", label: "Суралцагч гишүүн", sub: "6 сар" },
-                { n: "4", label: "Үндсэн гишүүн", sub: "Клубын гишүүн" },
-              ].map((step, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#1B7F4E] text-xs font-bold text-white">
-                    <EditableText field={`membership.path.steps.${idx}.n`} defaultValue={step.n} />
-                  </div>
-                  <div>
-                    <EditableText
-                      field={`membership.path.steps.${idx}.label`}
-                      defaultValue={step.label}
-                      as="p"
-                      className="text-xs font-bold text-white block"
-                    />
-                    <EditableText
-                      field={`membership.path.steps.${idx}.sub`}
-                      defaultValue={step.sub}
-                      as="p"
-                      className="text-[10px] text-muted-foreground block"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </EditableBackground>
-        </div>
-      </ContentSection>
-
-      {/* 06 - ЧАНСАА / ЖУРАМ */}
-      <ContentSection id="ranking" dark>
-        <SectionTag n="05" label="ЧАНСАА / ЖУРАМ" fieldPrefix="section.06" />
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <EditableText
-              field="ranking.title"
-              defaultValue="ИЛ ТОД, СПОРТЫН ЁС ЗҮЙН ДАГУУ"
-              as="h2"
-              className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
-            />
-            <EditableText
-              field="ranking.subtitle"
-              defaultValue="Тэмцээний чансаа, журам нь олон улсын IPSC стандартын дагуу хэрэгжинэ."
-              multiline
-              as="p"
-              className="mt-1 text-sm text-muted-foreground block"
-            />
-          </div>
-          <OutlineButton href="/ranking">
-            <EditableText field="ranking.cta" defaultValue="Дэлгэрэнгүй →" />
-          </OutlineButton>
-        </div>
-
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {/* Card 1: Rating rules */}
-          <EditableBackground
-            field="ranking.rating.imageUrl"
-            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl"
-            fallbackClassName="bg-[#121215]"
-            editMode="corner"
-          >
-            <BarChart3 className="relative z-10 mb-4 size-8 text-[#1B7F4E]" />
-            <EditableText
-              field="ranking.rating.title"
-              defaultValue="Тамирчдын чансаа тодорхойлох журам"
-              as="h4"
-              className="relative z-10 font-heading text-sm font-bold text-white block"
-            />
-            <EditableText
-              field="ranking.rating.body"
-              defaultValue="Тэмцээний үр дүнг онцгой системээр тооцож, тамирчдын нийт чансааг тогтооно."
-              multiline
-              as="p"
-              className="relative z-10 mt-2 text-xs leading-relaxed text-[#a0a0a5] block"
-            />
-            <ul className="relative z-10 mt-4 space-y-1.5 text-[11px] text-muted-foreground">
-              {ratingItems.map((item, idx) => (
-                <li key={idx} className="flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-[#1B7F4E]" />
-                  <EditableText field={`ranking.rating.items.${idx}`} defaultValue={item} />
-                </li>
-              ))}
-            </ul>
-          </EditableBackground>
-
-          {/* Card 2: MPBK rules */}
-          <EditableBackground
-            field="ranking.rules.imageUrl"
-            className="rounded-2xl border border-[#ffffff15] p-6 shadow-xl"
-            fallbackClassName="bg-[#121215]"
-            editMode="corner"
-          >
-            <FileText className="relative z-10 mb-4 size-8 text-[#1B7F4E]" />
-            <EditableText
-              field="ranking.rules.title"
-              defaultValue="МПБХ-ны тэмцээн явуулах журам"
-              as="h4"
-              className="relative z-10 font-heading text-sm font-bold text-white block"
-            />
-            <EditableText
-              field="ranking.rules.body"
-              defaultValue="Тэмцээн зохион байгуулах, шүүгчдийн бүрэлдэхүүн, аюулгүй ажиллагааны журам."
-              multiline
-              as="p"
-              className="relative z-10 mt-2 text-xs leading-relaxed text-[#a0a0a5] block"
-            />
-            <ul className="relative z-10 mt-4 space-y-1.5 text-[11px] text-muted-foreground">
-              {competitionRuleItems.map((item, idx) => (
-                <li key={idx} className="flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-[#1B7F4E]" />
-                  <EditableText field={`ranking.rules.items.${idx}`} defaultValue={item} />
-                </li>
-              ))}
-            </ul>
-          </EditableBackground>
-
-          {/* Card 3: Banner */}
-          <EditableBackground
-            field="ranking.philosophyImageUrl"
-            className="flex flex-col justify-end rounded-2xl border border-[#1B7F4E]/40 p-8 shadow-2xl"
-            fallbackClassName="bg-gradient-to-br from-[#1A2620] via-[#141E19] to-[#0E1612]"
-            editMode="corner"
-          >
-            <div className="absolute top-4 right-4 text-[#1B7F4E]/20">
-              <LionIcon className="size-24" />
-            </div>
-            <EditableText
-              field="ranking.philosophy.label"
-              defaultValue="PRIME PHILOSOPHY"
-              as="p"
-              className="relative z-10 font-mono text-xs font-bold uppercase tracking-widest text-[#1B7F4E] block"
-            />
-            <EditableText
-              field="ranking.philosophy.quote"
-              defaultValue={'"ДҮРЭМ БОЛ СПОРТЫН СҮНС"'}
-              multiline
-              as="blockquote"
-              className="relative z-10 mt-2 font-heading text-2xl font-extrabold uppercase leading-tight text-white block"
-            />
-          </EditableBackground>
-        </div>
-      </ContentSection>
-
-      {/* 07 - МЭДЭЭ / СҮҮЛД БОЛСОН ҮЙЛ АЖИЛЛАГАА */}
-      <ContentSection id="news">
-        <SectionTag n="06" label="МЭДЭЭ / СҮҮЛД БОЛСОН ҮЙЛ АЖИЛЛАГАА" fieldPrefix="section.07" />
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <EditableText
-              field="news.title"
-              defaultValue="БИДНИЙ ЗАМНАЛ"
-              as="h2"
-              className="font-heading text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl block"
-            />
-            <EditableText
-              field="news.subtitle"
-              defaultValue="Тэмцээн, сургалт, арга хэмжээний мэдээ, онцлох үйл явдлууд."
-              multiline
-              as="p"
-              className="mt-1 text-sm text-muted-foreground block"
-            />
-          </div>
-          <OutlineButton href="/contact">
-            <EditableText field="news.cta" defaultValue="Бүх мэдээ →" />
-          </OutlineButton>
-        </div>
-
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {newsItems.map((item, idx) => (
-            <EditableBackground
-              key={item.title}
-              field={`news.${idx}.cardImageUrl`}
-              className="group overflow-hidden rounded-2xl border border-[#ffffff15] shadow-xl transition-all hover:border-[#1B7F4E]/50"
-              fallbackClassName="bg-[#121215]"
-              editMode="corner"
+            Хурд. Хүч. <span style={{ color: "#D8AE4A" }}>Цэц.</span>
+          </h1>
+          <p style={{ margin: 0, fontSize: 19, lineHeight: 1.6, color: "#D3D5DA", maxWidth: 520 }}>
+            Практик буудлагын спортын «Прайм» клуб. Мэргэжлийн багшийн удирдлагатай, аюулгүй орчинд эхнээсээ тэмцээний түвшин хүртэл.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+            <button
+              type="button"
+              className="btn-y"
+              onClick={() => openRegister("trial")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "18px 28px",
+                borderRadius: 16,
+                background: "#D8AE4A",
+                color: "#0B0C0E",
+                fontWeight: 700,
+                fontSize: 16,
+                border: 0,
+                cursor: "pointer",
+              }}
             >
-              <EditableBackground
-                field={`news.${idx}.imageUrl`}
-                className="flex h-44 items-end border-b border-[#ffffff10] p-5"
-                fallbackClassName="bg-gradient-to-br from-[#1a1814] via-[#121215] to-[#070707]"
-                editMode="cover"
-              >
-                <span className="relative z-10 rounded bg-[#000000]/60 px-2.5 py-1 font-mono text-xs font-bold text-[#1B7F4E]">
-                  <EditableText field={`news.${idx}.date`} defaultValue={item.date} />
-                </span>
-              </EditableBackground>
-              <div className="relative z-10 p-5">
-                <EditableText
-                  field={`news.${idx}.title`}
-                  defaultValue={item.title}
-                  multiline
-                  as="h4"
-                  className="font-heading text-sm font-bold text-white transition-colors group-hover:text-[#1B7F4E] block"
-                />
-                <EditableText
-                  field={`news.${idx}.desc`}
-                  defaultValue={item.desc}
-                  multiline
-                  as="p"
-                  className="mt-2 text-xs leading-relaxed text-[#a0a0a5] block"
-                />
-              </div>
-            </EditableBackground>
-          ))}
+              Туршилтын буудлага захиалах
+              <ArrowIcon />
+            </button>
+            <a
+              className="btn-g"
+              href="#programs"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "18px 26px",
+                borderRadius: 16,
+                background: "rgba(255,255,255,.10)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,.18)",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 16,
+              }}
+            >
+              Хөтөлбөр үзэх
+            </a>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 20, marginTop: 24 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              {[
+                ["2019", "Байгуулагдсан"],
+                ["Ням бүр", "Клубын тэмцээн"],
+                ["6мм", "Action Air буу"],
+              ].map(([value, label]) => (
+                <div
+                  key={label}
+                  style={{
+                    padding: "16px 20px",
+                    borderRadius: 20,
+                    background: "rgba(11,12,14,.55)",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,.10)",
+                  }}
+                >
+                  <div style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: 24, fontWeight: 700, color: "#FFFFFF" }}>{value}</div>
+                  <div style={{ fontSize: 14, color: "#B5B8BF" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "12px 16px",
+                borderRadius: 14,
+                background: "rgba(11,12,14,.55)",
+                backdropFilter: "blur(10px)",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#E8E9EC",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D8AE4A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              Урбанек төв, Сүхбаатар дүүрэг
+            </span>
+          </div>
         </div>
-      </ContentSection>
-    </>
+      </section>
+
+      <div style={{ padding: "0 20px" }}>
+        <main style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <section id="about" style={{ marginTop: 96 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 16, marginBottom: 32 }}>
+              <h2 className="rise" style={{ margin: 0, fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: "clamp(28px, 3vw, 40px)", fontWeight: 700, color: "#FFFFFF", letterSpacing: "-.01em" }}>
+                Клубт юу хийх вэ
+              </h2>
+              <p style={{ margin: 0, maxWidth: 420, color: "#A9ACB4", fontSize: 16, lineHeight: 1.6 }}>
+                Гурван замаас сонгоод эхэл. Анх удаа бол туршилтын буудлагаас эхлэхийг зөвлөж байна.
+              </p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+              {PILLARS.map((p) => (
+                <Link
+                  key={p.href}
+                  id={p.href === "/membership" ? "membership" : undefined}
+                  className="lift pop"
+                  href={p.href}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    borderRadius: 28,
+                    background: "#15161A",
+                    border: "1px solid rgba(255,255,255,.06)",
+                    overflow: "hidden",
+                    color: "#E8E9EC",
+                  }}
+                >
+                  <div style={{ height: 220, background: "#1E2026", overflow: "hidden" }}>
+                    <img src={p.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  </div>
+                  <div style={{ padding: "24px 26px 28px", display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <h3 style={{ margin: 0, fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: 22, fontWeight: 700, color: "#FFFFFF" }}>{p.title}</h3>
+                      <span style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(216,174,74,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <GoIcon />
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, color: "#A9ACB4", fontSize: 15, lineHeight: 1.6 }}>{p.text}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <section id="programs" style={{ marginTop: 96 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 16, marginBottom: 32 }}>
+              <h2 className="rise" style={{ margin: 0, fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: "clamp(28px, 3vw, 40px)", fontWeight: 700, color: "#FFFFFF", letterSpacing: "-.01em" }}>
+                Онцлох сургалтууд
+              </h2>
+              <div
+                role="group"
+                aria-label="Шүүлтүүр"
+                style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 6, borderRadius: 999, background: "#15161A", border: "1px solid rgba(255,255,255,.06)" }}
+              >
+                {HOME_FILTERS.map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    data-filter={id}
+                    aria-pressed={filter === id}
+                    onClick={() => setFilter(id)}
+                    style={{
+                      minHeight: 44,
+                      padding: "10px 18px",
+                      borderRadius: 999,
+                      border: 0,
+                      cursor: "pointer",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      background: filter === id ? GOLD : "transparent",
+                      color: filter === id ? "#0B0C0E" : "#C9CBD1",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
+              {courses.map((c, i) => (
+                <HomeCourseCard key={c.id} course={c} index={i} onRegister={openRegister} />
+              ))}
+            </div>
+          </section>
+
+          <section
+            id="events"
+            className="pop"
+            style={{
+              marginTop: 96,
+              borderRadius: 32,
+              background: "#D8AE4A",
+              color: "#0B0C0E",
+              padding: "clamp(28px, 4vw, 56px)",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 28,
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 28 }}>
+              <div
+                style={{
+                  width: 112,
+                  height: 112,
+                  borderRadius: 24,
+                  background: "#0B0C0E",
+                  color: "#D8AE4A",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span style={{ fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: 30, fontWeight: 800 }}>НЯМ</span>
+                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: ".06em" }}>ГАРАГ БҮР</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: ".1em" }}>КЛУБЫН ТЭМЦЭЭН</span>
+                <h2 className="rise" style={{ margin: 0, fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-.01em" }}>
+                  Level I клубын тэмцээн
+                </h2>
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Урбанек төв · Сард 3 удаа · Course 2 төгссөн гишүүд</span>
+              </div>
+            </div>
+            <Link href="/ranking" style={{ padding: "18px 28px", borderRadius: 16, background: "#0B0C0E", color: "#FFFFFF", fontWeight: 700, fontSize: 16 }}>
+              Дэлгэрэнгүй
+            </Link>
+          </section>
+
+          <section id="rules" style={{ marginTop: 96 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 16, marginBottom: 28 }}>
+              <h2 className="rise" style={{ margin: 0, fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: "clamp(28px, 3vw, 40px)", fontWeight: 700, color: "#FFFFFF", letterSpacing: "-.01em" }}>
+                Спортын дүрэм
+              </h2>
+              <Link className="btn-g" href="/ranking/rules" style={{ padding: "12px 18px", borderRadius: 999, background: "rgba(255,255,255,.06)", color: "#E8E9EC", fontWeight: 600, fontSize: 14 }}>
+                Бүх дүрэм
+              </Link>
+            </div>
+            <div className="rule-cards">
+              {RULES.map((r) => (
+                <Link key={r.n} className="lift pop rule-card" href={r.href}>
+                  <span className="rc-n">{r.n}</span>
+                  <span className="rc-t">{r.title}</span>
+                  <span className="rc-go" aria-hidden="true">
+                    <ArrowIcon />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <section
+            id="trial"
+            className="pop"
+            style={{
+              marginTop: 96,
+              borderRadius: 32,
+              background: "#15161A",
+              border: "1px solid rgba(255,255,255,.06)",
+              padding: "clamp(32px, 5vw, 72px)",
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 20,
+            }}
+          >
+            <h2
+              className="rise"
+              style={{
+                margin: 0,
+                fontFamily: "var(--font-montserrat), Montserrat, sans-serif",
+                fontSize: "clamp(30px, 4vw, 52px)",
+                fontWeight: 800,
+                color: "#FFFFFF",
+                letterSpacing: "-.02em",
+                maxWidth: 760,
+                lineHeight: 1.1,
+              }}
+            >
+              Анхны буудлагаа <span style={{ color: "#D8AE4A" }}>өнөөдөр</span> захиал
+            </h2>
+            <p style={{ margin: 0, color: "#A9ACB4", fontSize: 18, maxWidth: 540, lineHeight: 1.6 }}>
+              Инструктортой хамт 100 ширхэг сумаар эйрсофт гар буу эсвэл карабинаар буудна. 12-оос дээш насны хүн бүрт, туршлага шаардлагагүй.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12, marginTop: 8 }}>
+              <button
+                type="button"
+                className="btn-y"
+                onClick={() => openRegister("trial")}
+                style={{ padding: "18px 30px", borderRadius: 16, background: "#D8AE4A", color: "#0B0C0E", fontWeight: 700, fontSize: 16, border: 0, cursor: "pointer" }}
+              >
+                Цаг захиалах
+              </button>
+              <a
+                className="btn-g"
+                href="tel:86110200"
+                style={{
+                  padding: "18px 28px",
+                  borderRadius: 16,
+                  background: "rgba(255,255,255,.06)",
+                  border: "1px solid rgba(255,255,255,.12)",
+                  color: "#E8E9EC",
+                  fontWeight: 600,
+                  fontSize: 16,
+                }}
+              >
+                Залгах: 8611-0200
+              </a>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function HomeCourseCard({
+  course,
+  index,
+  onRegister,
+}: {
+  course: Course;
+  index: number;
+  onRegister: (id: string) => void;
+}) {
+  return (
+    <article
+      className="lift pop card-in"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 28,
+        background: "#15161A",
+        border: "1px solid rgba(255,255,255,.06)",
+        overflow: "hidden",
+        ["--i" as string]: index,
+      }}
+    >
+      <div style={{ position: "relative", height: 200, margin: "10px 10px 0", borderRadius: 20, background: "#1E2026", overflow: "hidden" }}>
+        <img
+          src={course.img}
+          alt={course.title}
+          className={course.soon ? "course-soon" : undefined}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <span
+          style={{
+            position: "absolute",
+            top: 14,
+            left: 14,
+            padding: "7px 12px",
+            borderRadius: 999,
+            background: "rgba(11,12,14,.82)",
+            color: GOLD,
+            fontSize: 12,
+            fontWeight: 800,
+            letterSpacing: ".06em",
+          }}
+        >
+          {course.tag}
+        </span>
+        <span
+          style={{
+            position: "absolute",
+            top: 14,
+            right: 14,
+            padding: "7px 12px",
+            borderRadius: 999,
+            background: "rgba(11,12,14,.82)",
+            color: "#E8E9EC",
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          {course.soon ? "Тун удахгүй" : course.age}
+        </span>
+      </div>
+      <div style={{ padding: "22px 24px 24px", display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+        <h3 style={{ margin: 0, fontFamily: "var(--font-montserrat), Montserrat, sans-serif", fontSize: 20, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.25 }}>
+          {course.title}
+        </h3>
+        <p style={{ margin: 0, color: "#A9ACB4", fontSize: 15, lineHeight: 1.6, flex: 1 }}>{course.text}</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: 13, color: "#C9CBD1" }}>
+          <span style={{ padding: "6px 10px", borderRadius: 10, background: "rgba(255,255,255,.05)" }}>{course.length}</span>
+          <span style={{ padding: "6px 10px", borderRadius: 10, background: "rgba(216,174,74,.12)", color: GOLD, fontWeight: 700 }}>{course.price}</span>
+        </div>
+        {course.soon ? (
+          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+            <span
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 48,
+                borderRadius: 14,
+                background: "rgba(255,255,255,.06)",
+                color: "#8D919A",
+                fontWeight: 700,
+                fontSize: 15,
+              }}
+            >
+              Тун удахгүй
+            </span>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+            <button
+              type="button"
+              className="btn-y"
+              onClick={() => onRegister(course.id)}
+              style={{
+                flex: 1,
+                minHeight: 48,
+                padding: 14,
+                borderRadius: 14,
+                background: GOLD,
+                color: "#0B0C0E",
+                fontWeight: 700,
+                fontSize: 15,
+                border: 0,
+                cursor: "pointer",
+              }}
+            >
+              Бүртгүүлэх
+            </button>
+            {course.link ? (
+              <Link
+                className="btn-g"
+                href={course.link}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 48,
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,.06)",
+                  color: "#E8E9EC",
+                  fontWeight: 600,
+                  fontSize: 15,
+                }}
+              >
+                Дэлгэрэнгүй
+              </Link>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </article>
   );
 }

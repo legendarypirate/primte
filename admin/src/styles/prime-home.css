@@ -1,0 +1,775 @@
+html:has(.prime-home) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
+.prime-home {
+  min-height: 100vh;
+  background: #0b0c0e;
+  color: #e8e9ec;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+.prime-home input,
+.prime-home select,
+.prime-home button,
+.prime-home textarea {
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+.prime-home a {
+  color: #d8ae4a;
+  text-decoration: none;
+}
+.prime-home a:hover {
+  color: #e8c46f;
+}
+
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    translate: 0 32px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    translate: 0 70px;
+    scale: 0.88;
+  }
+  70% {
+    opacity: 1;
+    scale: 1.025;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modalIn {
+  0% {
+    opacity: 0;
+    translate: 0 24px;
+    scale: 0.92;
+  }
+  70% {
+    scale: 1.02;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@keyframes gunIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-60px) rotate(-6deg) scale(0.92);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(6px) rotate(1deg) scale(1.02);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes stepR {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes stepL {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vtIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes boxOut {
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.prime-home .hero-in {
+  animation: heroIn 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@supports (animation-timeline: view()) {
+  .prime-home .pop {
+    animation: popIn linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 95%;
+  }
+  .prime-home .rise {
+    animation: riseIn linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 85%;
+  }
+}
+.prime-home .fade {
+  animation: fadeIn 0.25s ease both;
+}
+.prime-home .modal {
+  animation: modalIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.prime-home .lift {
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+.prime-home .lift:hover {
+  transform: translateY(-4px);
+  border-color: rgba(216, 174, 74, 0.45);
+}
+.prime-home .navlink {
+  color: #c9cbd1;
+}
+.prime-home .navlink:hover {
+  color: #ffffff;
+}
+.prime-home .btn-y {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.prime-home .btn-y:hover {
+  color: #0b0c0e;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(216, 174, 74, 0.35);
+}
+.prime-home .btn-g:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.prime-home [hidden] {
+  display: none !important;
+}
+.prime-home .slides {
+  position: absolute;
+  inset: 0;
+}
+.prime-home .slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    opacity 1.4s ease,
+    transform 6.5s ease-out;
+}
+.prime-home .slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+.prime-home .navlink[aria-current="page"] {
+  color: #ffffff;
+  box-shadow: 0 2px 0 #d8ae4a;
+}
+.prime-home .burger {
+  display: none;
+}
+.prime-home #mmenu a {
+  display: block;
+  padding: 14px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #e8e9ec;
+  border-radius: 14px;
+}
+.prime-home #mmenu a:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+@media (max-width: 980px) {
+  .prime-home .nav-links,
+  .prime-home .nav-login {
+    display: none !important;
+  }
+  .prime-home .burger {
+    display: flex !important;
+  }
+  .prime-home #mmenu:not([hidden]) {
+    display: flex;
+  }
+}
+@media (max-width: 760px) {
+  .prime-home [data-page="home"] > section:first-child {
+    height: auto !important;
+    min-height: 100vh !important;
+    max-height: none !important;
+  }
+}
+.prime-home .course-soon {
+  filter: grayscale(0.4);
+}
+
+.prime-home .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.prime-home .reg-box {
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  color: #e8e9ec;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  border-radius: 28px;
+  background: #15161a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  padding: 28px 30px 26px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overscroll-behavior: contain;
+}
+.prime-home .reg-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.prime-home .reg-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  color: #d8ae4a;
+}
+.prime-home .reg-top h2 {
+  margin: 4px 0 0;
+  font: 800 24px var(--font-montserrat), Montserrat, sans-serif;
+  color: #fff;
+}
+.prime-home .reg-x {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prime-home .reg-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-top: -6px;
+}
+.prime-home .reg-progress span {
+  display: block;
+  height: 100%;
+  width: 33%;
+  border-radius: 999px;
+  background: #d8ae4a;
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.prime-home #reg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.prime-home .course-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.prime-home .course-pick[hidden],
+.prime-home .final-only[hidden] {
+  display: none !important;
+}
+.prime-home .grp,
+.prime-home .step {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.prime-home .grp[hidden],
+.prime-home .step[hidden] {
+  display: none !important;
+}
+.prime-home .step-t {
+  margin: 0 0 -6px;
+  font: 700 17px var(--font-montserrat), Montserrat, sans-serif;
+  color: #fff;
+}
+.prime-home .step.in-r {
+  animation: stepR 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.prime-home .step.in-l {
+  animation: stepL 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.prime-home .f {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.prime-home .f-l {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c9cbd1;
+  padding: 0;
+}
+.prime-home .f-h {
+  font-size: 12px;
+  color: #8d919a;
+  line-height: 1.45;
+}
+.prime-home .in {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: #0f1013;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: 400 16px var(--font-inter), Inter, sans-serif;
+  color-scheme: dark;
+  width: 100%;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.prime-home .in-sm {
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.prime-home textarea.in {
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 76px;
+}
+.prime-home .in:focus {
+  outline: none;
+  border-color: #d8ae4a;
+  box-shadow: 0 0 0 4px rgba(216, 174, 74, 0.16);
+}
+.prime-home .in[aria-invalid="true"],
+.prime-home .f.bad .pills span {
+  border-color: #ff8a7a;
+}
+.prime-home .err {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff8a7a;
+}
+.prime-home .err:empty {
+  display: none;
+}
+.prime-home .pills {
+  display: flex;
+  gap: 8px;
+}
+.prime-home .pills.stack {
+  flex-direction: column;
+}
+.prime-home .pills label {
+  flex: 1 1 0;
+  min-width: 0;
+  cursor: pointer;
+}
+.prime-home .pills input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.prime-home .pills span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #0f1013;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #c9cbd1;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    transform 0.15s;
+}
+.prime-home .pills.stack span {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 12px 14px;
+}
+.prime-home .pills span b {
+  font-weight: 700;
+  color: inherit;
+}
+.prime-home .pills span small {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8d919a;
+}
+.prime-home .pills label:hover span {
+  border-color: rgba(216, 174, 74, 0.45);
+}
+.prime-home .pills input:checked + span {
+  background: rgba(216, 174, 74, 0.14);
+  border-color: #d8ae4a;
+  color: #fff;
+}
+.prime-home .pills input:checked + span small {
+  color: #d8c08a;
+}
+.prime-home .pills input:focus-visible + span {
+  box-shadow: 0 0 0 3px rgba(216, 174, 74, 0.35);
+}
+.prime-home .reg-note {
+  margin: 0;
+  font-size: 13px;
+  color: #8d919a;
+  line-height: 1.5;
+}
+.prime-home .final-only {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.prime-home .agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: #c9cbd1;
+  line-height: 1.5;
+  cursor: pointer;
+  padding-top: 14px;
+}
+.prime-home .agree input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin: 1px 0 0;
+  accent-color: #d8ae4a;
+}
+.prime-home .reg-nav {
+  display: flex;
+  gap: 10px;
+}
+.prime-home .reg-nav [hidden] {
+  display: none !important;
+}
+.prime-home .reg-back {
+  flex: 0 0 auto;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.07);
+  color: #e8e9ec;
+  font: 700 15px var(--font-inter), Inter, sans-serif;
+}
+.prime-home .reg-next {
+  flex: 1;
+  min-height: 52px;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  background: #d8ae4a;
+  color: #0b0c0e;
+  font: 800 16px var(--font-inter), Inter, sans-serif;
+}
+.prime-home .reg-next[disabled] {
+  opacity: 0.6;
+  cursor: wait;
+}
+.prime-home #reg-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.prime-home #reg-done[hidden] {
+  display: none !important;
+}
+.prime-home .done-ic {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(216, 174, 74, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: gunIn 0.5s both;
+}
+.prime-home #reg-done h3 {
+  margin: 0;
+  font: 800 22px var(--font-montserrat), Montserrat, sans-serif;
+  color: #fff;
+}
+.prime-home #reg-done p {
+  margin: 0;
+  color: #a9acb4;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.prime-home .done-steps {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.prime-home .done-steps .st {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #0f1013;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  color: #c3c6cd;
+  line-height: 1.55;
+}
+.prime-home .done-steps .st b {
+  color: #fff;
+}
+.prime-home .done-steps .n {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #d8ae4a;
+  color: #0b0c0e;
+  font: 800 12px/24px var(--font-montserrat), Montserrat, sans-serif;
+  text-align: center;
+}
+.prime-home .reg-close-btn {
+  width: 100%;
+  min-height: 50px;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: 700 15px var(--font-inter), Inter, sans-serif;
+}
+@media (max-width: 560px) {
+  .prime-home .reg-box {
+    padding: 22px 20px;
+    border-radius: 24px;
+  }
+}
+
+.prime-home .rule-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 1100px) {
+  .prime-home .rule-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .prime-home .rule-cards {
+    grid-template-columns: 1fr;
+  }
+  .prime-home .rule-card {
+    min-height: 0;
+  }
+}
+.prime-home .rule-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 150px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #15161a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e8e9ec;
+}
+.prime-home .rule-card .rc-n {
+  font: 800 15px var(--font-montserrat), Montserrat, sans-serif;
+  color: #d8ae4a;
+}
+.prime-home .rule-card .rc-t {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+  padding-right: 24px;
+}
+.prime-home .rule-card .rc-go {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  color: #d8ae4a;
+  transition: transform 0.25s;
+}
+.prime-home .rule-card:hover .rc-go {
+  transform: translateX(4px);
+}
+
+@media (max-width: 640px) {
+  .prime-home [role="group"][aria-label="Шүүлтүүр"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-radius: 999px;
+  }
+  .prime-home [role="group"] button {
+    flex: none;
+  }
+  .prime-home .hero-in .btn-y,
+  .prime-home .hero-in .btn-g {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
+.prime-home .card-in {
+  animation: cardIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+.prime-home .grp-in {
+  animation: vtIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.prime-home #reg.closing {
+  animation: fadeOut 0.22s ease both;
+}
+.prime-home #reg.closing .reg-box {
+  animation: boxOut 0.22s ease both;
+}
+.prime-home #mmenu:not([hidden]) {
+  animation: menuIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: top;
+}
+.prime-home .btn-y,
+.prime-home .btn-g,
+.prime-home .pills span,
+.prime-home [data-filter],
+.prime-home a.lift {
+  transition:
+    transform 0.15s ease,
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
+}
+.prime-home .btn-y:active,
+.prime-home .btn-g:active,
+.prime-home [data-filter]:active {
+  transform: scale(0.96);
+}
+.prime-home .pills label:active span {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.prime-home) {
+    scroll-behavior: auto;
+  }
+  .prime-home .pop,
+  .prime-home .rise,
+  .prime-home .hero-in,
+  .prime-home .modal,
+  .prime-home .fade,
+  .prime-home .card-in,
+  .prime-home .grp-in,
+  .prime-home #mmenu:not([hidden]) {
+    animation: none !important;
+  }
+}
