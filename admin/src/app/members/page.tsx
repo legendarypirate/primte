@@ -243,7 +243,7 @@ export default function MembersPage() {
   const [parents, setParents] = useState<ParentRow[]>([]);
   const [memberTypes, setMemberTypes] = useState<Named[]>([]);
   const [activities, setActivities] = useState<Named[]>([]);
-  const [nextMemberCode, setNextMemberCode] = useState("S0001");
+  const [nextMemberCode, setNextMemberCode] = useState("");
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<MemberFilters>(emptyFilters);
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -958,14 +958,11 @@ function resolveMemberType(memberTypes: Named[], category: TypeCategory, level =
 
 function applyMemberType(current: MemberForm, next: Named | undefined, nextMemberCode: string): MemberForm {
   if (!next) return { ...current, memberTypeId: "" };
+  const autoCode = Boolean(nextMemberCode) && current.memberCode === nextMemberCode;
   return {
     ...current,
     memberTypeId: next.id,
-    memberCode: isNonMemberType(next)
-      ? current.memberCode === nextMemberCode
-        ? ""
-        : current.memberCode
-      : current.memberCode || nextMemberCode,
+    memberCode: isNonMemberType(next) && (!current.memberCode || autoCode) ? "" : current.memberCode,
   };
 }
 
@@ -1161,7 +1158,7 @@ function MemberFormDrawer({
       const initialType = memberTypes.find((t) => t.id === fallbackTypeId);
       return {
         ...empty,
-        memberCode: isNonMemberType(initialType) ? "" : nextMemberCode,
+        memberCode: "",
         memberTypeId: fallbackTypeId,
         ...dates,
       };
@@ -1295,15 +1292,13 @@ function MemberFormDrawer({
           <Field label="Гишүүний ID" required={!codeOptional}>
             <Input
               value={form.memberCode}
-              placeholder={codeOptional ? "Админаас дараа олгоно" : "S0001"}
+              placeholder={codeOptional ? "Админаас дараа олгоно" : "Гараар оруулна"}
               onChange={(e) => set("memberCode", e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
               {codeOptional
                 ? "Non member-д гишүүний ID автоматаар олгохгүй. Дараа гараар оруулна."
-                : !member
-                  ? "Шинэ гишүүний ID S-ээр эхэлнэ."
-                  : ""}
+                : "Гишүүний ID автоматаар олгохгүй. Гараар оруулна."}
             </p>
           </Field>
           <Field label="Гишүүнчлэл үүссэн огноо" required>

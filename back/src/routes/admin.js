@@ -307,8 +307,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
   const studentType = await MemberType.findOne({ where: { slug: 'student-member' } });
   const resolvedTypeId = memberTypeId || studentType?.id || null;
   const type = resolvedTypeId ? await MemberType.findByPk(resolvedTypeId) : null;
-  const rawCode = String(memberCode || '').trim();
-  const code = rawCode || (isNonMemberType(type) ? null : await nextStudentCode());
+  const code = String(memberCode || '').trim() || null;
   if (code) {
     const exists = await Member.findOne({ where: { memberCode: code } });
     if (exists) return res.status(400).json({ message: 'Энэ гишүүний ID бүртгэлтэй.' });
