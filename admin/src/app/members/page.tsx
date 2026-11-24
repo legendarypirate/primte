@@ -1239,7 +1239,7 @@ function MemberFormDrawer({
         return;
       }
       const dates = membershipDates(form.validFrom, form.validTo);
-      const { xp: _xp, rp: _rp, level: _level, ...formFields } = form;
+      const { xp: _xp, rp: _rp, level: _level, password: _password, ...formFields } = form;
       const body = {
         ...formFields,
         ...dates,
@@ -1253,7 +1253,6 @@ function MemberFormDrawer({
         developmentActivityIds: form.developmentActivityIds,
         parentAccountId: isJunior ? parentAccountId : member ? form.parentAccountId || null : null,
         parentId: null,
-        password: form.password.trim() || undefined,
       };
       if (member) await api(`/api/admin/members/${member.id}`, { method: "PUT", body: JSON.stringify(body) });
       else await api("/api/admin/members", { method: "POST", body: JSON.stringify(body) });
@@ -1460,15 +1459,6 @@ function MemberFormDrawer({
               )}
             </div>
           )}
-          <Field label="Нууц үг">
-            <MPassword
-              value={form.password}
-              placeholder={member?.hasPassword ? "Хоосон бол хэвээр үлдэнэ" : "Апп-д нэвтрэх нууц үг"}
-              onChange={(e) => set("password", e.target.value)}
-              autoComplete="new-password"
-            />
-            <p className="text-xs text-muted-foreground">Хоосон бол гишүүний ID-аар нэвтэрнэ. Оноо баталгаажуулахад ID хэвээр хэрэглэнэ.</p>
-          </Field>
           <Field label="Дуусах огноо" required>
             <DatePicker required value={form.validTo} onChange={(validTo) => set("validTo", validTo)} />
           </Field>
