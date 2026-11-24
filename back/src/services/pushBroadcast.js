@@ -15,7 +15,7 @@ async function collectDeviceTokens() {
       attributes: ['fcmToken'],
     }),
   ]);
-  return [...members, ...parents].map((row) => row.fcmToken).filter(Boolean);
+  return [...new Set([...members, ...parents].map((row) => row.fcmToken).filter(Boolean))];
 }
 
 async function broadcastToAllUsers({ title, body, data = {} }) {
@@ -34,22 +34,20 @@ async function broadcastToAllUsers({ title, body, data = {} }) {
   };
 
   try {
-    result.topic = await sendToTopic(CLUB_TOPIC, payload);
-  } catch (err) {
-    console.error('FCM: topic send failed', err);
-  }
-
-  try {
     const tokens = await collectDeviceTokens();
     result.tokenCount = tokens.length;
-    const tokenResult = await sendToTokens(tokens, payload);
-    result.successCount = tokenResult.successCount;
-    result.failureCount = tokenResult.failureCount;
-    console.log(
-      `FCM: broadcast "${title}" topic=${CLUB_TOPIC} tokens=${tokenResult.successCount}/${tokens.length}`,
-    );
+    if (tokens.length) {
+      const tokenResult = await sendToTokens(tokens, payload);
+      result.successCount = tokenResult.successCount;
+      result.failureCount = tokenResult.failureCount;
+      console.log(`FCM: broadcast "${title}" tokens=${tokenResult.successCount}/${tokens.length}`);
+    } else {
+      // No stored device tokens yet — topic still reaches subscribed apps.
+      result.topic = await sendToTopic(CLUB_TOPIC, payload);
+      console.log(`FCM: broadcast "${title}" topic=${CLUB_TOPIC} (no tokens)`);
+    }
   } catch (err) {
-    console.error('FCM: token send failed', err);
+    console.error('FCM: broadcast failed', err);
   }
 
   return result;
