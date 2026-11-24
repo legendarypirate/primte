@@ -76,43 +76,15 @@ async function applyMemberProgression(data = {}, { current, syncType = false } =
   return data;
 }
 
-const MIN_SCORES = {
-  1: { xp: 51, rp: 0 },
-  2: { xp: 51, rp: 151 },
-  3: { xp: 201, rp: 601 },
-};
-
 async function ensureStudentDefaults() {
-  const types = await MemberType.findAll();
-  const byId = Object.fromEntries(types.map((type) => [type.id, type]));
-  const student = types.find((type) => type.slug === 'student-member');
+  const student = await MemberType.findOne({ where: { slug: 'student-member' } });
   if (student) {
     await Member.update(
       { memberTypeId: student.id },
       { where: { memberTypeId: null } }
     );
   }
-
-  const members = await Member.findAll();
-  for (const member of members) {
-    const type = byId[member.memberTypeId];
-    const hasScores = (member.xp || 0) > 0 || (member.rp || 0) > 0;
-    if (!hasScores && type?.level) {
-      const mins = MIN_SCORES[type.level];
-      if (mins) {
-        member.xp = mins.xp;
-        member.rp = mins.rp;
-        member.level = type.level;
-        await member.save();
-        continue;
-      }
-    }
-    const level = computeMembershipLevel(member.xp, member.rp);
-    if (member.level !== level) {
-      member.level = level;
-      await member.save();
-    }
-  }
+  await require('./pointLedger').stripSyntheticPointHistory();
 }
 
 function grantMembersExperience(memberIds, delta, extra) {

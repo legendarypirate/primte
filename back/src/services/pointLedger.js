@@ -1,7 +1,7 @@
 const { Op } = require('sequelize');
 const { Member, MemberPointEvent, MemberType, Match, Competition, MatchType } = require('../models');
 const { formatDate, formatTime } = require('../utils/helpers');
-const { applyPointDelta, POINT_RULES, competitionXpAward, XP_AWARDS, decomposeXp } = require('../domain/points');
+const { applyPointDelta, POINT_RULES, competitionXpAward, XP_AWARDS } = require('../domain/points');
 
 const SOURCE_TITLES = {
   training_hour: XP_AWARDS.trainingHour.title,
@@ -115,42 +115,9 @@ async function grantMembersExperience(memberIds, { xp = 0, rp = 0 } = {}, extra 
   return members;
 }
 
-function splitXpOpeningRows(member, total, fromDate = new Date()) {
-  const chunks = decomposeXp(total);
-  let balance = 0;
-  const week = 7 * 24 * 60 * 60 * 1000;
-  return chunks.map((award, i) => {
-    balance += award.xp;
-    const at = new Date(fromDate.getTime() - (chunks.length - 1 - i) * week);
-    return {
-      memberId: member.id,
-      kind: 'xp',
-      source: award.source,
-      delta: award.xp,
-      balanceAfter: balance,
-      title: award.title,
-      note: null,
-      createdAt: at,
-      updatedAt: at,
-    };
-  });
-}
-
 async function recordAbsoluteChange(member, { prevXp, prevRp, source = 'admin', title, note } = {}, { transaction } = {}) {
   const xpDelta = Math.max(0, (member.xp || 0) - (prevXp || 0));
   const rpDelta = (member.rp || 0) - (prevRp || 0);
-  if (source === 'opening' && xpDelta > 0) {
-    await MemberPointEvent.bulkCreate(splitXpOpeningRows(member, xpDelta), { transaction });
-    return writeEvents(member, {
-      xpDelta: 0,
-      rpDelta,
-      xpAfter: member.xp || 0,
-      rpAfter: member.rp || 0,
-      source,
-      title,
-      note,
-    }, { transaction });
-  }
   return writeEvents(member, {
     xpDelta,
     rpDelta,
@@ -162,45 +129,29 @@ async function recordAbsoluteChange(member, { prevXp, prevRp, source = 'admin', 
   }, { transaction });
 }
 
-async function expandLumpOpeningXp(member, { transaction } = {}) {
-  const xpEvents = await MemberPointEvent.findAll({
-    where: { memberId: member.id, kind: 'xp' },
-    order: [['createdAt', 'ASC']],
-    transaction,
-  });
-  const lumps = xpEvents.filter((row) => row.source === 'opening' && row.delta > 1);
-  if (!lumps.length) return;
-  const onlyOpeningXp = xpEvents.every((row) => row.source === 'opening');
-  if (!onlyOpeningXp) return;
-  const total = lumps.reduce((sum, row) => sum + row.delta, 0);
-  const fromDate = lumps[lumps.length - 1].createdAt || new Date();
+async function stripSyntheticPointHistory() {
   await MemberPointEvent.destroy({
-    where: { id: { [Op.in]: lumps.map((row) => row.id) } },
-    transaction,
+    where: {
+      [Op.or]: [
+        { source: 'opening' },
+        {
+          kind: 'xp',
+          source: { [Op.in]: ['training_hour', 'training_match', 'competition'] },
+          refId: { [Op.is]: null },
+        },
+      ],
+    },
   });
-  if (total > 0) {
-    await MemberPointEvent.bulkCreate(splitXpOpeningRows(member, total, fromDate), { transaction });
-  }
-}
 
-async function ensureOpeningBalance(member, { transaction } = {}) {
-  await expandLumpOpeningXp(member, { transaction });
-  const count = await MemberPointEvent.count({ where: { memberId: member.id }, transaction });
-  if (count > 0) return;
-  const xp = member.xp || 0;
-  const rp = member.rp || 0;
-  if (xp <= 0 && rp <= 0) return;
-  if (xp > 0) {
-    await MemberPointEvent.bulkCreate(splitXpOpeningRows(member, xp), { transaction });
+  const members = await Member.findAll();
+  for (const member of members) {
+    const events = await MemberPointEvent.findAll({ where: { memberId: member.id } });
+    const xp = Math.max(0, events.filter((row) => row.kind === 'xp').reduce((sum, row) => sum + (row.delta || 0), 0));
+    const rp = Math.max(0, events.filter((row) => row.kind === 'rp').reduce((sum, row) => sum + (row.delta || 0), 0));
+    if (member.xp !== xp || member.rp !== rp) {
+      await member.update({ xp, rp });
+    }
   }
-  await writeEvents(member, {
-    xpDelta: 0,
-    rpDelta: rp,
-    xpAfter: xp,
-    rpAfter: rp,
-    source: 'opening',
-    title: SOURCE_TITLES.opening,
-  }, { transaction });
 }
 
 async function alreadyAwarded(memberId, { source, refId, kind = 'xp' }, { transaction } = {}) {
@@ -274,7 +225,6 @@ async function awardTrainingHourXp(member, attendance, { hours = 1, transaction 
 }
 
 async function listPointHistory(member, { kind } = {}) {
-  await ensureOpeningBalance(member);
   const where = { memberId: member.id };
   if (kind === 'xp' || kind === 'rp') where.kind = kind;
   const events = await MemberPointEvent.findAll({
@@ -297,7 +247,7 @@ module.exports = {
   applyMemberPoints,
   grantMembersExperience,
   recordAbsoluteChange,
-  ensureOpeningBalance,
+  stripSyntheticPointHistory,
   awardCompetitionXp,
   awardCompetitionXpForCompetitor,
   awardTrainingHourXp,
