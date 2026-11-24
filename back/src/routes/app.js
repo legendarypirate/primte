@@ -146,6 +146,11 @@ router.get('/products', async (req, res) => {
   });
 });
 
+router.get('/trainings', async (req, res) => {
+  const trainings = await Training.findAll({ order: [['eventDate', 'ASC']] });
+  res.json({ trainings: trainings.map((t) => serializeTraining(t, req)) });
+});
+
 router.get('/competitions', async (req, res) => {
   const competitions = await Competition.findAll({
     include: [{ model: MatchType, required: false }],
