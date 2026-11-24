@@ -47,6 +47,8 @@ Role.hasMany(Admin, { foreignKey: 'roleId' });
 
 Parent.hasMany(Member, { foreignKey: 'parentAccountId', as: 'children' });
 Member.belongsTo(Parent, { foreignKey: 'parentAccountId', as: 'parentAccount' });
+Parent.belongsTo(Member, { foreignKey: 'memberId', as: 'linkedMember', onDelete: 'SET NULL' });
+Member.hasOne(Parent, { foreignKey: 'memberId', as: 'parentProfile', onDelete: 'SET NULL' });
 
 Member.belongsTo(MemberType, { foreignKey: 'memberTypeId' });
 MemberType.hasMany(Member, { foreignKey: 'memberTypeId' });

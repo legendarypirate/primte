@@ -49,6 +49,7 @@ const { normalizeMemberTypeIds } = require('../domain/notices');
 const { toDateOnly, membershipDates } = require('../domain/dates');
 const { resolveMemberNames } = require('../domain/names');
 const { deleteMember, deleteMembers } = require('../services/memberDelete');
+const { applyMemberParentMode } = require('../services/memberParent');
 const {
   developmentActivitiesInclude,
   normalizeActivityIds,
@@ -61,6 +62,7 @@ const memberIncludes = [
   developmentActivitiesInclude(),
   { model: Member, as: 'parent' },
   { model: Parent, as: 'parentAccount' },
+  { model: Parent, as: 'parentProfile' },
 ];
 const {
   grantMembersExperience: grantPoints,
@@ -359,6 +361,13 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     avatarUrl,
   });
   await setMemberActivities(member, activityIds);
+  if (req.body?.parentMode === true) {
+    try {
+      await applyMemberParentMode(member, true);
+    } catch (err) {
+      return res.status(err.status || 400).json({ message: err.message });
+    }
+  }
   const created = await Member.findByPk(member.id, {
     include: memberIncludes,
   });
@@ -548,6 +557,14 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
   if (activityIds) data.developmentActivityId = activityIds[0] || null;
   await member.update(data);
   if (activityIds) await setMemberActivities(member, activityIds);
+  if (req.body?.parentMode === true || req.body?.parentMode === false) {
+    try {
+      await member.reload();
+      await applyMemberParentMode(member, req.body.parentMode === true);
+    } catch (err) {
+      return res.status(err.status || 400).json({ message: err.message });
+    }
+  }
   const updated = await Member.findByPk(member.id, {
     include: memberIncludes,
   });

@@ -11,6 +11,7 @@ const Parent = sequelize.define('Parent', {
   avatarUrl: { type: DataTypes.STRING, field: 'avatar_url' },
   fcmToken: { type: DataTypes.TEXT, allowNull: true, field: 'fcm_token' },
   fcmPlatform: { type: DataTypes.STRING, allowNull: true, field: 'fcm_platform' },
+  memberId: { type: DataTypes.UUID, allowNull: true, unique: true, field: 'member_id' },
 });
 
 module.exports = Parent;

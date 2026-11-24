@@ -410,6 +410,8 @@ function serializeMember(member, req) {
     developmentActivityName: activityNames.join(', '),
     parentId: member.parentId,
     parentAccountId: member.parentAccountId,
+    parentMode: Boolean(member.parentProfile || member.Parent),
+    parentProfileId: member.parentProfile?.id || member.Parent?.id || null,
     parentName: parentAccount?.name || member.parentName || parent?.name || null,
     parentPhone: parentAccount?.phone || member.parentPhone || parent?.phone || null,
     parentEmail: parentAccount?.email || member.parentEmail || null,

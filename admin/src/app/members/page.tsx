@@ -67,6 +67,8 @@ type Member = {
   developmentActivityId?: string | null;
   developmentActivityIds?: string[];
   parentAccountId?: string | null;
+  parentMode?: boolean;
+  parentProfileId?: string | null;
   parentName?: string | null;
   avatarUrl?: string | null;
   category?: string | null;
@@ -655,7 +657,14 @@ export default function MembersPage() {
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{m.name}</div>
+                    <div className="font-medium">
+                      {m.name}
+                      {m.parentMode ? (
+                        <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wide text-muted-foreground">
+                          Эцэг эх
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {m.username ? `@${m.username}` : ""}
                       {m.phone ? `${m.username ? " · " : ""}${m.phone}` : ""}
@@ -809,6 +818,43 @@ export default function MembersPage() {
   );
 }
 
+function FormSwitch({
+  checked,
+  onToggle,
+  disabled,
+  label,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+  label?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        disabled={disabled}
+        onClick={onToggle}
+        className={cn(
+          "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+          checked ? "bg-primary" : "bg-muted-foreground/30"
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
+            checked ? "left-5" : "left-0.5"
+          )}
+        />
+      </button>
+      {label ? <span className="text-xs text-muted-foreground">{label}</span> : null}
+    </div>
+  );
+}
+
 function MemberStatusSwitch({
   status,
   disabled,
@@ -823,28 +869,12 @@ function MemberStatusSwitch({
   const active = status === "active";
   const label = active ? "Идэвхтэй" : status === "expired" ? "Хугацаа дууссан" : "Идэвхгүй";
   return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={active}
-        aria-label={label}
-        disabled={disabled}
-        onClick={onToggle}
-        className={cn(
-          "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-          active ? "bg-primary" : "bg-muted-foreground/30"
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
-            active ? "left-5" : "left-0.5"
-          )}
-        />
-      </button>
-      {showLabel ? <span className="text-xs text-muted-foreground">{label}</span> : null}
-    </div>
+    <FormSwitch
+      checked={active}
+      onToggle={onToggle}
+      disabled={disabled}
+      label={showLabel ? label : undefined}
+    />
   );
 }
 
@@ -1188,6 +1218,7 @@ function MemberFormDrawer({
     };
   });
   const [parentMode, setParentMode] = useState<"existing" | "new">(parents.length ? "existing" : "new");
+  const [asParent, setAsParent] = useState(Boolean(member?.parentMode));
   const [newParent, setNewParent] = useState({ name: "", phone: "", email: "", password: "" });
   const [saving, setSaving] = useState(false);
   const selectedType = memberTypes.find((t) => t.id === form.memberTypeId);
@@ -1207,6 +1238,10 @@ function MemberFormDrawer({
     }
     if (isJunior && !form.birthday) {
       toast.error("Жуниор суралцагчийн төрсөн өдөр оруулна уу");
+      return;
+    }
+    if (asParent && !form.phone.trim()) {
+      toast.error("Эцэг эхийн горимд утас шаардлагатай");
       return;
     }
     setSaving(true);
@@ -1235,7 +1270,7 @@ function MemberFormDrawer({
         return;
       }
       const dates = membershipDates(form.validFrom, form.validTo);
-      const { xp: _xp, rp: _rp, level: _level, password: _password, ...formFields } = form;
+      const { xp: _xp, rp: _rp, level: _level, password: _password, rank: _rank, ...formFields } = form;
       const body = {
         ...formFields,
         ...dates,
@@ -1244,11 +1279,11 @@ function MemberFormDrawer({
         name: [form.firstName, form.lastName].map((part) => part.trim()).filter(Boolean).join(" "),
         birthday: form.birthday || null,
         memberCode: form.memberCode.trim() || null,
-        rank: num(form.rank),
         memberTypeId: form.memberTypeId || fallbackTypeId || null,
         developmentActivityIds: form.developmentActivityIds,
         parentAccountId: isJunior ? parentAccountId : member ? form.parentAccountId || null : null,
         parentId: null,
+        parentMode: asParent,
       };
       if (member) await api(`/api/admin/members/${member.id}`, { method: "PUT", body: JSON.stringify(body) });
       else await api("/api/admin/members", { method: "POST", body: JSON.stringify(body) });
@@ -1456,9 +1491,6 @@ function MemberFormDrawer({
           <Field label="Дуусах огноо" required>
             <DatePicker required value={form.validTo} onChange={(validTo) => set("validTo", validTo)} />
           </Field>
-          <Field label="Ранк">
-            <Input type="number" value={form.rank} onChange={(e) => set("rank", e.target.value === "" ? "" : Number(e.target.value))} />
-          </Field>
           <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2 md:col-span-2">
             <div>
               <div className="text-sm font-medium">Төлөв</div>
@@ -1470,6 +1502,29 @@ function MemberFormDrawer({
               status={form.status}
               showLabel={false}
               onToggle={() => set("status", form.status === "active" ? "inactive" : "active")}
+            />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2 md:col-span-2">
+            <div>
+              <div className="text-sm font-medium">Эцэг эхийн горим</div>
+              <div className="text-xs text-muted-foreground">
+                {asParent ? (
+                  <>
+                    Энэ гишүүн{" "}
+                    <Link href="/parents" className="text-primary underline">
+                      Эцэг эх
+                    </Link>{" "}
+                    жагсаалтад гарна. Хүүхдээ тэнд гишүүнээс импортлоно. Нууц үгийг тэнд тохируулна.
+                  </>
+                ) : (
+                  "Асаавал энэ гишүүн Эцэг эх жагсаалтад гарна."
+                )}
+              </div>
+            </div>
+            <FormSwitch
+              checked={asParent}
+              onToggle={() => setAsParent((current) => !current)}
+              label={asParent ? "Асаалттай" : "Унтраалттай"}
             />
           </div>
         </div>

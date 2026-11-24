@@ -79,6 +79,7 @@ function serializeParent(parent) {
     email: parent.email,
     avatarUrl: parent.avatarUrl,
     hasPassword: Boolean(parent.passwordHash || parent.pinHash),
+    memberId: parent.memberId || null,
   };
 }
 

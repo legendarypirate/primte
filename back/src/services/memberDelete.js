@@ -8,6 +8,7 @@ const {
   MemberProgress,
   Judge,
   Payment,
+  Parent,
   Order,
   OrderItem,
   Transaction,
@@ -42,7 +43,10 @@ async function ensureMemberCascadeFks() {
       AND array_length(con.conkey, 1) = 1
   `);
   for (const row of rows) {
-    const setNull = row.table_name === 'judges' || row.column_name === 'parent_id';
+    const setNull =
+      row.table_name === 'judges' ||
+      row.column_name === 'parent_id' ||
+      (row.table_name === 'parents' && row.column_name === 'member_id');
     const onDelete = setNull ? 'SET NULL' : 'CASCADE';
     if (row.delete_action === (setNull ? 'n' : 'c') && row.update_action === 'c') continue;
     try {
@@ -92,6 +96,7 @@ async function deleteMembers(memberIds, { transaction: outer } = {}) {
     }
 
     await Transaction.destroy({ where: { memberId: foundIds }, transaction: t });
+    await Parent.update({ memberId: null }, { where: { memberId: foundIds }, transaction: t });
     await Member.update({ parentId: null }, { where: { parentId: foundIds }, transaction: t });
     await Member.destroy({ where: { id: foundIds }, transaction: t });
     return foundIds.length;

@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const { Parent, Member, MemberType, Payment } = require('../models');
 const { requireAdmin, requireAnyPermission, serializeParent } = require('../middleware/auth');
+const { attachChildren, detachChild } = require('../services/memberParent');
 
 const router = express.Router();
 
@@ -32,10 +33,15 @@ async function findParentByPhone(phone, excludeId) {
 async function parentPayload(parent) {
   const children = await Member.findAll({
     where: { parentAccountId: parent.id },
-    attributes: ['id', 'name', 'memberTypeId'],
+    attributes: ['id', 'name', 'memberCode', 'memberTypeId'],
     include: [MemberType],
   });
-  const list = children.map((c) => ({ id: c.id, name: c.name, memberType: c.MemberType?.name }));
+  const list = children.map((c) => ({
+    id: c.id,
+    name: c.name,
+    memberCode: c.memberCode || null,
+    memberType: c.MemberType?.name,
+  }));
   return {
     ...serializeParent(parent),
     children: list,
@@ -47,13 +53,18 @@ router.get('/', requireAdmin, requireAnyPermission('parents.view', 'members.view
   const parents = await Parent.findAll({ order: [['name', 'ASC']] });
   const children = await Member.findAll({
     where: { parentAccountId: parents.map((p) => p.id) },
-    attributes: ['id', 'name', 'parentAccountId', 'memberTypeId'],
+    attributes: ['id', 'name', 'memberCode', 'parentAccountId', 'memberTypeId'],
     include: [MemberType],
   });
   const childMap = children.reduce((acc, c) => {
     const key = c.parentAccountId;
     if (!acc[key]) acc[key] = [];
-    acc[key].push({ id: c.id, name: c.name, memberType: c.MemberType?.name });
+    acc[key].push({
+      id: c.id,
+      name: c.name,
+      memberCode: c.memberCode || null,
+      memberType: c.MemberType?.name,
+    });
     return acc;
   }, {});
   res.json({
@@ -61,6 +72,39 @@ router.get('/', requireAdmin, requireAnyPermission('parents.view', 'members.view
       ...serializeParent(p),
       children: childMap[p.id] || [],
       childrenCount: (childMap[p.id] || []).length,
+    })),
+  });
+});
+
+router.get('/member-options', requireAdmin, requireAnyPermission('parents.view', 'parents.manage', 'members.view'), async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const where = q
+    ? {
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${q}%` } },
+          { firstName: { [Op.iLike]: `%${q}%` } },
+          { lastName: { [Op.iLike]: `%${q}%` } },
+          { memberCode: { [Op.iLike]: `%${q}%` } },
+          { phone: { [Op.iLike]: `%${q}%` } },
+          { username: { [Op.iLike]: `%${q}%` } },
+        ],
+      }
+    : undefined;
+  const members = await Member.findAll({
+    where,
+    attributes: ['id', 'name', 'memberCode', 'phone', 'username'],
+    include: [{ model: MemberType, attributes: ['name'] }],
+    order: [['name', 'ASC']],
+    limit: 400,
+  });
+  res.json({
+    members: members.map((m) => ({
+      id: m.id,
+      name: m.name,
+      memberCode: m.memberCode || null,
+      phone: m.phone || null,
+      username: m.username || null,
+      memberType: m.MemberType?.name || null,
     })),
   });
 });
@@ -112,6 +156,28 @@ router.put('/:id', requireAdmin, requireAnyPermission('parents.manage', 'members
     { parentName: parent.name, parentPhone: parent.phone, parentEmail: parent.email },
     { where: { parentAccountId: parent.id } }
   );
+  res.json({ parent: await parentPayload(parent) });
+});
+
+router.post('/:id/children', requireAdmin, requireAnyPermission('parents.manage', 'members.update'), async (req, res) => {
+  const parent = await Parent.findByPk(req.params.id);
+  if (!parent) return res.status(404).json({ message: 'Эцэг эх олдсонгүй.' });
+  try {
+    await attachChildren(parent, req.body?.memberIds);
+  } catch (err) {
+    return res.status(err.status || 400).json({ message: err.message });
+  }
+  res.json({ parent: await parentPayload(parent) });
+});
+
+router.delete('/:id/children/:childId', requireAdmin, requireAnyPermission('parents.manage', 'members.update'), async (req, res) => {
+  const parent = await Parent.findByPk(req.params.id);
+  if (!parent) return res.status(404).json({ message: 'Эцэг эх олдсонгүй.' });
+  try {
+    await detachChild(parent, req.params.childId);
+  } catch (err) {
+    return res.status(err.status || 400).json({ message: err.message });
+  }
   res.json({ parent: await parentPayload(parent) });
 });
 
