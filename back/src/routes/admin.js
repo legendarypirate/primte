@@ -45,6 +45,7 @@ const {
 } = require('../services/memberProgression');
 const { randomUUID } = require('crypto');
 const { toDelta, isNonMemberType } = require('../domain/membership');
+const { normalizeMemberTypeIds } = require('../domain/notices');
 const { toDateOnly, membershipDates } = require('../domain/dates');
 const { resolveMemberNames } = require('../domain/names');
 const { deleteMember, deleteMembers } = require('../services/memberDelete');
@@ -142,6 +143,9 @@ function sanitizeCompetitionInput(body) {
     if (Number.isNaN(d.getTime())) out[key] = null;
   }
   if (out.matchTypeId === '') out.matchTypeId = null;
+  if (Array.isArray(out.squads)) {
+    out.squads = out.squads.filter((s) => s && String(s.label || '').trim());
+  }
   return out;
 }
 
@@ -339,7 +343,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     motto,
     xp: progression.xp,
     rp: progression.rp,
-    level: progression.level,
+    level: type?.level ?? progression.level,
     rank: rank ?? 0,
     competitionCount: competitionCount ?? 0,
     validFrom: dates.validFrom,
@@ -498,6 +502,8 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     if (type?.requiresParent && !data.parentAccountId && !data.parentId && !data.parentName && !member.parentAccountId) {
       return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх сонгоно уу.' });
     }
+    if (type && type.level != null) data.level = type.level;
+    else if (isNonMemberType(type) || type?.slug === 'student-member') data.level = 0;
   }
   if (data.parentAccountId) {
     const parentAccount = await Parent.findByPk(data.parentAccountId);
@@ -541,13 +547,6 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     ? normalizeActivityIds(req.body?.developmentActivityIds, data.developmentActivityId)
     : null;
   if (activityIds) data.developmentActivityId = activityIds[0] || null;
-  if (data.memberTypeId) {
-    const nextType = await MemberType.findByPk(data.memberTypeId);
-    if (nextType?.isInactive) data.status = 'inactive';
-    if (nextType?.requiresParent && !data.parentAccountId && !data.parentId && !data.parentName && !member.parentAccountId) {
-      return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх сонгоно уу.' });
-    }
-  }
   await member.update(data);
   if (activityIds) await setMemberActivities(member, activityIds);
   const updated = await Member.findByPk(member.id, {
@@ -887,7 +886,22 @@ router.delete('/trainings/:id', requirePermission('trainings.manage'), async (re
 function noticeFields(body = {}) {
   const title = String(body.title || '').trim();
   const text = String(body.body || '').trim();
-  return { title, body: text, published: body.published !== false };
+  return {
+    title,
+    body: text,
+    published: body.published !== false,
+    memberTypeIds: normalizeMemberTypeIds(body.memberTypeIds),
+  };
+}
+
+async function assertNoticeMemberTypes(ids) {
+  if (!ids.length) return;
+  const types = await MemberType.findAll({ where: { id: ids }, attributes: ['id'] });
+  if (types.length !== ids.length) {
+    const error = new Error('Гишүүний төрөл буруу.');
+    error.status = 400;
+    throw error;
+  }
 }
 
 async function maybeBroadcastNotice(notice) {
@@ -909,6 +923,11 @@ router.post('/notices', requirePermission('notices.manage'), async (req, res) =>
   const fields = noticeFields(req.body);
   if (!fields.title) return res.status(400).json({ message: 'Гарчиг оруулна уу.' });
   if (!fields.body) return res.status(400).json({ message: 'Агуулга оруулна уу.' });
+  try {
+    await assertNoticeMemberTypes(fields.memberTypeIds);
+  } catch (err) {
+    return res.status(err.status || 400).json({ message: err.message });
+  }
   const notice = await Notice.create(fields);
   const push = await maybeBroadcastNotice(notice);
   res.status(201).json({ notice: serializeNotice(notice), push });
@@ -921,6 +940,11 @@ router.put('/notices/:id', requirePermission('notices.manage'), async (req, res)
   const fields = noticeFields({ ...notice.toJSON(), ...req.body });
   if (!fields.title) return res.status(400).json({ message: 'Гарчиг оруулна уу.' });
   if (!fields.body) return res.status(400).json({ message: 'Агуулга оруулна уу.' });
+  try {
+    await assertNoticeMemberTypes(fields.memberTypeIds);
+  } catch (err) {
+    return res.status(err.status || 400).json({ message: err.message });
+  }
   await notice.update(fields);
   const shouldPush = notice.published && !wasPublished;
   const push = shouldPush ? await maybeBroadcastNotice(notice) : null;

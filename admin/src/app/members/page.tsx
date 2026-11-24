@@ -36,7 +36,9 @@ type Named = {
   requiresParent?: boolean;
   category?: string;
   level?: number | null;
+  isInactive?: boolean;
 };
+type TypeCategory = "non-member" | "student" | "official" | "junior";
 type ParentRow = { id: string; name: string; phone?: string; email?: string };
 type RegistrationKind = "adult" | "junior" | "parent";
 type Member = {
@@ -68,7 +70,7 @@ type Member = {
   parentName?: string | null;
   avatarUrl?: string | null;
   category?: string | null;
-  memberType?: { name: string; slug?: string; requiresParent?: boolean; category?: string } | null;
+  memberType?: { name: string; slug?: string; requiresParent?: boolean; category?: string; level?: number | null } | null;
   developmentActivity?: { name: string } | null;
   developmentActivities?: { id: string; name: string }[];
 };
@@ -220,7 +222,7 @@ function sortValue(member: Member, key: SortKey) {
     case "classification":
       return member.classification || "";
     case "level":
-      return member.membershipLabel || membershipLabel(membershipLevel(member.xp || 0, member.rp || 0));
+      return member.memberType?.name || member.membershipLabel || membershipLabel(membershipLevel(member.xp || 0, member.rp || 0), member.memberType?.category || member.category);
     case "xp":
       return member.xp ?? 0;
     case "rp":
@@ -666,7 +668,8 @@ export default function MembersPage() {
                   <TableCell>{m.gender || "—"}</TableCell>
                   <TableCell>{m.classification || "—"}</TableCell>
                   <TableCell>
-                    {m.membershipLabel ||
+                    {m.memberType?.name ||
+                      m.membershipLabel ||
                       membershipLabel(
                         membershipLevel(m.xp || 0, m.rp || 0),
                         m.memberType?.category || m.category
@@ -922,9 +925,48 @@ function defaultTypeId(memberTypes: Named[], kind: RegistrationKind) {
   return memberTypes.find((t) => t.slug === "student-member")?.id || "";
 }
 
-function typesForKind(memberTypes: Named[], kind: RegistrationKind) {
-  if (kind === "junior") return memberTypes.filter((t) => t.category === "junior");
-  return memberTypes.filter((t) => t.category !== "junior");
+function isInactiveType(type?: Named | null) {
+  return Boolean(type?.isInactive || type?.slug?.includes("inactive"));
+}
+
+function typeCategoryOf(type?: Named | null): TypeCategory {
+  if (type?.slug === "non-member" || type?.category === "non-member") return "non-member";
+  if (type?.category === "junior") return "junior";
+  if (type?.category === "official") return "official";
+  return "student";
+}
+
+function typeLevelOf(type?: Named | null) {
+  const n = Number(type?.level);
+  if (Number.isFinite(n) && n >= 1 && n <= 3) return n;
+  return 1;
+}
+
+function resolveMemberType(memberTypes: Named[], category: TypeCategory, level = 1) {
+  const pool = memberTypes.filter((type) => !isInactiveType(type));
+  if (category === "non-member") {
+    return pool.find((type) => type.slug === "non-member" || type.category === "non-member");
+  }
+  if (category === "student") {
+    return pool.find((type) => type.slug === "student-member") || pool.find((type) => type.category === "student");
+  }
+  return (
+    pool.find((type) => type.category === category && Number(type.level) === level) ||
+    pool.find((type) => type.slug === `${category}-l${level}`)
+  );
+}
+
+function applyMemberType(current: MemberForm, next: Named | undefined, nextMemberCode: string): MemberForm {
+  if (!next) return { ...current, memberTypeId: "" };
+  return {
+    ...current,
+    memberTypeId: next.id,
+    memberCode: isNonMemberType(next)
+      ? current.memberCode === nextMemberCode
+        ? ""
+        : current.memberCode
+      : current.memberCode || nextMemberCode,
+  };
 }
 
 function isNonMemberType(type?: { slug?: string; category?: string } | null) {
@@ -1112,7 +1154,6 @@ function MemberFormDrawer({
   onSaved: () => Promise<void>;
   onCancel: () => void;
 }) {
-  const kindTypes = useMemo(() => typesForKind(memberTypes, kind), [memberTypes, kind]);
   const fallbackTypeId = defaultTypeId(memberTypes, kind);
   const [form, setForm] = useState<MemberForm>(() => {
     const dates = membershipDates(member?.validFrom, member?.validTo);
@@ -1152,14 +1193,18 @@ function MemberFormDrawer({
   const [parentMode, setParentMode] = useState<"existing" | "new">(parents.length ? "existing" : "new");
   const [newParent, setNewParent] = useState({ name: "", phone: "", email: "", password: "" });
   const [saving, setSaving] = useState(false);
-  const isJunior = kind === "junior";
+  const selectedType = memberTypes.find((t) => t.id === form.memberTypeId);
+  const typeCategory = typeCategoryOf(selectedType);
+  const typeLevel = typeLevelOf(selectedType);
+  const needsLevel = typeCategory === "official" || typeCategory === "junior";
+  const isJunior = typeCategory === "junior";
 
   function set<K extends keyof MemberForm>(key: K, value: MemberForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
   async function save() {
-    const selected = kindTypes.find((t) => t.id === form.memberTypeId);
+    const selected = memberTypes.find((t) => t.id === form.memberTypeId);
     if (!form.firstName.trim() || !form.username.trim() || (!isNonMemberType(selected) && !form.memberCode.trim())) {
       toast.error(isNonMemberType(selected) ? "Нэр, нэвтрэх нэр оруулна уу" : "Нэр, нэвтрэх нэр, гишүүний ID оруулна уу");
       return;
@@ -1227,10 +1272,20 @@ function MemberFormDrawer({
       ? "Жуниор бүртгэх"
       : "Насанд хүрсэн гишүүн бүртгэх";
 
-  const selectedType = kindTypes.find((t) => t.id === form.memberTypeId);
-  const selectedJuniorType = selectedType;
-  const juniorLevel = selectedJuniorType?.level || 1;
+  const juniorLevel = selectedType?.level || 1;
   const codeOptional = isNonMemberType(selectedType);
+
+  function setTypeCategory(category: TypeCategory) {
+    const level = category === "official" || category === "junior" ? typeLevel || 1 : 1;
+    const next = resolveMemberType(memberTypes, category, level);
+    setForm((current) => applyMemberType(current, next, nextMemberCode));
+  }
+
+  function setTypeLevel(level: number) {
+    const category = needsLevel ? typeCategory : "official";
+    const next = resolveMemberType(memberTypes, category, level);
+    setForm((current) => applyMemberType(current, next, nextMemberCode));
+  }
 
   return (
     <>
@@ -1284,26 +1339,26 @@ function MemberFormDrawer({
           <Field label="Ангилал">
             <Input value={form.classification} placeholder="Unclassified" onChange={(e) => set("classification", e.target.value)} />
           </Field>
-          <Field label={isJunior ? "Жуниор түвшин" : "Гишүүний төрөл"} required>
+          <Field label="Гишүүний төрөл" required>
+            <FieldSelect value={typeCategory} onChange={(value) => setTypeCategory(value as TypeCategory)}>
+              <option value="student">Student</option>
+              <option value="official">Official</option>
+              <option value="junior">Junior</option>
+              {typeCategory === "non-member" ? <option value="non-member">Non member</option> : null}
+            </FieldSelect>
+          </Field>
+          <Field label="Түвшин" required={needsLevel}>
             <FieldSelect
-              value={form.memberTypeId}
-              onChange={(memberTypeId) => {
-                const next = kindTypes.find((t) => t.id === memberTypeId);
-                setForm((current) => ({
-                  ...current,
-                  memberTypeId,
-                  memberCode: isNonMemberType(next)
-                    ? current.memberCode === nextMemberCode
-                      ? ""
-                      : current.memberCode
-                    : current.memberCode || nextMemberCode,
-                }));
+              value={needsLevel ? String(typeLevel) : ""}
+              onChange={(value) => {
+                if (!value) return;
+                setTypeLevel(Number(value));
               }}
             >
-              <option value="">Сонгох</option>
-              {kindTypes.map((type) => (
-                <option key={type.id} value={type.id}>{type.name}</option>
-              ))}
+              {!needsLevel ? <option value="">—</option> : null}
+              <option value="1">Level 1</option>
+              <option value="2">Level 2</option>
+              <option value="3">Level 3</option>
             </FieldSelect>
           </Field>
           <div className="md:col-span-2">
@@ -1421,9 +1476,10 @@ function MemberFormDrawer({
           <Field label="Гишүүнчлэлийн түвшин">
             <div className="rounded-lg border border-border px-3 py-2">
               <div className="text-sm font-medium">
-                {isJunior
-                  ? membershipLabel(juniorLevel, "junior")
-                  : membershipLabel(membershipLevel(num(form.xp), num(form.rp)))}
+                {selectedType?.name ||
+                  (isJunior
+                    ? membershipLabel(juniorLevel, "junior")
+                    : membershipLabel(membershipLevel(num(form.xp), num(form.rp))))}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 XP {num(form.xp)} · RP {num(form.rp)} · зөвхөн ирц, тэмцээн, XP нэмэхээр өөрчлөгдөнө

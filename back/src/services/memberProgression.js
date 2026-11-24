@@ -43,7 +43,9 @@ async function resolveMembershipTypeId({ level, currentType }) {
   if (currentType?.slug === 'non-member' || currentType?.category === 'non-member') return currentType.id;
   // Junior academy levels are assigned in admin, not by XP/RP.
   if (currentType?.category === 'junior') return currentType.id;
-  const slug = level <= 0 ? 'student-member' : `official-l${level}`;
+  const typed = Number(currentType?.level);
+  const effective = Math.max(level, Number.isFinite(typed) ? typed : 0);
+  const slug = effective <= 0 ? 'student-member' : `official-l${effective}`;
   const type = await MemberType.findOne({ where: { slug } });
   return type?.id || currentType?.id || null;
 }

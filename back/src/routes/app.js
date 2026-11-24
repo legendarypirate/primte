@@ -24,6 +24,7 @@ const { loadBranding } = require('../services/branding');
 const { decorateCategories } = require('../services/productCategoryService');
 const { listPointHistory } = require('../services/pointLedger');
 const { parseGatePayload } = require('../domain/attendance');
+const { filterNoticesForTypeIds } = require('../domain/notices');
 const { applyGate, openSession, serializeSession, listPresentToday } = require('../services/attendanceService');
 const {
   serializeMember,
@@ -102,11 +103,14 @@ router.get('/home', async (req, res) => {
     limit: 3,
   });
   const trainings = await Training.findAll({ order: [['eventDate', 'ASC']], limit: 3 });
-  const notices = await Notice.findAll({
-    where: { published: true },
-    order: [['createdAt', 'DESC']],
-    limit: 10,
-  });
+  const notices = filterNoticesForTypeIds(
+    await Notice.findAll({
+      where: { published: true },
+      order: [['createdAt', 'DESC']],
+      limit: 50,
+    }),
+    [req.member.memberTypeId]
+  ).slice(0, 10);
   const counts = await Registration.findAll({
     attributes: ['competitionId', [sequelize.fn('COUNT', sequelize.col('id')), 'joined']],
     where: { status: { [Op.ne]: 'cancelled' } },
@@ -524,11 +528,14 @@ router.post('/orders', async (req, res) => {
   res.json({ ok: true, order, member: serializeMember(req.member, req) });
 });
 
-router.get('/notices', async (_req, res) => {
-  const notices = await Notice.findAll({
-    where: { published: true },
-    order: [['createdAt', 'DESC']],
-  });
+router.get('/notices', async (req, res) => {
+  const notices = filterNoticesForTypeIds(
+    await Notice.findAll({
+      where: { published: true },
+      order: [['createdAt', 'DESC']],
+    }),
+    [req.member.memberTypeId]
+  );
   res.json({ notices: notices.map(serializeNotice) });
 });
 

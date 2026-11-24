@@ -1,6 +1,7 @@
-const { computeMembershipLevel, membershipLabel } = require('../domain/membership');
+const { membershipDisplayLabel, membershipDisplayLevel } = require('../domain/membership');
 const { clubTime } = require('../domain/club');
 const { resolveMemberNames } = require('../domain/names');
+const { normalizeMemberTypeIds } = require('../domain/notices');
 const { memberRoleSlug, matchPermissionForCompetition } = require('../rbac/catalog');
 const { permissionsForMember, memberHasPermission } = require('../services/rbacService');
 
@@ -195,7 +196,9 @@ function serializeCompetition(competition, req, extra = {}) {
     divisionIds: competition.divisionIds || [],
     divisions: extra.divisions || [],
     categories: competition.categories || [],
-    squads: competition.squads || [],
+    squads: (Array.isArray(competition.squads) ? competition.squads : []).filter(
+      (s) => s && String(s.label || '').trim()
+    ),
     schedule: competition.schedule || [],
     facts: buildCompetitionFacts(competition),
     tags: competition.tags || [],
@@ -242,8 +245,7 @@ function serializeRegistration(registration) {
 function serializeChildSummary(member, req, extra = {}) {
   const type = member.MemberType;
   const category = type?.category || 'junior';
-  const level = computeMembershipLevel(member.xp, member.rp);
-  const displayLevel = category === 'junior' ? (type?.level || 1) : level;
+  const level = membershipDisplayLevel(type, member.xp, member.rp);
   return {
     id: member.id,
     name: member.name,
@@ -254,11 +256,11 @@ function serializeChildSummary(member, req, extra = {}) {
     xp: member.xp || 0,
     rp: member.rp || 0,
     level,
-    membershipLabel: membershipLabel(displayLevel, category),
+    membershipLabel: membershipDisplayLabel(type, member.xp, member.rp),
     rank: member.rank,
     status: member.status,
     walletBalance: member.walletBalance,
-    memberTypeName: type?.name || membershipLabel(displayLevel, category),
+    memberTypeName: type?.name || membershipDisplayLabel(type, member.xp, member.rp),
     category,
     memberTypeLevel: type?.level ?? null,
     validFromLabel: formatDate(member.validFrom),
@@ -288,6 +290,7 @@ function serializeNotice(notice) {
     title: notice.title,
     body: notice.body,
     published: Boolean(notice.published),
+    memberTypeIds: normalizeMemberTypeIds(notice.memberTypeIds),
     createdAt: notice.createdAt,
     timeLabel: formatDateTime(notice.createdAt),
   };
@@ -371,8 +374,7 @@ function serializeMember(member, req) {
   const parent = member.parent;
   const parentAccount = member.parentAccount;
   const category = type?.category || null;
-  const level = computeMembershipLevel(member.xp, member.rp);
-  const displayLevel = category === 'junior' ? (type?.level || 1) : level;
+  const level = membershipDisplayLevel(type, member.xp, member.rp);
   return {
     id: member.id,
     name: member.name,
@@ -391,7 +393,7 @@ function serializeMember(member, req) {
     xp: member.xp || 0,
     rp: member.rp || 0,
     level,
-    membershipLabel: membershipLabel(displayLevel, category),
+    membershipLabel: membershipDisplayLabel(type, member.xp, member.rp),
     rank: member.rank,
     competitionCount: member.competitionCount,
     validFrom: member.validFrom,

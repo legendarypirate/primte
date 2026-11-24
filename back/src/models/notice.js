@@ -6,6 +6,7 @@ const Notice = sequelize.define('Notice', {
   title: { type: DataTypes.STRING, allowNull: false },
   body: { type: DataTypes.TEXT, allowNull: false },
   published: { type: DataTypes.BOOLEAN, defaultValue: true },
+  memberTypeIds: { type: DataTypes.JSONB, defaultValue: [], field: 'member_type_ids' },
 });
 
 module.exports = Notice;

@@ -16,6 +16,7 @@ const {
 } = require('../models');
 const { requireParent } = require('../middleware/auth');
 const { loadClubStatus } = require('../services/clubStatus');
+const { filterNoticesForTypeIds } = require('../domain/notices');
 const { listPointHistory } = require('../services/pointLedger');
 const {
   serializeMember,
@@ -44,11 +45,14 @@ router.get('/home', async (req, res) => {
     include: [MemberType],
     order: [['name', 'ASC']],
   });
-  const notices = await Notice.findAll({
-    where: { published: true },
-    order: [['createdAt', 'DESC']],
-    limit: 5,
-  });
+  const notices = filterNoticesForTypeIds(
+    await Notice.findAll({
+      where: { published: true },
+      order: [['createdAt', 'DESC']],
+      limit: 30,
+    }),
+    children.map((child) => child.memberTypeId)
+  ).slice(0, 5);
   res.json({
     parent: {
       id: req.parent.id,
@@ -299,11 +303,21 @@ router.post('/wallet/topup/:id/confirm', async (req, res) => {
   });
 });
 
-router.get('/notices', async (_req, res) => {
-  const notices = await Notice.findAll({
-    where: { published: true },
-    order: [['createdAt', 'DESC']],
-  });
+router.get('/notices', async (req, res) => {
+  const [rows, children] = await Promise.all([
+    Notice.findAll({
+      where: { published: true },
+      order: [['createdAt', 'DESC']],
+    }),
+    Member.findAll({
+      where: { parentAccountId: req.parent.id },
+      attributes: ['memberTypeId'],
+    }),
+  ]);
+  const notices = filterNoticesForTypeIds(
+    rows,
+    children.map((child) => child.memberTypeId)
+  );
   res.json({ notices: notices.map(serializeNotice) });
 });
 

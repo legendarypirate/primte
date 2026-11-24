@@ -33,6 +33,22 @@ function membershipLabel(level, category) {
   return `Level ${level} member`;
 }
 
+function membershipDisplayLabel(type, xp = 0, rp = 0) {
+  if (type?.name) return type.name;
+  const category = type?.category || null;
+  if (category === 'junior') return membershipLabel(type?.level || 1, category);
+  return membershipLabel(computeMembershipLevel(xp, rp), category);
+}
+
+function membershipDisplayLevel(type, xp = 0, rp = 0) {
+  const category = type?.category || null;
+  if (category === 'non-member') return 0;
+  if (category === 'junior') return Math.max(1, Number(type?.level) || 1);
+  const computed = computeMembershipLevel(xp, rp);
+  const typed = Number(type?.level);
+  return Math.max(computed, Number.isFinite(typed) ? typed : 0);
+}
+
 function toDelta(value) {
   const n = Number(value);
   return Number.isFinite(n) ? Math.round(n) : 0;
@@ -51,6 +67,8 @@ module.exports = {
   toDelta,
   computeMembershipLevel,
   membershipLabel,
+  membershipDisplayLabel,
+  membershipDisplayLevel,
   isNonMemberType,
   addExperience,
 };

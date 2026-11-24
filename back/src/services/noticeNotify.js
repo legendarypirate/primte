@@ -9,6 +9,7 @@ async function notifyPublishedNotice(notice) {
     title,
     body: body || title,
     data: { type: 'notice', noticeId: String(notice.id || '') },
+    memberTypeIds: notice.memberTypeIds,
   });
 }
 
