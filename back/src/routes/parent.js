@@ -12,12 +12,17 @@ const {
   Product,
   Payment,
   Notice,
+  Competition,
+  Registration,
+  MatchType,
   sequelize,
 } = require('../models');
 const { requireParent } = require('../middleware/auth');
 const { loadClubStatus } = require('../services/clubStatus');
 const { filterNoticesForTypeIds } = require('../domain/notices');
 const { listPointHistory } = require('../services/pointLedger');
+const { matchPermissionForCompetition } = require('../rbac/catalog');
+const { memberHasPermission } = require('../services/rbacService');
 const {
   serializeMember,
   serializeChildSummary,
@@ -25,12 +30,65 @@ const {
   serializeProgress,
   serializePurchase,
   serializeNotice,
+  serializeCompetition,
   formatDate,
   formatTime,
 } = require('../utils/helpers');
 
 const router = express.Router();
 router.use(requireParent);
+
+async function loadParentChildren(parentId) {
+  return Member.findAll({
+    where: { parentAccountId: parentId },
+    include: [MemberType],
+    order: [['name', 'ASC']],
+  });
+}
+
+function eligibleChildrenFor(competition, children) {
+  const requiredPermission = matchPermissionForCompetition(competition);
+  return children
+    .filter((child) => memberHasPermission(child, requiredPermission))
+    .map((child) => ({ id: child.id, name: child.name }));
+}
+
+async function competitionJoinedMap() {
+  const counts = await Registration.findAll({
+    attributes: ['competitionId', [sequelize.fn('COUNT', sequelize.col('id')), 'joined']],
+    where: { status: { [Op.ne]: 'cancelled' } },
+    group: ['competitionId'],
+    raw: true,
+  });
+  return Object.fromEntries(counts.map((c) => [c.competitionId, Number(c.joined)]));
+}
+
+function serializeParentCompetition(competition, req, children, extra = {}) {
+  const requiredPermission = matchPermissionForCompetition(competition);
+  const eligible = eligibleChildrenFor(competition, children);
+  return {
+    ...serializeCompetition(competition, req, {
+      ...extra,
+      requiredPermission,
+      canRegister: eligible.length > 0,
+    }),
+    eligibleChildren: eligible,
+  };
+}
+
+async function listParentCompetitions(req, { eligibleOnly = false } = {}) {
+  const children = await loadParentChildren(req.parent.id);
+  const competitions = await Competition.findAll({
+    where: { status: ['upcoming', 'open'] },
+    include: [{ model: MatchType, required: false }],
+    order: [['eventDate', 'ASC']],
+  });
+  const joined = await competitionJoinedMap();
+  const rows = competitions.map((competition) =>
+    serializeParentCompetition(competition, req, children, { joined: joined[competition.id] || 0 })
+  );
+  return eligibleOnly ? rows.filter((row) => (row.eligibleChildren || []).length > 0) : rows;
+}
 
 async function getChildForParent(parentId, childId) {
   return Member.findOne({
@@ -40,11 +98,7 @@ async function getChildForParent(parentId, childId) {
 }
 
 router.get('/home', async (req, res) => {
-  const children = await Member.findAll({
-    where: { parentAccountId: req.parent.id },
-    include: [MemberType],
-    order: [['name', 'ASC']],
-  });
+  const children = await loadParentChildren(req.parent.id);
   const notices = filterNoticesForTypeIds(
     await Notice.findAll({
       where: { published: true },
@@ -61,9 +115,28 @@ router.get('/home', async (req, res) => {
       avatarUrl: req.parent.avatarUrl,
     },
     children: children.map((c) => serializeChildSummary(c, req)),
+    competitions: await listParentCompetitions(req, { eligibleOnly: true }),
     club: await loadClubStatus(),
     notices: notices.map(serializeNotice),
     unreadNotices: notices.length,
+  });
+});
+
+router.get('/competitions', async (req, res) => {
+  res.json({ competitions: await listParentCompetitions(req, { eligibleOnly: true }) });
+});
+
+router.get('/competitions/:id', async (req, res) => {
+  const children = await loadParentChildren(req.parent.id);
+  const competition = await Competition.findByPk(req.params.id, {
+    include: [{ model: MatchType, required: false }],
+  });
+  if (!competition) return res.status(404).json({ message: 'Тэмцээн олдсонгүй.' });
+  const joined = await Registration.count({
+    where: { competitionId: competition.id, status: { [Op.ne]: 'cancelled' } },
+  });
+  res.json({
+    competition: serializeParentCompetition(competition, req, children, { joined }),
   });
 });
 
