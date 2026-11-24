@@ -20,8 +20,27 @@ async function nextStudentCode() {
   return `S${String(max + 1).padStart(4, '0')}`;
 }
 
+const NON_MEMBER_TYPE = {
+  name: 'Non member',
+  slug: 'non-member',
+  category: 'non-member',
+  isInactive: false,
+  requiresParent: false,
+  hasAppAccess: true,
+  isSystem: true,
+  sortOrder: 0,
+};
+
+async function ensureSystemMemberTypes() {
+  await MemberType.findOrCreate({
+    where: { slug: NON_MEMBER_TYPE.slug },
+    defaults: NON_MEMBER_TYPE,
+  });
+}
+
 async function resolveMembershipTypeId({ level, currentType }) {
   if (currentType?.isInactive) return currentType.id;
+  if (currentType?.slug === 'non-member' || currentType?.category === 'non-member') return currentType.id;
   // Junior academy levels are assigned in admin, not by XP/RP.
   if (currentType?.category === 'junior') return currentType.id;
   const slug = level <= 0 ? 'student-member' : `official-l${level}`;
@@ -106,4 +125,5 @@ module.exports = {
   applyMemberProgression,
   grantMembersExperience,
   ensureStudentDefaults,
+  ensureSystemMemberTypes,
 };

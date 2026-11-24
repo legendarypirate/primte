@@ -231,7 +231,7 @@ async function createVerifiedMember(pending) {
     throw err;
   }
 
-  const studentType = await MemberType.findOne({ where: { slug: 'student-member' } });
+  const nonMemberType = await MemberType.findOne({ where: { slug: 'non-member' } });
   const code = await nextStudentCode();
   const created = await Member.create({
     name: pending.name,
@@ -243,7 +243,7 @@ async function createVerifiedMember(pending) {
     passwordHash: pending.passwordHash,
     phone: formatPhone(pending.phone),
     status: 'active',
-    memberTypeId: studentType?.id || null,
+    memberTypeId: nonMemberType?.id || null,
   });
   return Member.findByPk(created.id, { include: memberAuthInclude });
 }

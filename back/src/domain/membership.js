@@ -20,6 +20,7 @@ function computeMembershipLevel(xp = 0, rp = 0) {
 }
 
 function membershipLabel(level, category) {
+  if (category === 'non-member') return 'Non member';
   if (category === 'junior') {
     const n = Math.max(1, Number(level) || 1);
     return `Junior L${n} member`;

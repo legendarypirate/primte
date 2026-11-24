@@ -39,6 +39,7 @@ async function run() {
   const headRole = roles.find((r) => r.slug === 'head-admin');
 
   const memberTypes = await MemberType.bulkCreate([
+    { name: 'Non member', slug: 'non-member', category: 'non-member', isInactive: false, requiresParent: false, hasAppAccess: true, isSystem: true, sortOrder: 0 },
     { name: 'Student member', slug: 'student-member', category: 'student', isInactive: false, requiresParent: false, hasAppAccess: true, isSystem: true, sortOrder: 1 },
     { name: 'Student inactive member', slug: 'student-inactive', category: 'student', isInactive: true, requiresParent: false, hasAppAccess: false, isSystem: true, sortOrder: 2 },
     { name: 'Official L1 member', slug: 'official-l1', category: 'official', level: 1, isInactive: false, requiresParent: false, hasAppAccess: true, isSystem: true, sortOrder: 3 },

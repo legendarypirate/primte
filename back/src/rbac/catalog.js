@@ -87,7 +87,7 @@ const KIND_META = {
   member: {
     key: 'member',
     label: 'Prime апп',
-    description: 'Гишүүнчлэлийн 4 төрөл: Суралцагч, I, II, III түвшин.',
+    description: 'Гишүүнчлэлийн 5 төрөл: Гишүүн биш, Суралцагч, I, II, III түвшин.',
   },
   judge: {
     key: 'judge',
@@ -160,6 +160,7 @@ const ROLE_PRESETS = {
     'site.view',
     'scoring.view',
   ],
+  'non-member': [...MEMBER_CORE],
   'student-member': [
     ...MEMBER_CORE,
     'app.attendance',
@@ -274,6 +275,15 @@ const SYSTEM_ROLES = [
     isSuper: false,
     isSystem: true,
     sortOrder: 4,
+  },
+  {
+    slug: 'non-member',
+    name: 'Гишүүн биш',
+    description: 'Prime апп — бүртгэлтэй, гишүүнчлэлгүй хэрэглэгч',
+    kind: 'member',
+    isSuper: false,
+    isSystem: true,
+    sortOrder: 10,
   },
   {
     slug: 'student-member',
@@ -391,6 +401,7 @@ function sanitizePermissions(kind, permissions) {
 function memberRoleSlug(member = {}) {
   const type = member.MemberType || member.memberType || {};
   const category = type.category || member.category || '';
+  if (type.slug === 'non-member' || category === 'non-member') return 'non-member';
   if (category === 'junior') {
     const juniorLevel = Number(type.level ?? member.memberTypeLevel ?? 1);
     if (juniorLevel >= 3) return 'level-3-member';

@@ -70,6 +70,7 @@ sequelize
   .then(() => require('./services/memberUsernameService').backfillMemberUsernames())
   .then(() => require('./services/memberUsernameService').backfillMemberNames())
   .then(() => require('./services/memberActivities').backfillMemberActivities())
+  .then(() => require('./services/memberProgression').ensureSystemMemberTypes())
   .then(() => require('./services/memberProgression').ensureStudentDefaults())
   .then(() => require('./services/rbacService').ensureSystemRoles())
   .then(() => {

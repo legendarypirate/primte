@@ -39,6 +39,11 @@ test('addExperience never decreases XP', () => {
   assert.deepEqual(addExperience({ xp: 80, rp: 200 }, { xp: -20, rp: -50 }), { xp: 80, rp: 150, level: 1 });
 });
 
+test('non-member category stays Non member', () => {
+  assert.equal(membershipLabel(0, 'non-member'), 'Non member');
+  assert.equal(membershipLabel(3, 'non-member'), 'Non member');
+});
+
 test('junior labels use academy levels, not Student', () => {
   assert.equal(membershipLabel(0, 'junior'), 'Junior L1 member');
   assert.equal(membershipLabel(1, 'junior'), 'Junior L1 member');

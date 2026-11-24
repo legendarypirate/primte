@@ -56,19 +56,32 @@ async function ensureMemberCascadeFks() {
   }
 }
 
-async function deleteMember(member) {
-  await sequelize.transaction(async (t) => {
-    await removeCompetitorsByMemberId(member.id, { transaction: t });
-    await MemberDevelopmentActivity.destroy({ where: { memberId: member.id }, transaction: t });
-    await Registration.destroy({ where: { memberId: member.id }, transaction: t });
-    await Attendance.destroy({ where: { memberId: member.id }, transaction: t });
-    await MemberPointEvent.destroy({ where: { memberId: member.id }, transaction: t });
-    await MemberProgress.destroy({ where: { memberId: member.id }, transaction: t });
-    await Judge.update({ memberId: null }, { where: { memberId: member.id }, transaction: t });
-    await Payment.destroy({ where: { memberId: member.id }, transaction: t });
+async function deleteMembers(memberIds, { transaction: outer } = {}) {
+  const ids = [...new Set((memberIds || []).map(String).filter(Boolean))];
+  if (!ids.length) return 0;
+
+  const run = async (t) => {
+    const members = await Member.findAll({
+      where: { id: ids },
+      attributes: ['id'],
+      transaction: t,
+    });
+    const foundIds = members.map((row) => row.id);
+    if (!foundIds.length) return 0;
+
+    for (const id of foundIds) {
+      await removeCompetitorsByMemberId(id, { transaction: t });
+    }
+    await MemberDevelopmentActivity.destroy({ where: { memberId: foundIds }, transaction: t });
+    await Registration.destroy({ where: { memberId: foundIds }, transaction: t });
+    await Attendance.destroy({ where: { memberId: foundIds }, transaction: t });
+    await MemberPointEvent.destroy({ where: { memberId: foundIds }, transaction: t });
+    await MemberProgress.destroy({ where: { memberId: foundIds }, transaction: t });
+    await Judge.update({ memberId: null }, { where: { memberId: foundIds }, transaction: t });
+    await Payment.destroy({ where: { memberId: foundIds }, transaction: t });
 
     const orders = await Order.findAll({
-      where: { memberId: member.id },
+      where: { memberId: foundIds },
       attributes: ['id'],
       transaction: t,
     });
@@ -78,10 +91,18 @@ async function deleteMember(member) {
       await Order.destroy({ where: { id: orderIds }, transaction: t });
     }
 
-    await Transaction.destroy({ where: { memberId: member.id }, transaction: t });
-    await Member.update({ parentId: null }, { where: { parentId: member.id }, transaction: t });
-    await member.destroy({ transaction: t });
-  });
+    await Transaction.destroy({ where: { memberId: foundIds }, transaction: t });
+    await Member.update({ parentId: null }, { where: { parentId: foundIds }, transaction: t });
+    await Member.destroy({ where: { id: foundIds }, transaction: t });
+    return foundIds.length;
+  };
+
+  if (outer) return run(outer);
+  return sequelize.transaction(run);
 }
 
-module.exports = { deleteMember, ensureMemberCascadeFks };
+async function deleteMember(member) {
+  await deleteMembers([member.id]);
+}
+
+module.exports = { deleteMember, deleteMembers, ensureMemberCascadeFks };

@@ -46,7 +46,7 @@ const {
 const { toDelta } = require('../domain/membership');
 const { toDateOnly, membershipDates } = require('../domain/dates');
 const { resolveMemberNames } = require('../domain/names');
-const { deleteMember } = require('../services/memberDelete');
+const { deleteMember, deleteMembers } = require('../services/memberDelete');
 const {
   developmentActivitiesInclude,
   normalizeActivityIds,
@@ -390,6 +390,31 @@ router.post('/members/add-xp', requirePermission('members.update'), async (req, 
   });
   if (!updated.length) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
   res.json({ members: updated.map((m) => serializeMember(m, req)) });
+});
+
+router.post('/members/bulk-status', requirePermission('members.update'), async (req, res) => {
+  const ids = Array.isArray(req.body?.memberIds) ? req.body.memberIds : [];
+  const uniqueIds = [...new Set(ids.map(String).filter(Boolean))];
+  const status = String(req.body?.status || '').trim();
+  if (!uniqueIds.length) return res.status(400).json({ message: 'Гишүүн сонгоно уу.' });
+  if (uniqueIds.length > 500) return res.status(400).json({ message: 'Хамгийн ихдээ 500 гишүүн сонгоно уу.' });
+  if (status !== 'active' && status !== 'inactive') return res.status(400).json({ message: 'Төлөв буруу.' });
+
+  const members = await Member.findAll({ where: { id: uniqueIds }, attributes: ['id'] });
+  if (!members.length) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
+  const foundIds = members.map((m) => m.id);
+  await Member.update({ status }, { where: { id: foundIds } });
+  res.json({ ok: true, updated: foundIds.length, status });
+});
+
+router.post('/members/bulk-delete', requirePermission('members.delete'), async (req, res) => {
+  const ids = Array.isArray(req.body?.memberIds) ? req.body.memberIds : [];
+  const uniqueIds = [...new Set(ids.map(String).filter(Boolean))];
+  if (!uniqueIds.length) return res.status(400).json({ message: 'Гишүүн сонгоно уу.' });
+  if (uniqueIds.length > 500) return res.status(400).json({ message: 'Хамгийн ихдээ 500 гишүүн сонгоно уу.' });
+  const deleted = await deleteMembers(uniqueIds);
+  if (!deleted) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
+  res.json({ ok: true, deleted });
 });
 
 router.get('/members/:id', requirePermission('members.view'), async (req, res) => {

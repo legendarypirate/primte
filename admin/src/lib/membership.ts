@@ -6,6 +6,7 @@ export function membershipLevel(xp = 0, rp = 0) {
 }
 
 export function membershipLabel(level: number, category?: string | null) {
+  if (category === "non-member") return "Non member";
   if (category === "junior") {
     const n = Math.max(1, Number(level) || 1);
     return `Junior L${n} member`;

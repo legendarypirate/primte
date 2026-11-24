@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { GraduationCap, HeartHandshake, Plus, UserRound } from "lucide-react";
+import { GraduationCap, HeartHandshake, Plus, Trash2, UserCheck, UserRound, UserX } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -251,6 +251,9 @@ export default function MembersPage() {
   const [xpAmount, setXpAmount] = useState<number | "">("");
   const [rpAmount, setRpAmount] = useState<number | "">("");
   const [xpSaving, setXpSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [statusSaving, setStatusSaving] = useState<"active" | "inactive" | null>(null);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
 
@@ -334,6 +337,8 @@ export default function MembersPage() {
   const allFilteredSelected = filtered.length > 0 && filtered.every((m) => selectedSet.has(m.id));
   const selectedCount = selectedIds.length;
   const canAddXp = can("members.update");
+  const canUpdate = can("members.update");
+  const canDelete = can("members.delete");
 
   function setFilter<K extends keyof MemberFilters>(key: K, value: MemberFilters[K]) {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -390,6 +395,52 @@ export default function MembersPage() {
     }
   }
 
+  async function setSelectedStatus(status: "active" | "inactive", ids = selectedIds) {
+    if (!ids.length) {
+      toast.error("Гишүүн сонгоно уу");
+      return;
+    }
+    setStatusSaving(status);
+    try {
+      const result = await api<{ updated: number }>("/api/admin/members/bulk-status", {
+        method: "POST",
+        body: JSON.stringify({ memberIds: ids, status }),
+      });
+      toast.success(
+        status === "active"
+          ? `${result.updated} гишүүнийг идэвхтэй болголоо`
+          : `${result.updated} гишүүнийг идэвхгүй болголоо`
+      );
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Төлөв солигдсонгүй");
+    } finally {
+      setStatusSaving(null);
+    }
+  }
+
+  async function deleteSelected() {
+    if (!selectedIds.length) {
+      toast.error("Гишүүн сонгоно уу");
+      return;
+    }
+    setDeleting(true);
+    try {
+      const result = await api<{ deleted: number }>("/api/admin/members/bulk-delete", {
+        method: "POST",
+        body: JSON.stringify({ memberIds: selectedIds }),
+      });
+      toast.success(`${result.deleted} гишүүнийг устгалаа`);
+      setDeleteOpen(false);
+      setSelectedIds([]);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Устгаж чадсангүй");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else {
@@ -416,6 +467,29 @@ export default function MembersPage() {
           {canAddXp && (
             <Button variant="outline" disabled={!selectedCount} onClick={() => setXpOpen(true)}>
               XP нэмэх{selectedCount ? ` (${selectedCount})` : ""}
+            </Button>
+          )}
+          {canUpdate && (
+            <>
+              <Button
+                variant="outline"
+                disabled={!selectedCount || Boolean(statusSaving)}
+                onClick={() => setSelectedStatus("active")}
+              >
+                <UserCheck className="size-4" /> Идэвхтэй{selectedCount ? ` (${selectedCount})` : ""}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!selectedCount || Boolean(statusSaving)}
+                onClick={() => setSelectedStatus("inactive")}
+              >
+                <UserX className="size-4" /> Идэвхгүй{selectedCount ? ` (${selectedCount})` : ""}
+              </Button>
+            </>
+          )}
+          {canDelete && (
+            <Button variant="destructive" disabled={!selectedCount} onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="size-4" /> Устгах{selectedCount ? ` (${selectedCount})` : ""}
             </Button>
           )}
           {can("members.create") && (
@@ -505,11 +579,38 @@ export default function MembersPage() {
                   <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
                     Болих
                   </Button>
-                  {canAddXp && (
-                    <Button size="sm" className="ml-auto" onClick={() => setXpOpen(true)}>
-                      XP нэмэх
-                    </Button>
-                  )}
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    {canAddXp && (
+                      <Button size="sm" onClick={() => setXpOpen(true)}>
+                        XP нэмэх
+                      </Button>
+                    )}
+                    {canUpdate && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={Boolean(statusSaving)}
+                          onClick={() => setSelectedStatus("active")}
+                        >
+                          <UserCheck className="size-4" /> Идэвхтэй
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={Boolean(statusSaving)}
+                          onClick={() => setSelectedStatus("inactive")}
+                        >
+                          <UserX className="size-4" /> Идэвхгүй
+                        </Button>
+                      </>
+                    )}
+                    {canDelete && (
+                      <Button size="sm" variant="destructive" onClick={() => setDeleteOpen(true)}>
+                        <Trash2 className="size-4" /> Устгах
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ) : null
             }
@@ -577,7 +678,20 @@ export default function MembersPage() {
                   <TableCell>{m.developmentActivities?.map((a) => a.name).join(", ") || m.developmentActivity?.name || "—"}</TableCell>
                   <TableCell>{tugrik(m.walletBalance)}</TableCell>
                   <TableCell>
-                    <StatusBadge active={m.status === "active"} inactiveLabel={m.status} />
+                    {canUpdate ? (
+                      <MemberStatusSwitch
+                        status={m.status}
+                        disabled={Boolean(statusSaving)}
+                        onToggle={() =>
+                          setSelectedStatus(m.status === "active" ? "inactive" : "active", [m.id])
+                        }
+                      />
+                    ) : (
+                      <StatusBadge
+                        active={m.status === "active"}
+                        inactiveLabel={m.status === "expired" ? "Хугацаа дууссан" : "Идэвхгүй"}
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
                     <ActionCell>
@@ -617,6 +731,25 @@ export default function MembersPage() {
             </TableBody>
           </Table>
           </DataTable>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Гишүүн устгах</DialogTitle>
+            <DialogDescription>
+              Сонгосон {selectedCount} гишүүнийг бүрмөсөн устгана. Энэ үйлдлийг буцаах боломжгүй.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+              Болих
+            </Button>
+            <Button variant="destructive" onClick={deleteSelected} disabled={deleting || !selectedCount}>
+              {deleting ? "Устгаж байна..." : "Устгах"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={xpOpen} onOpenChange={setXpOpen}>
         <DialogContent className="sm:max-w-md">
@@ -670,6 +803,45 @@ export default function MembersPage() {
         </SheetContent>
       </Sheet>
     </Shell>
+  );
+}
+
+function MemberStatusSwitch({
+  status,
+  disabled,
+  onToggle,
+  showLabel = true,
+}: {
+  status: string;
+  disabled?: boolean;
+  onToggle: () => void;
+  showLabel?: boolean;
+}) {
+  const active = status === "active";
+  const label = active ? "Идэвхтэй" : status === "expired" ? "Хугацаа дууссан" : "Идэвхгүй";
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={active}
+        aria-label={label}
+        disabled={disabled}
+        onClick={onToggle}
+        className={cn(
+          "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+          active ? "bg-primary" : "bg-muted-foreground/30"
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
+            active ? "left-5" : "left-0.5"
+          )}
+        />
+      </button>
+      {showLabel ? <span className="text-xs text-muted-foreground">{label}</span> : null}
+    </div>
   );
 }
 
@@ -1234,25 +1406,15 @@ function MemberFormDrawer({
           <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2 md:col-span-2">
             <div>
               <div className="text-sm font-medium">Төлөв</div>
-              <div className="text-xs text-muted-foreground">{form.status === "active" ? "Идэвхтэй" : form.status === "expired" ? "Хугацаа дууссан" : "Идэвхгүй"}</div>
+              <div className="text-xs text-muted-foreground">
+                {form.status === "active" ? "Идэвхтэй" : form.status === "expired" ? "Хугацаа дууссан" : "Идэвхгүй"}
+              </div>
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={form.status === "active"}
-              onClick={() => set("status", form.status === "active" ? "inactive" : "active")}
-              className={cn(
-                "relative h-6 w-11 rounded-full transition-colors",
-                form.status === "active" ? "bg-primary" : "bg-muted-foreground/30"
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
-                  form.status === "active" ? "left-5" : "left-0.5"
-                )}
-              />
-            </button>
+            <MemberStatusSwitch
+              status={form.status}
+              showLabel={false}
+              onToggle={() => set("status", form.status === "active" ? "inactive" : "active")}
+            />
           </div>
         </div>
       </div>

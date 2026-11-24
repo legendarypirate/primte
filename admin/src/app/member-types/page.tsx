@@ -148,6 +148,7 @@ export default function MemberTypesPage() {
           <FilterField label="Ангилал" className="w-36">
             <FieldSelect value={category} onChange={setCategory}>
               <option value="">Бүх ангилал</option>
+              <option value="non-member">Non member</option>
               <option value="student">Student</option>
               <option value="official">Official</option>
               <option value="junior">Junior</option>
@@ -215,6 +216,7 @@ export default function MemberTypesPage() {
         <div className="space-y-1">
           <Label>Ангилал</Label>
           <FieldSelect value={form.category} onChange={(category) => setForm({ ...form, category })}>
+            <option value="non-member">Non member</option>
             <option value="student">Student</option>
             <option value="official">Official</option>
             <option value="junior">Junior</option>
