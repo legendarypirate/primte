@@ -265,7 +265,7 @@ function serializeChildSummary(member, req, extra = {}) {
     memberTypeLevel: type?.level ?? null,
     validFromLabel: formatDate(member.validFrom),
     validToLabel: formatDate(member.validTo),
-    attendancePercent: extra.attendancePercent ?? 92,
+    attendancePercent: extra.attendancePercent ?? 0,
     competitionCount: member.competitionCount,
   };
 }

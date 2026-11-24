@@ -14,6 +14,7 @@ const {
   Registration,
   Division,
   MatchType,
+  Attendance,
 } = require('../models');
 const { requireMember } = require('../middleware/auth');
 const { isConfigured, uploadBuffer } = require('../services/cloudinaryUpload');
@@ -34,6 +35,7 @@ const {
   serializeTraining,
   serializePresentMember,
   serializeNotice,
+  serializeAttendance,
   formatDate,
   formatTime,
 } = require('../utils/helpers');
@@ -591,6 +593,31 @@ router.get('/qr', async (req, res) => {
     payload: `PRIME|${req.member.memberCode}|${Date.now()}`,
     member: serializeMember(req.member, req),
     ttl: 30,
+  });
+});
+
+router.get('/attendance', async (req, res) => {
+  const year = Number(req.query.year) || new Date().getFullYear();
+  const month = Number(req.query.month) || new Date().getMonth() + 1;
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0, 23, 59, 59);
+  const records = await Attendance.findAll({
+    where: { memberId: req.member.id, createdAt: { [Op.between]: [start, end] } },
+    order: [['createdAt', 'DESC']],
+  });
+  const attended = records.length;
+  const goal = 12;
+  res.json({
+    month: `${year} оны ${month} сар`,
+    attended,
+    missed: 0,
+    goal,
+    percent: Math.min(100, Math.round((attended / goal) * 100)),
+    calendarDays: records.map((row) => ({
+      day: new Date(row.createdAt).getDate(),
+      kind: row.kind,
+    })),
+    logs: records.map(serializeAttendance),
   });
 });
 

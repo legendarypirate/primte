@@ -43,10 +43,10 @@ function membershipDisplayLabel(type, xp = 0, rp = 0) {
 function membershipDisplayLevel(type, xp = 0, rp = 0) {
   const category = type?.category || null;
   if (category === 'non-member') return 0;
-  if (category === 'junior') return Math.max(1, Number(type?.level) || 1);
+  if (category === 'junior') return Math.min(3, Math.max(1, Number(type?.level) || 1));
   const computed = computeMembershipLevel(xp, rp);
   const typed = Number(type?.level);
-  return Math.max(computed, Number.isFinite(typed) ? typed : 0);
+  return Math.min(3, Math.max(computed, Number.isFinite(typed) ? typed : 0));
 }
 
 function toDelta(value) {
