@@ -1339,10 +1339,10 @@ function MemberFormDrawer({
           </Field>
           <Field label="Гишүүний төрөл" required>
             <FieldSelect value={typeCategory} onChange={(value) => setTypeCategory(value as TypeCategory)}>
+              <option value="non-member">Non member</option>
               <option value="student">Student</option>
               <option value="official">Official</option>
               <option value="junior">Junior</option>
-              {typeCategory === "non-member" ? <option value="non-member">Non member</option> : null}
             </FieldSelect>
           </Field>
           <Field label="Түвшин" required={needsLevel}>
