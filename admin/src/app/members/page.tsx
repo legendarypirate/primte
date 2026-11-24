@@ -1272,7 +1272,6 @@ function MemberFormDrawer({
       ? "Жуниор бүртгэх"
       : "Насанд хүрсэн гишүүн бүртгэх";
 
-  const juniorLevel = selectedType?.level || 1;
   const codeOptional = isNonMemberType(selectedType);
 
   function setTypeCategory(category: TypeCategory) {
@@ -1473,30 +1472,9 @@ function MemberFormDrawer({
           <Field label="Дуусах огноо" required>
             <DatePicker required value={form.validTo} onChange={(validTo) => set("validTo", validTo)} />
           </Field>
-          <Field label="Гишүүнчлэлийн түвшин">
-            <div className="rounded-lg border border-border px-3 py-2">
-              <div className="text-sm font-medium">
-                {selectedType?.name ||
-                  (isJunior
-                    ? membershipLabel(juniorLevel, "junior")
-                    : membershipLabel(membershipLevel(num(form.xp), num(form.rp))))}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                XP {num(form.xp)} · RP {num(form.rp)} · зөвхөн ирц, тэмцээн, XP нэмэхээр өөрчлөгдөнө
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {isJunior
-                  ? "Жуниор түвшин нь хөтөлбөрийн анги. 18 нас хүртлээ насанд хүрэгчдийн системд шилжинэ."
-                  : "XP > 50 → Level 1 · XP > 50 ба RP > 150 → Level 2 · XP > 200 ба RP > 600 → Level 3"}
-              </p>
-            </div>
-          </Field>
           <Field label="Ранк">
             <Input type="number" value={form.rank} onChange={(e) => set("rank", e.target.value === "" ? "" : Number(e.target.value))} />
           </Field>
-          <div className="md:col-span-2">
-            <FileUpload label="Зураг холбоос" folder="prime/members" value={form.avatarUrl} onChange={(avatarUrl) => set("avatarUrl", avatarUrl)} />
-          </div>
           <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2 md:col-span-2">
             <div>
               <div className="text-sm font-medium">Төлөв</div>
