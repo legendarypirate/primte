@@ -19,6 +19,7 @@ const Member = sequelize.define('Member', {
   motto: { type: DataTypes.STRING, defaultValue: 'Багтай бай. Илүү хол явна.' },
   xp: { type: DataTypes.INTEGER, defaultValue: 0 },
   rp: { type: DataTypes.INTEGER, defaultValue: 0 },
+  rpByMatchType: { type: DataTypes.JSONB, allowNull: true, defaultValue: {}, field: 'rp_by_match_type' },
   level: { type: DataTypes.INTEGER, defaultValue: 0 },
   rank: { type: DataTypes.INTEGER, defaultValue: 0 },
   competitionCount: { type: DataTypes.INTEGER, defaultValue: 0, field: 'competition_count' },

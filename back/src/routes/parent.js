@@ -146,7 +146,8 @@ router.get('/children', async (req, res) => {
     include: [MemberType],
     order: [['name', 'ASC']],
   });
-  res.json({ children: children.map((c) => serializeChildSummary(c, req)) });
+  const matchTypes = await MatchType.findAll({ order: [['name', 'ASC']] });
+  res.json({ children: children.map((c) => serializeChildSummary(c, req, { matchTypes })) });
 });
 
 router.get('/children/:id', async (req, res) => {
@@ -171,9 +172,13 @@ router.get('/children/:id', async (req, res) => {
     where: { memberId: child.id, createdAt: { [Op.gte]: monthStart } },
   });
 
+  const matchTypes = await MatchType.findAll({ order: [['name', 'ASC']] });
   res.json({
-    child: serializeMember(child, req),
-    summary: serializeChildSummary(child, req, { attendancePercent: calcAttendancePercent(monthAttendance) }),
+    child: serializeMember(child, req, { matchTypes }),
+    summary: serializeChildSummary(child, req, {
+      attendancePercent: calcAttendancePercent(monthAttendance),
+      matchTypes,
+    }),
     progress: child.progress ? serializeProgress(child.progress) : null,
     recentActivity: [
       ...recentAttendance.map((a) => ({
@@ -229,7 +234,10 @@ router.get('/children/:id/attendance', async (req, res) => {
 router.get('/children/:id/points', async (req, res) => {
   const child = await getChildForParent(req.parent.id, req.params.id);
   if (!child) return res.status(404).json({ message: 'Хүүхэд олдсонгүй.' });
-  res.json(await listPointHistory(child, { kind: req.query.kind }));
+  res.json(await listPointHistory(child, {
+    kind: req.query.kind,
+    matchTypeId: req.query.matchTypeId,
+  }));
 });
 
 router.get('/children/:id/progress', async (req, res) => {

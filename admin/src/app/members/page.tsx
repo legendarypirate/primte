@@ -38,6 +38,8 @@ type Named = {
   level?: number | null;
   isInactive?: boolean;
 };
+type MatchType = { id: string; name: string; comment?: string };
+type RpType = { id: string; name: string; comment?: string; rp: number };
 type TypeCategory = "non-member" | "student" | "official" | "junior";
 type ParentRow = { id: string; name: string; phone?: string; email?: string };
 type RegistrationKind = "adult" | "junior" | "parent";
@@ -56,6 +58,7 @@ type Member = {
   classification?: string | null;
   xp?: number;
   rp?: number;
+  rpTypes?: RpType[];
   level: number;
   membershipLabel?: string;
   rank: number;
@@ -244,6 +247,7 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [parents, setParents] = useState<ParentRow[]>([]);
   const [memberTypes, setMemberTypes] = useState<Named[]>([]);
+  const [matchTypes, setMatchTypes] = useState<MatchType[]>([]);
   const [activities, setActivities] = useState<Named[]>([]);
   const [nextMemberCode, setNextMemberCode] = useState("");
   const [query, setQuery] = useState("");
@@ -254,6 +258,7 @@ export default function MembersPage() {
   const [xpOpen, setXpOpen] = useState(false);
   const [xpAmount, setXpAmount] = useState<number | "">("");
   const [rpAmount, setRpAmount] = useState<number | "">("");
+  const [rpMatchTypeId, setRpMatchTypeId] = useState("");
   const [xpSaving, setXpSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -264,11 +269,12 @@ export default function MembersPage() {
   async function load() {
     const [memberData, lookups, parentData] = await Promise.all([
       api<{ members: Member[] }>("/api/admin/members"),
-      api<{ memberTypes: Named[]; activities: Named[]; nextMemberCode?: string }>("/api/admin/lookups"),
+      api<{ memberTypes: Named[]; activities: Named[]; matchTypes: MatchType[]; nextMemberCode?: string }>("/api/admin/lookups"),
       api<{ parents: ParentRow[] }>("/api/admin/parents"),
     ]);
     setMembers(memberData.members);
     setMemberTypes(lookups.memberTypes);
+    setMatchTypes(lookups.matchTypes || []);
     setActivities(lookups.activities);
     setParents(parentData.parents);
     if (lookups.nextMemberCode) setNextMemberCode(lookups.nextMemberCode);
@@ -280,13 +286,14 @@ export default function MembersPage() {
     let cancelled = false;
     Promise.all([
       api<{ members: Member[] }>("/api/admin/members"),
-      api<{ memberTypes: Named[]; activities: Named[]; nextMemberCode?: string }>("/api/admin/lookups"),
+      api<{ memberTypes: Named[]; activities: Named[]; matchTypes: MatchType[]; nextMemberCode?: string }>("/api/admin/lookups"),
       api<{ parents: ParentRow[] }>("/api/admin/parents"),
     ])
       .then(([memberData, lookups, parentData]) => {
         if (cancelled) return;
         setMembers(memberData.members);
         setMemberTypes(lookups.memberTypes);
+        setMatchTypes(lookups.matchTypes || []);
         setActivities(lookups.activities);
         setParents(parentData.parents);
         if (lookups.nextMemberCode) setNextMemberCode(lookups.nextMemberCode);
@@ -381,16 +388,21 @@ export default function MembersPage() {
       toast.error("XP эсвэл RP оруулна уу");
       return;
     }
+    if (rp && !rpMatchTypeId) {
+      toast.error("RP-д тоглолтын төрөл сонгоно уу");
+      return;
+    }
     setXpSaving(true);
     try {
       await api("/api/admin/members/add-xp", {
         method: "POST",
-        body: JSON.stringify({ memberIds: selectedIds, xp, rp }),
+        body: JSON.stringify({ memberIds: selectedIds, xp, rp, matchTypeId: rp ? rpMatchTypeId : undefined }),
       });
-      toast.success(`${selectedIds.length} гишүүнд XP нэмлээ`);
+      toast.success(`${selectedIds.length} гишүүнд оноо бүртгэлээ`);
       setXpOpen(false);
       setXpAmount("");
       setRpAmount("");
+      setRpMatchTypeId("");
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Алдаа");
@@ -685,7 +697,19 @@ export default function MembersPage() {
                       )}
                   </TableCell>
                   <TableCell>{m.xp ?? 0}</TableCell>
-                  <TableCell>{m.rp ?? 0}</TableCell>
+                  <TableCell>
+                    {m.rpTypes?.length ? (
+                      <div className="space-y-0.5 text-xs">
+                        {m.rpTypes.map((t) => (
+                          <div key={t.id}>
+                            <span className="text-muted-foreground">{t.name}</span> {t.rp}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      m.rp ?? 0
+                    )}
+                  </TableCell>
                   <TableCell>{m.parentName || "—"}</TableCell>
                   <TableCell>{m.developmentActivities?.map((a) => a.name).join(", ") || m.developmentActivity?.name || "—"}</TableCell>
                   <TableCell>{tugrik(m.walletBalance)}</TableCell>
@@ -787,6 +811,18 @@ export default function MembersPage() {
                 onChange={(e) => setRpAmount(e.target.value === "" ? "" : Number(e.target.value))}
               />
             </Field>
+            {matchTypes.length > 0 && (
+              <div className="sm:col-span-2">
+                <Field label="RP тоглолтын төрөл" required={Boolean(rpAmount)}>
+                  <FieldSelect value={rpMatchTypeId} onChange={setRpMatchTypeId}>
+                    <option value="">Сонгоно уу</option>
+                    {matchTypes.map((type) => (
+                      <option key={type.id} value={type.id}>{type.name}</option>
+                    ))}
+                  </FieldSelect>
+                </Field>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setXpOpen(false)}>Болих</Button>

@@ -255,6 +255,7 @@ function serializeChildSummary(member, req, extra = {}) {
     avatarUrl: publicUrl(req, member.avatarUrl),
     xp: member.xp || 0,
     rp: member.rp || 0,
+    rpTypes: extra.rpTypes || rpTypesFrom(member, extra.matchTypes),
     level,
     membershipLabel: membershipDisplayLabel(type, member.xp, member.rp),
     rank: member.rank,
@@ -366,7 +367,22 @@ function serializeActivity(activity) {
   return { id: activity.id, name: activity.name, slug: activity.slug };
 }
 
-function serializeMember(member, req) {
+function rpBag(member) {
+  const bag = member?.rpByMatchType;
+  return bag && typeof bag === 'object' && !Array.isArray(bag) ? bag : {};
+}
+
+function rpTypesFrom(member, matchTypes = []) {
+  const bag = rpBag(member);
+  return (matchTypes || []).map((type) => ({
+    id: type.id,
+    name: type.name,
+    comment: type.comment || '',
+    rp: Math.max(0, Number(bag[type.id] || 0)),
+  }));
+}
+
+function serializeMember(member, req, extra = {}) {
   const type = member.MemberType;
   const activities = memberActivityList(member);
   const activity = activities[0] || member.DevelopmentActivity || null;
@@ -392,6 +408,7 @@ function serializeMember(member, req) {
     motto: member.motto,
     xp: member.xp || 0,
     rp: member.rp || 0,
+    rpTypes: extra.rpTypes || rpTypesFrom(member, extra.matchTypes),
     level,
     membershipLabel: membershipDisplayLabel(type, member.xp, member.rp),
     rank: member.rank,
@@ -455,4 +472,5 @@ module.exports = {
   serializeProgress,
   serializePurchase,
   memberHasPermission,
+  rpTypesFrom,
 };

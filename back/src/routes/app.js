@@ -121,8 +121,9 @@ router.get('/home', async (req, res) => {
   });
   const map = Object.fromEntries(counts.map((c) => [c.competitionId, Number(c.joined)]));
 
+  const matchTypes = await MatchType.findAll({ order: [['name', 'ASC']] });
   res.json({
-    member: serializeMember(req.member, req),
+    member: serializeMember(req.member, req, { matchTypes }),
     club,
     competitions: await Promise.all(
       competitions.map((c) =>
@@ -590,7 +591,10 @@ router.post('/profile/avatar', singleAvatarFile, async (req, res) => {
 });
 
 router.get('/points', async (req, res) => {
-  res.json(await listPointHistory(req.member, { kind: req.query.kind }));
+  res.json(await listPointHistory(req.member, {
+    kind: req.query.kind,
+    matchTypeId: req.query.matchTypeId,
+  }));
 });
 
 router.get('/qr', async (req, res) => {

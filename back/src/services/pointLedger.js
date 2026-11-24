@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const { Member, MemberPointEvent, MemberType, Match, Competition, MatchType } = require('../models');
-const { formatDate, formatTime } = require('../utils/helpers');
+const { formatDate, formatTime, rpTypesFrom } = require('../utils/helpers');
 const { applyPointDelta, POINT_RULES, competitionXpAward, XP_AWARDS } = require('../domain/points');
 
 const SOURCE_TITLES = {
@@ -26,6 +26,7 @@ function serializePointEvent(event) {
     timeLabel: formatTime(event.createdAt),
     signedLabel: `${up ? '+' : ''}${event.delta}`,
     createdAt: event.createdAt,
+    matchTypeId: event.matchTypeId || null,
   };
 }
 
@@ -39,6 +40,7 @@ async function writeEvents(member, {
   note,
   refType,
   refId,
+  matchTypeId,
 } = {}, { transaction } = {}) {
   const rows = [];
   if (xpDelta > 0) {
@@ -65,6 +67,7 @@ async function writeEvents(member, {
       note: note || null,
       refType: refType || null,
       refId: refId || null,
+      matchTypeId: matchTypeId || null,
     });
   }
   if (!rows.length) return [];
@@ -84,11 +87,17 @@ async function applyMemberPoints(member, delta, meta = {}, { transaction } = {})
     memberTypeId: member.memberTypeId,
   };
   await applyMemberProgression(data, { current: member, syncType: true });
+  const matchTypeId = meta.matchTypeId || null;
+  const rpByMatchType = { ...(member.rpByMatchType && typeof member.rpByMatchType === 'object' ? member.rpByMatchType : {}) };
+  if (next.rpDelta !== 0 && matchTypeId) {
+    rpByMatchType[matchTypeId] = Math.max(0, (Number(rpByMatchType[matchTypeId]) || 0) + next.rpDelta);
+  }
   await member.update({
     xp: data.xp,
     rp: data.rp,
     level: data.level,
     memberTypeId: data.memberTypeId,
+    rpByMatchType,
   }, { transaction });
   await writeEvents(member, {
     xpDelta: next.xpDelta,
@@ -96,6 +105,7 @@ async function applyMemberPoints(member, delta, meta = {}, { transaction } = {})
     xpAfter: data.xp,
     rpAfter: data.rp,
     ...meta,
+    matchTypeId,
   }, { transaction });
   return member;
 }
@@ -224,17 +234,22 @@ async function awardTrainingHourXp(member, attendance, { hours = 1, transaction 
   );
 }
 
-async function listPointHistory(member, { kind } = {}) {
+async function listPointHistory(member, { kind, matchTypeId } = {}) {
   const where = { memberId: member.id };
   if (kind === 'xp' || kind === 'rp') where.kind = kind;
-  const events = await MemberPointEvent.findAll({
-    where,
-    order: [['createdAt', 'DESC']],
-    limit: 200,
-  });
+  if (kind === 'rp' && matchTypeId) where.matchTypeId = matchTypeId;
+  const [events, matchTypes] = await Promise.all([
+    MemberPointEvent.findAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: 200,
+    }),
+    MatchType.findAll({ order: [['name', 'ASC']] }),
+  ]);
   return {
     xp: member.xp || 0,
     rp: member.rp || 0,
+    rpTypes: rpTypesFrom(member, matchTypes),
     rules: POINT_RULES,
     events: events.map(serializePointEvent),
   };

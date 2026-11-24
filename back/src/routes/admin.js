@@ -263,12 +263,15 @@ router.get('/members', requirePermission('members.view'), async (req, res) => {
         ],
       }
     : undefined;
-  const members = await Member.findAll({
-    where,
-    include: memberIncludes,
-    order: [['createdAt', 'DESC']],
-  });
-  res.json({ members: members.map((m) => serializeMember(m, req)) });
+  const [members, matchTypes] = await Promise.all([
+    Member.findAll({
+      where,
+      include: memberIncludes,
+      order: [['createdAt', 'DESC']],
+    }),
+    MatchType.findAll({ order: [['name', 'ASC']] }),
+  ]);
+  res.json({ members: members.map((m) => serializeMember(m, req, { matchTypes })) });
 });
 
 router.post('/members', requirePermission('members.create'), async (req, res) => {
@@ -385,10 +388,16 @@ router.post('/members/add-xp', requirePermission('members.update'), async (req, 
   const uniqueIds = [...new Set(ids.map(String).filter(Boolean))];
   const xp = toDelta(req.body?.xp);
   const rp = toDelta(req.body?.rp);
+  const matchTypeId = String(req.body?.matchTypeId || '').trim() || null;
   if (!uniqueIds.length) return res.status(400).json({ message: 'Гишүүн сонгоно уу.' });
   if (uniqueIds.length > 500) return res.status(400).json({ message: 'Хамгийн ихдээ 500 гишүүн сонгоно уу.' });
   if (xp < 0) return res.status(400).json({ message: 'XP зөвхөн нэмэгдэнэ.' });
   if (xp === 0 && rp === 0) return res.status(400).json({ message: 'XP эсвэл RP оруулна уу.' });
+  if (rp !== 0) {
+    if (!matchTypeId) return res.status(400).json({ message: 'RP-д тоглолтын төрөл сонгоно уу.' });
+    const matchType = await MatchType.findByPk(matchTypeId);
+    if (!matchType) return res.status(400).json({ message: 'Тоглолтын төрөл олдсонгүй.' });
+  }
 
   const updated = await sequelize.transaction(async (t) => {
     const members = await grantPoints(uniqueIds, { xp, rp }, {
@@ -396,6 +405,7 @@ router.post('/members/add-xp', requirePermission('members.update'), async (req, 
       source: xp && !rp ? 'admin' : rp && !xp ? 'rating' : 'admin',
       title: req.body?.title,
       note: req.body?.note,
+      matchTypeId,
     });
     if (!members.length) return [];
     return Member.findAll({
@@ -445,13 +455,24 @@ router.get('/members/:id', requirePermission('members.view'), async (req, res) =
     Attendance.findAll({ where: { memberId: member.id }, order: [['createdAt', 'DESC']], limit: 20 }),
     listPointHistory(member),
   ]);
-  res.json({ member: serializeMember(member, req), transactions, orders, registrations, attendance, points });
+  const matchTypes = await MatchType.findAll({ order: [['name', 'ASC']] });
+  res.json({
+    member: serializeMember(member, req, { matchTypes }),
+    transactions,
+    orders,
+    registrations,
+    attendance,
+    points,
+  });
 });
 
 router.get('/members/:id/points', requirePermission('members.view'), async (req, res) => {
   const member = await Member.findByPk(req.params.id);
   if (!member) return res.status(404).json({ message: 'Гишүүн олдсонгүй.' });
-  res.json(await listPointHistory(member, { kind: req.query.kind }));
+  res.json(await listPointHistory(member, {
+    kind: req.query.kind,
+    matchTypeId: req.query.matchTypeId,
+  }));
 });
 
 router.put('/members/:id', requirePermission('members.update'), async (req, res) => {

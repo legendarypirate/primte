@@ -23,6 +23,7 @@ const MemberPointEvent = sequelize.define('MemberPointEvent', {
   note: { type: DataTypes.STRING, allowNull: true },
   refType: { type: DataTypes.STRING, allowNull: true, field: 'ref_type' },
   refId: { type: DataTypes.UUID, allowNull: true, field: 'ref_id' },
+  matchTypeId: { type: DataTypes.UUID, allowNull: true, field: 'match_type_id' },
 }, {
   tableName: 'member_point_events',
   indexes: [
