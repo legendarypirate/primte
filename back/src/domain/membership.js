@@ -19,6 +19,10 @@ function computeMembershipLevel(xp = 0, rp = 0) {
   return 0;
 }
 
+function isNonMemberType(type) {
+  return type?.slug === 'non-member' || type?.category === 'non-member';
+}
+
 function membershipLabel(level, category) {
   if (category === 'non-member') return 'Non member';
   if (category === 'junior') {
@@ -47,5 +51,6 @@ module.exports = {
   toDelta,
   computeMembershipLevel,
   membershipLabel,
+  isNonMemberType,
   addExperience,
 };

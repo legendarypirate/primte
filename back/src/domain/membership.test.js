@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { computeMembershipLevel, membershipLabel, addExperience } = require('./membership');
+const { computeMembershipLevel, membershipLabel, addExperience, isNonMemberType } = require('./membership');
 
 test('new members stay Student until XP exceeds 50', () => {
   assert.equal(computeMembershipLevel(0, 0), 0);
@@ -42,6 +42,8 @@ test('addExperience never decreases XP', () => {
 test('non-member category stays Non member', () => {
   assert.equal(membershipLabel(0, 'non-member'), 'Non member');
   assert.equal(membershipLabel(3, 'non-member'), 'Non member');
+  assert.equal(isNonMemberType({ slug: 'non-member' }), true);
+  assert.equal(isNonMemberType({ category: 'student' }), false);
 });
 
 test('junior labels use academy levels, not Student', () => {

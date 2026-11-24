@@ -43,7 +43,8 @@ const {
   nextStudentCode,
   applyMemberProgression,
 } = require('../services/memberProgression');
-const { toDelta } = require('../domain/membership');
+const { randomUUID } = require('crypto');
+const { toDelta, isNonMemberType } = require('../domain/membership');
 const { toDateOnly, membershipDates } = require('../domain/dates');
 const { resolveMemberNames } = require('../domain/names');
 const { deleteMember, deleteMembers } = require('../services/memberDelete');
@@ -297,14 +298,17 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
   if (!names.name) return res.status(400).json({ message: 'Нэр шаардлагатай.' });
   const loginName = String(username || '').trim().toLowerCase();
   if (!loginName) return res.status(400).json({ message: 'Нэвтрэх нэр шаардлагатай.' });
-  const code = String(memberCode || '').trim() || await nextStudentCode();
-  const exists = await Member.findOne({ where: { memberCode: code } });
-  if (exists) return res.status(400).json({ message: 'Энэ гишүүний ID бүртгэлтэй.' });
   const usernameTaken = await Member.findOne({ where: { username: loginName } });
   if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
   const studentType = await MemberType.findOne({ where: { slug: 'student-member' } });
   const resolvedTypeId = memberTypeId || studentType?.id || null;
   const type = resolvedTypeId ? await MemberType.findByPk(resolvedTypeId) : null;
+  const rawCode = String(memberCode || '').trim();
+  const code = rawCode || (isNonMemberType(type) ? null : await nextStudentCode());
+  if (code) {
+    const exists = await Member.findOne({ where: { memberCode: code } });
+    if (exists) return res.status(400).json({ message: 'Энэ гишүүний ID бүртгэлтэй.' });
+  }
   if (type?.requiresParent && !parentAccountId && !parentId && !parentName) {
     return res.status(400).json({ message: 'Junior гишүүнд эцэг/эх сонгоно уу.' });
   }
@@ -325,7 +329,7 @@ router.post('/members', requirePermission('members.create'), async (req, res) =>
     lastName: names.lastName,
     username: loginName,
     memberCode: code,
-    pinHash: await bcrypt.hash(code, 10),
+    pinHash: await bcrypt.hash(code || randomUUID(), 10),
     passwordHash: password ? await bcrypt.hash(String(password), 10) : null,
     phone,
     email: email || null,
@@ -516,15 +520,20 @@ router.put('/members/:id', requirePermission('members.update'), async (req, res)
     if (usernameTaken) return res.status(400).json({ message: 'Энэ нэвтрэх нэр бүртгэлтэй.' });
     data.username = loginName;
   }
-  if (data.memberCode) {
-    data.memberCode = String(data.memberCode).trim();
-    let pinMatchesCode = false;
-    try {
-      pinMatchesCode = Boolean(member.pinHash) && (await bcrypt.compare(data.memberCode, member.pinHash));
-    } catch {
-      pinMatchesCode = false;
+  if (data.memberCode !== undefined) {
+    const nextCode = String(data.memberCode || '').trim() || null;
+    if (nextCode) {
+      const codeTaken = await Member.findOne({ where: { memberCode: nextCode, id: { [Op.ne]: member.id } } });
+      if (codeTaken) return res.status(400).json({ message: 'Энэ гишүүний ID бүртгэлтэй.' });
+      let pinMatchesCode = false;
+      try {
+        pinMatchesCode = Boolean(member.pinHash) && (await bcrypt.compare(nextCode, member.pinHash));
+      } catch {
+        pinMatchesCode = false;
+      }
+      if (!pinMatchesCode) data.pinHash = await bcrypt.hash(nextCode, 10);
     }
-    if (!pinMatchesCode) data.pinHash = await bcrypt.hash(data.memberCode, 10);
+    data.memberCode = nextCode;
   }
   const password = String(req.body?.password || '').trim();
   if (password) data.passwordHash = await bcrypt.hash(password, 10);

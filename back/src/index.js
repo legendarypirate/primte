@@ -53,6 +53,11 @@ sequelize
   .then(() => require('./services/memberDelete').ensureMemberCascadeFks())
   .then(async () => {
     try {
+      await sequelize.query('ALTER TABLE "members" ALTER COLUMN "member_code" DROP NOT NULL');
+    } catch {
+      // already nullable
+    }
+    try {
       await sequelize.query('ALTER TABLE "order_items" ALTER COLUMN "product_id" DROP NOT NULL');
     } catch {
       // already nullable

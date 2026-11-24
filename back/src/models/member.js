@@ -7,7 +7,7 @@ const Member = sequelize.define('Member', {
   firstName: { type: DataTypes.STRING, allowNull: true, field: 'first_name' },
   lastName: { type: DataTypes.STRING, allowNull: true, field: 'last_name' },
   username: { type: DataTypes.STRING, allowNull: true, unique: true },
-  memberCode: { type: DataTypes.STRING, allowNull: false, unique: true, field: 'member_code' },
+  memberCode: { type: DataTypes.STRING, allowNull: true, unique: true, field: 'member_code' },
   pinHash: { type: DataTypes.STRING, allowNull: false, field: 'pin_hash' },
   passwordHash: { type: DataTypes.STRING, allowNull: true, field: 'password_hash' },
   phone: { type: DataTypes.STRING },

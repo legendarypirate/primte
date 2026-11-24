@@ -45,7 +45,7 @@ type Member = {
   firstName?: string | null;
   lastName?: string | null;
   username?: string | null;
-  memberCode: string;
+  memberCode?: string | null;
   hasPassword?: boolean;
   phone?: string;
   email?: string | null;
@@ -68,7 +68,7 @@ type Member = {
   parentName?: string | null;
   avatarUrl?: string | null;
   category?: string | null;
-  memberType?: { name: string; requiresParent?: boolean; category?: string } | null;
+  memberType?: { name: string; slug?: string; requiresParent?: boolean; category?: string } | null;
   developmentActivity?: { name: string } | null;
   developmentActivities?: { id: string; name: string }[];
 };
@@ -660,7 +660,7 @@ export default function MembersPage() {
                       {m.hasPassword ? " · нууц үгтэй" : ""}
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{m.memberCode}</TableCell>
+                  <TableCell className="font-mono text-xs">{m.memberCode || "—"}</TableCell>
                   <TableCell>{m.email || "—"}</TableCell>
                   <TableCell>{m.birthday ? String(m.birthday).slice(0, 10) : "—"}</TableCell>
                   <TableCell>{m.gender || "—"}</TableCell>
@@ -927,6 +927,10 @@ function typesForKind(memberTypes: Named[], kind: RegistrationKind) {
   return memberTypes.filter((t) => t.category !== "junior");
 }
 
+function isNonMemberType(type?: { slug?: string; category?: string } | null) {
+  return type?.slug === "non-member" || type?.category === "non-member";
+}
+
 function inferKind(member: Member | null): RegistrationKind {
   if (member?.memberType?.category === "junior" || member?.category === "junior") return "junior";
   return "adult";
@@ -1113,14 +1117,20 @@ function MemberFormDrawer({
   const [form, setForm] = useState<MemberForm>(() => {
     const dates = membershipDates(member?.validFrom, member?.validTo);
     if (!member) {
-      return { ...empty, memberCode: nextMemberCode, memberTypeId: fallbackTypeId, ...dates };
+      const initialType = memberTypes.find((t) => t.id === fallbackTypeId);
+      return {
+        ...empty,
+        memberCode: isNonMemberType(initialType) ? "" : nextMemberCode,
+        memberTypeId: fallbackTypeId,
+        ...dates,
+      };
     }
     return {
       ...empty,
       ...memberNames(member),
       name: member.name,
       username: member.username || "",
-      memberCode: member.memberCode,
+      memberCode: member.memberCode || "",
       phone: member.phone || "",
       email: member.email || "",
       birthday: dateValue(member.birthday),
@@ -1149,8 +1159,9 @@ function MemberFormDrawer({
   }
 
   async function save() {
-    if (!form.firstName.trim() || !form.username.trim() || !form.memberCode.trim()) {
-      toast.error("Нэр, нэвтрэх нэр, гишүүний ID оруулна уу");
+    const selected = kindTypes.find((t) => t.id === form.memberTypeId);
+    if (!form.firstName.trim() || !form.username.trim() || (!isNonMemberType(selected) && !form.memberCode.trim())) {
+      toast.error(isNonMemberType(selected) ? "Нэр, нэвтрэх нэр оруулна уу" : "Нэр, нэвтрэх нэр, гишүүний ID оруулна уу");
       return;
     }
     if (isJunior && !form.birthday) {
@@ -1191,6 +1202,7 @@ function MemberFormDrawer({
         lastName: form.lastName.trim(),
         name: [form.firstName, form.lastName].map((part) => part.trim()).filter(Boolean).join(" "),
         birthday: form.birthday || null,
+        memberCode: form.memberCode.trim() || null,
         rank: num(form.rank),
         memberTypeId: form.memberTypeId || fallbackTypeId || null,
         developmentActivityIds: form.developmentActivityIds,
@@ -1215,8 +1227,10 @@ function MemberFormDrawer({
       ? "Жуниор бүртгэх"
       : "Насанд хүрсэн гишүүн бүртгэх";
 
-  const selectedJuniorType = kindTypes.find((t) => t.id === form.memberTypeId);
+  const selectedType = kindTypes.find((t) => t.id === form.memberTypeId);
+  const selectedJuniorType = selectedType;
   const juniorLevel = selectedJuniorType?.level || 1;
+  const codeOptional = isNonMemberType(selectedType);
 
   return (
     <>
@@ -1225,9 +1239,19 @@ function MemberFormDrawer({
       </SheetHeader>
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Гишүүний ID" required>
-            <Input value={form.memberCode} placeholder="S0001" onChange={(e) => set("memberCode", e.target.value)} />
-            {!member && <p className="text-xs text-muted-foreground">Шинэ гишүүний ID S-ээр эхэлнэ.</p>}
+          <Field label="Гишүүний ID" required={!codeOptional}>
+            <Input
+              value={form.memberCode}
+              placeholder={codeOptional ? "Админаас дараа олгоно" : "S0001"}
+              onChange={(e) => set("memberCode", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              {codeOptional
+                ? "Non member-д гишүүний ID автоматаар олгохгүй. Дараа гараар оруулна."
+                : !member
+                  ? "Шинэ гишүүний ID S-ээр эхэлнэ."
+                  : ""}
+            </p>
           </Field>
           <Field label="Гишүүнчлэл үүссэн огноо" required>
             <DatePicker required value={form.validFrom} onChange={(validFrom) => set("validFrom", validFrom)} />
@@ -1261,7 +1285,21 @@ function MemberFormDrawer({
             <Input value={form.classification} placeholder="Unclassified" onChange={(e) => set("classification", e.target.value)} />
           </Field>
           <Field label={isJunior ? "Жуниор түвшин" : "Гишүүний төрөл"} required>
-            <FieldSelect value={form.memberTypeId} onChange={(memberTypeId) => set("memberTypeId", memberTypeId)}>
+            <FieldSelect
+              value={form.memberTypeId}
+              onChange={(memberTypeId) => {
+                const next = kindTypes.find((t) => t.id === memberTypeId);
+                setForm((current) => ({
+                  ...current,
+                  memberTypeId,
+                  memberCode: isNonMemberType(next)
+                    ? current.memberCode === nextMemberCode
+                      ? ""
+                      : current.memberCode
+                    : current.memberCode || nextMemberCode,
+                }));
+              }}
+            >
               <option value="">Сонгох</option>
               {kindTypes.map((type) => (
                 <option key={type.id} value={type.id}>{type.name}</option>

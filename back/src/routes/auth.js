@@ -14,7 +14,7 @@ const {
 } = require('../middleware/auth');
 const { serializeMember } = require('../utils/helpers');
 const { resolveMemberNames } = require('../domain/names');
-const { nextStudentCode } = require('../services/memberProgression');
+const { randomUUID } = require('crypto');
 const { formatPhone, isValidMnPhone, normalizePhone } = require('../utils/phone');
 const {
   consumeVerifySession,
@@ -232,14 +232,13 @@ async function createVerifiedMember(pending) {
   }
 
   const nonMemberType = await MemberType.findOne({ where: { slug: 'non-member' } });
-  const code = await nextStudentCode();
   const created = await Member.create({
     name: pending.name,
     firstName: pending.firstName,
     lastName: pending.lastName,
     username: pending.username,
-    memberCode: code,
-    pinHash: pending.passwordHash,
+    memberCode: null,
+    pinHash: await bcrypt.hash(randomUUID(), 10),
     passwordHash: pending.passwordHash,
     phone: formatPhone(pending.phone),
     status: 'active',
