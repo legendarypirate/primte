@@ -1201,9 +1201,8 @@ function MemberFormDrawer({
   }
 
   async function save() {
-    const selected = memberTypes.find((t) => t.id === form.memberTypeId);
-    if (!form.firstName.trim() || !form.username.trim() || (!isNonMemberType(selected) && !form.memberCode.trim())) {
-      toast.error(isNonMemberType(selected) ? "Нэр, нэвтрэх нэр оруулна уу" : "Нэр, нэвтрэх нэр, гишүүний ID оруулна уу");
+    if (!form.firstName.trim() || !form.username.trim()) {
+      toast.error("Нэр, нэвтрэх нэр оруулна уу");
       return;
     }
     if (isJunior && !form.birthday) {
@@ -1289,7 +1288,7 @@ function MemberFormDrawer({
       </SheetHeader>
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Гишүүний ID" required={!codeOptional}>
+          <Field label="Гишүүний ID">
             <Input
               value={form.memberCode}
               placeholder={codeOptional ? "Админаас дараа олгоно" : "Гараар оруулна"}
