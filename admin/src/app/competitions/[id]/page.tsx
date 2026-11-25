@@ -417,7 +417,7 @@ export default function CompetitionDetailPage() {
                     {d.abbreviation} — {d.name}
                   </Button>
                 ))}
-                {!divisions.length && <p className="text-sm text-muted-foreground"><Link href="/divisions" className="text-primary underline">Division</Link> нэмнэ үү.</p>}
+                {!divisions.length && <p className="text-sm text-muted-foreground"><Link href="/match-types?tab=divisions" className="text-primary underline">Ангилал</Link> нэмнэ үү.</p>}
               </div>
               <div className="space-y-2">
                 <Label>Категори</Label>

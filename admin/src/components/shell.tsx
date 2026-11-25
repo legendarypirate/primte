@@ -22,7 +22,6 @@ import {
   Gavel,
   HeartHandshake,
   Swords,
-  Layers,
   LayoutTemplate,
   ChevronDown,
   PanelLeftClose,
@@ -50,7 +49,6 @@ const navGroups: NavGroup[] = [
       { href: "/members", label: "Гишүүд", icon: Users, permission: "members.view" },
       { href: "/judges", label: "Шүүгчид", icon: Gavel, permission: "judges.view", fallback: "members.view" },
       { href: "/parents", label: "Эцэг эх", icon: HeartHandshake, permission: "parents.view", fallback: "members.view" },
-      { href: "/attendance", label: "Ирц / QR", icon: QrCode, permission: "attendance.view" },
       { href: "/member-types", label: "Гишүүний төрөл", icon: Tags, permission: "member_types.manage" },
       { href: "/activities", label: "Хөгжлийн хөтөлбөр", icon: Briefcase, permission: "activities.manage" },
     ],
@@ -60,9 +58,9 @@ const navGroups: NavGroup[] = [
     label: "Тэмцээн & сургалт",
     items: [
       { href: "/competitions", label: "Тэмцээн", icon: Trophy, permission: "competitions.view" },
+      { href: "/attendance", label: "Ирц / QR", icon: QrCode, permission: "attendance.view" },
       { href: "/trainings", label: "Сургалт", icon: GraduationCap, permission: "trainings.view" },
-      { href: "/match-types", label: "Тоглолтын төрөл", icon: Swords, permission: "match_types.manage" },
-      { href: "/divisions", label: "Ангилал", icon: Layers, permission: "divisions.manage" },
+      { href: "/match-types", label: "Төрөл, ангилал", icon: Swords, permission: "match_types.manage", fallback: "divisions.manage" },
     ],
   },
   {
@@ -187,7 +185,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
         <nav className="flex-1 space-y-3 overflow-y-auto overflow-x-hidden" key={tick}>
           {groups.map((group, index) => {
-            const hasActive = group.items.some((item) => item.href === pathname);
+            const hasActive = group.items.some(
+              (item) => item.href === pathname || (item.href === "/match-types" && pathname.startsWith("/divisions"))
+            );
             const open = collapsed || hasActive || !closedGroups.includes(group.id);
             return (
               <div key={group.id}>
@@ -207,7 +207,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 {open && (
                   <div className="mt-0.5 space-y-0.5">
                     {group.items.map((item) => {
-                      const active = pathname === item.href;
+                      const active =
+                        pathname === item.href ||
+                        (item.href === "/match-types" && pathname.startsWith("/divisions"));
                       const Icon = item.icon;
                       return (
                         <Link
